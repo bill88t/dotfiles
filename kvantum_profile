@@ -1,0 +1,4 @@
+if [ "$XDG_CURRENT_DESKTOP" = "GNOME" ]; then
+    export QT_QPA_PLATFORMTHEME=kvantum
+    export QT_STYLE_OVERRIDE=kvantum
+fi

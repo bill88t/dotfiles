@@ -1,0 +1,1 @@
+ssh bill88t@0.feline.gr -p25564 "sudo shutdown now; exit 0"

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Determine GUI or TTY
+if [ -e "/usr/bin/kate" ]; then
+    if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
+        exec kate -b "$@" >/dev/null 2>&1
+    else
+        exec micro "$@"
+    fi
+else
+    exec micro "$@"
+fi

@@ -1,0 +1,10 @@
+aliases["nht"] = "nhentai --no-html -t @(int($(nproc).strip())) --id"
+
+aliases["lsgovernor"] = "cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+
+aliases["jf"] = "journalctl -f"
+aliases["jb"] = "journalctl -b"
+
+aliases["mv_subdirfiles_to_pwd"] = "sh -c 'find . -mindepth 2 -type f -exec mv -t . {} +'"
+
+aliases["wifipass"] = "nmcli dev wifi show-password"

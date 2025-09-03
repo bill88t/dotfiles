@@ -1,0 +1,11 @@
+# bill88t's configuration / LOAD XONSH
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+xonsh
+clear
+exit 0

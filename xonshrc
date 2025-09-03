@@ -1,0 +1,48 @@
+# bill88t's xonsh configuration
+
+# Profile config
+source ~/git/dotfiles/xonsh/config_defaults
+#source ~/git/dotfiles/xonsh/secrets
+#source ~/git/dotfiles/xonsh/fydetab_overrides
+
+#source ~/git/dotfiles/xonsh/kvantum_profile
+#source ~/git/dotfiles/xonsh/qt6ct_profile
+
+if __xonsh__.env.get("XONSH_INTERACTIVE"):
+    $color_prompt=True
+
+    # Base environment
+    source ~/git/dotfiles/xonsh/base_env           # Basic environment
+    source ~/git/dotfiles/xonsh/base_aliases       # Basic aliases
+    source ~/git/dotfiles/xonsh/extra_aliases      # Things you could live without
+
+    # Compile aliases
+    #source ~/git/dotfiles/xonsh/cp_aliases        # Circuitpython building
+
+    # Common aliases
+    #source ~/git/dotfiles/xonsh/ssh_aliases       # SSH into common devices
+    #source ~/git/dotfiles/xonsh/serial_aliases    # For using tio
+    source ~/git/dotfiles/xonsh/git_aliases        # General git aliases
+    #source ~/git/dotfiles/xonsh/docker_aliases    # A bunch of docker aliases
+    #source ~/git/dotfiles/xonsh/th_aliases        # For using my thermal printer
+    #source ~/git/dotfiles/xonsh/gpg_aliases       # GPG command aliases
+    #source ~/git/dotfiles/xonsh/rkdev_aliases     # rkdeveloptool aliases
+    #source ~/git/dotfiles/xonsh/governor_aliases  # governor settings aliases
+
+    # Distro command aliases
+    #source ~/git/dotfiles/xonsh/arch_aliases      # For use on arch distros.
+    #source ~/git/dotfiles/xonsh/bred_aliases      # For use on BredOS.
+
+    # Device specific alias sets
+    #source ~/git/dotfiles/xonsh/bixel_aliases     # Google Pixel 2XL
+    #source ~/git/dotfiles/xonsh/keyfalse_aliases  # Project KeyFalse
+    #source ~/git/dotfiles/xonsh/thinkpood_aliases # Thinkpad T480
+    #source ~/git/dotfiles/xonsh/motog32_aliases   # Moto G32
+    #source ~/git/dotfiles/xonsh/r58b_aliases      # r58x
+    #source ~/git/dotfiles/xonsh/fydetab_aliases   # FydeTab Duo Aliases
+    #source ~/git/dotfiles/xonsh/bps_aliases       # Radxa Rock 5B Plus Server "bps"
+
+    # Shell extras
+    #source ~/git/dotfiles/xonsh/zoxide_loader     # z directory changer
+
+    bredos-news || true

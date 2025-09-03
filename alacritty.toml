@@ -1,0 +1,50 @@
+[cursor]
+blink_interval = 250
+blink_timeout = 0
+style.shape = "Block"
+style.blinking = "Always"
+
+[mouse]
+hide_when_typing = true
+
+[font]
+size = 9.0
+
+[window]
+# startup_mode = "Fullscreen"
+dimensions = {columns = 80, lines = 28}
+# decorations = "None"
+decorations = "Full"
+opacity = 0.8
+
+[window.padding]
+x = 3
+# y = 5
+
+[colors.primary]
+background = "#000000"
+foreground = "#ffffff"
+
+[keyboard]
+bindings = [
+  { key = "V",        mods = "Control|Shift", action = "Paste" },
+  { key = "C",        mods = "Control|Shift", action = "Copy" },
+  { key = "Paste",                            action = "Paste" },
+  { key = "Copy",                             action = "Copy" },
+  { key = "F11",                              action = "ToggleFullscreen" },
+  { key = "Insert",   mods = "Shift",         action = "PasteSelection" },
+  { key = "F",        mods = "Control|Shift", action = "SearchForward",     mode = "~Search" },
+  { key = "B",        mods = "Control|Shift", action = "SearchBackward",    mode = "~Search" },
+  { key = "Key0",     mods = "Control|Shift", action = "ResetFontSize" },
+  { key = "Equals",   mods = "Control|Shift", action = "IncreaseFontSize" },
+  { key = "Minus",    mods = "Control|Shift", action = "DecreaseFontSize" },
+  { key = "L",        mods = "Control",       action = "ClearLogNotice" },
+  { key = "L",        mods = "Control",       chars  = "\f" },
+  { key = "PageUp",   mods = "Shift",         action = "ScrollPageUp",      mode = "~Alt" },
+  { key = "PageDown", mods = "Shift",         action = "ScrollPageDown",    mode = "~Alt" },
+  { key = "Up",       mods = "Shift",         action = "ScrollLineUp",      mode = "~Alt" },
+  { key = "Down",     mods = "Shift",         action = "ScrollLineDown",    mode = "~Alt" },
+  { key = "Home",     mods = "Shift",         action = "ScrollToTop",       mode = "~Alt" },
+  { key = "End",      mods = "Shift",         action = "ScrollToBottom",    mode = "~Alt" },
+  { key = "Q",        mods = "Control|Shift", action = "Quit",              mode = "~Alt" },
+]

@@ -1,0 +1,8 @@
+alias rk="sudo rkdeveloptool"
+alias rkl="sudo rkdeveloptool ld"
+alias rkfi="sudo rkdeveloptool rfi"
+alias rkdb="sudo rkdeveloptool db ~/git/dotfiles/rk3588_spl_loader_v1.15.113.bin"
+alias rkdb3566="sudo rkdeveloptool db ~/git/dotfiles/rk356x_spl_loader_ddr1056_v1.10.111.bin"
+alias rkf="sudo rkdeveloptool wl 0"
+alias rkci="sudo rkdeveloptool rci"
+alias rkrd="sudo rkdeveloptool rd"

@@ -1,0 +1,33 @@
+aliases["espload"] = "source-bash ~/git/esp-idf-v5.3/export.sh"
+aliases["espload4"] = "source-bash ~/git/esp-idf-v5.4.1/export.sh"
+aliases["espmload"] = "source-bash ~/git/esp-idf-master/export.sh"
+
+$DEFAULT_IDF = "~/git/esp-idf-v5.3/export.sh"
+
+class safenv:
+    def __enter__(self):
+        self._og = __xonsh__.env.detype()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for i in __xonsh__.env.keys():
+            if i not in self._og.keys():
+                del __xonsh__.env[i]
+            else:
+                __xonsh__.env[i] = self._og[i]
+
+def utio_chipid():
+    with safenv():
+        espload
+        while not os.path.exists({$DEFAULT_TTYACM}):
+            print('Waiting for board..')
+            time.sleep 1
+        esptool.py --port /dev/ttyUSB0 chip_id
+
+aliases["utio-chipid"] = utio_chipid
+del utio_chipid
+
+# alias utio-bchipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyUSB0 --before no_reset --after no_reset chip_id)"
+# alias atio-chipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyACM0 chip_id)"
+# alias atio-bchipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyACM0 --before no_reset --after no_reset chip_id)"
+
+NUM_CPUS=$(nproc)

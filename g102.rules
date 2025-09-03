@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c092", RUN+="/usr/bin/bash -c \"g203-led lightsync breathe ff0000 2000 40 && sleep 1 && g203-led lightsync solid 400000\""

@@ -1,0 +1,85 @@
+# My basic aliases
+aliases["ls"] = "ls --color=auto"
+aliases["ll"] = "ls --color=auto -lh"
+aliases["la"] = "ls --color=auto -lha"
+aliases["date-dash"] = "date +%Y-%m-%d-%H:%M:%S"  # use this for tagging stuff.
+aliases["py"] = "python3"
+aliases["ff"] = "fastfetch"
+aliases["dun"] = "du -h -d 1"
+aliases["m"] = "micro"
+aliases["mf"] = "micro -config-dir ~/.config/microfast"
+aliases["reload"] = "source ~/.xonshrc"
+aliases["grep"] = "grep --color=auto"
+aliases["fgrep"] = "fgrep --color=auto"
+aliases["egrep"] = "egrep --color=auto"
+
+def hist(args):
+    return $(history | grep @args | tac | bat)
+aliases["hist"] = hist
+del hist
+
+def als():
+    for alias_name, command in aliases.items():
+        print(f"Alias: {alias_name}\nCommand: {command}\n-------")
+aliases['als'] = als
+del als
+
+def getal(alias_name):
+    if alias_name in aliases:
+        print(aliases[alias_name])
+    else:
+        print(f"Alias '{alias_name}' not found.")
+
+aliases['getal'] = getal
+del getal
+
+# Seek structure recursively for text in files
+def findcontent(*args):
+    return $(grep -rl @args .)
+aliases['findcontent'] = findcontent
+del findcontent
+
+# Copy, Cut, and Paste operations
+$COPY_SOURCE = ''
+$COPY_NAME = ''
+$CUT_MODE = 0
+
+def copy(path):
+    global $COPY_SOURCE, $COPY_NAME, $CUT_MODE
+    if not path:
+        print("Usage: copy <file_or_directory>")
+        return 1
+    $COPY_SOURCE = $(realpath @(path))
+    $COPY_NAME = $(basename @(path))
+    $CUT_MODE = 0
+
+aliases['copy'] = copy
+
+def cut(path):
+    global $COPY_SOURCE, $COPY_NAME, $CUT_MODE
+    if not path:
+        print("Usage: cut <file_or_directory>")
+        return 1
+    $COPY_SOURCE = $(realpath @(path))
+    $COPY_NAME = $(basename @(path))
+    $CUT_MODE = 1
+
+aliases['cut'] = cut
+
+def paste(target_name=None):
+    if not $COPY_SOURCE or not $COPY_NAME:
+        print("No copied or cut file/directory.")
+        return 1
+
+    target_name = target_name or $COPY_NAME
+
+    if $CUT_MODE:
+        $(mv -- @($COPY_SOURCE) @(f"./{target_name}"))
+        $COPY_SOURCE = ''
+        $COPY_NAME = ''
+        $CUT_MODE = 0
+    else:
+        $(cp -r -- @($COPY_SOURCE) @(f"./{target_name}"))
+
+aliases['paste'] = paste
+del paste

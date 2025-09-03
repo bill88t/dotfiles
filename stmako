@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+mako -c ~/git/dotfiles/mako.conf

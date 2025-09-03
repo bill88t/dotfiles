@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+cd ~
+killall waybar 2>/dev/null | true
+systemctl --user reset-failed
+dbus-update-activation-environment --all
+dbus-run-session niri --session --config ~/git/dotfiles/niri.kdl > /dev/null 2>&1
+systemctl --user unset-environment WAYLAND_DISPLAY DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP NIRI_SOCKET
+killall -s TERM waybar.sh

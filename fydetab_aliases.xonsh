@@ -1,0 +1,2 @@
+$DEFAULT_TTYACM = "/dev/ttyACM1"
+$DEFAULT_TTYUSB = "/dev/ttyUSB0"
