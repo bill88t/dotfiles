@@ -15,8 +15,8 @@ ALACRITTY_TARGET = HOME / ".alacritty.toml"
 BASE_PACKAGES = SCRIPT_DIR / "packages1.txt"
 GPG_CONF_SRC = SCRIPT_DIR / "gpg-agent.conf"
 GPG_CONF_DST = HOME / ".gnupg" / "gpg-agent.conf"
-NIRI_SERVICE_SRC = SCRIPT_DIR / "niri.service"
-NIRI_SERVICE_DST = HOME / ".config/systemd/user/niri.service"
+NIRI_SRC = SCRIPT_DIR / "niri"
+NIRI_DST = HOME / ".config/niri"
 
 
 def confirm_overwrite(path, force) -> bool:
@@ -176,25 +176,9 @@ def main():
     else:
         interactive_mode(force=args.replace)
 
+
 def install_niri(force=False):
-    # Load template and replace [USERNAME HERE] with actual username/home
-    text = NIRI_SERVICE_SRC.read_text()
-    text = text.replace("/home/[USERNAME HERE]", str(HOME))
-
-    if not confirm_overwrite(NIRI_SERVICE_DST, force):
-        return
-
-    NIRI_SERVICE_DST.parent.mkdir(parents=True, exist_ok=True)
-    NIRI_SERVICE_DST.write_text(text)
-    print(f"Installed systemd user service to {NIRI_SERVICE_DST}")
-
-    try:
-        subprocess.run(
-            ["systemctl", "--user", "daemon-reload"],
-            check=True
-        )
-    except subprocess.CalledProcessError as e:
-        pass
+    symlink_file(NIRI_SRC, NIRI_DST, force=force)
 
 
 INSTALLERS = {
