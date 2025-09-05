@@ -42,7 +42,7 @@ tooltip {
 }
 
 #workspaces {
-    margin: 6px 0px 6px 6px;
+    margin: 1px 0px 1px 4px;
 }
 
 #workspaces button {
@@ -52,7 +52,7 @@ tooltip {
     padding: 2px 2px;
     color: @text;
     background-color: @base;
-    border: 2px solid @text;
+    border: 1px solid @text;
     border-radius: 6px;
     margin-right: 2px;
 }

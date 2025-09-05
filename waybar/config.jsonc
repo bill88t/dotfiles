@@ -15,7 +15,6 @@
     ],
 
     "modules-center": [
-        "niri/window"
     ],
 
     "modules-right": [
@@ -55,11 +54,6 @@
         "disable-scroll": true,
         "all-outputs": true,
         "tooltip": false
-    },
-
-    "niri/window": {
-	    "format": "{title}",
-	    "max-length": 60,
     },
 
     "clock": {
