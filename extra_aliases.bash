@@ -112,3 +112,34 @@ zarchive() {
 
 alias tiny_rsync='rsync --whole-file --info=progress2 -zaHAX'
 alias best_rsync='rsync --info=progress2 -zaHAX'
+
+pchain() {
+    local pid="$1"
+    if [[ -z $pid || ! $pid =~ ^[0-9]+$ ]]; then
+        echo "Usage: pchain PID" >&2
+        return 2
+    fi
+
+    # Print header
+    printf "%-8s | %s\n" "PID" "Name"
+    printf "%s\n" "--------+----------------"
+
+    while [[ $pid != 0 ]]; do
+        local name ppid
+
+        if [[ -r /proc/$pid/comm ]]; then
+            name=$(head -c -1 /proc/$pid/comm 2>/dev/null)
+            [[ -n $name ]] || name="[unknown]"
+        else
+            name="[no-comm]"
+        fi
+
+        printf "%-8s | %s\n" "$pid" "$name"
+
+        [[ -r /proc/$pid/status ]] || break
+        ppid=$(awk '/^PPid:/ {print $2; exit}' /proc/$pid/status)
+        [[ -n $ppid && $ppid -ne $pid ]] || break
+
+        pid=$ppid
+    done
+}
