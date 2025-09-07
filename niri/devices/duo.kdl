@@ -1,0 +1,14 @@
+input {
+    tablet {
+        // map-to-output "DSI-1"
+    }
+}
+
+output "DSI-1" {
+    transform "270"
+}
+
+debug {
+    render-drm-device "/dev/dri/renderD130"
+}
+

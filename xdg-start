@@ -1,4 +1,0 @@
-#!/usr/bin/env sh
-
-systemctl --user start --wait xdg-desktop-portal-gtk
-systemctl --user start --wait xdg-desktop-portal

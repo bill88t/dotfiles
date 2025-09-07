@@ -31,15 +31,6 @@ input {
         // accel-speed 0.2
         // accel-profile "flat"
     }
-
-    tablet {
-        // map-to-output "DSI-1"
-
-    }
-}
-
-output "DSI-1" {
-    transform "270"
 }
 
 layout {
@@ -96,8 +87,11 @@ window-rule {
     clip-to-geometry true
 }
 
+// Install `archlinux-xdg-menu` and run
+// XDG_MENU_PREFIX=arch- kbuildsycoca6
+
 environment {
-    XDG_MENU_PREFIX "plasma-"
+    XDG_MENU_PREFIX "arch-"
 }
 
 gestures {
@@ -205,8 +199,4 @@ binds {
     Mod+L { power-off-monitors; }
     XF86MonBrightnessDown cooldown-ms=30 { spawn "brightnessctl" "-n1" "s" "10-"; }
     XF86MonBrightnessUp cooldown-ms=30 { spawn "brightnessctl" "s" "+10"; }
-}
-
-debug {
-    render-drm-device "/dev/dri/renderD130"
 }

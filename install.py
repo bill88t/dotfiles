@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 import re
 import subprocess
+import socket
 
 HOME = Path.home()
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -177,9 +178,303 @@ def main():
         interactive_mode(force=args.replace)
 
 
-def install_niri(force=False):
-    symlink_file(NIRI_SRC, NIRI_DST, force=force)
 
+# --- KDL merge helpers (brace-aware, immediate-child merge) ---
+def _find_matching_brace(s: str, start: int) -> int:
+    """Given index of '{' in s, return index of matching '}' (inclusive)."""
+    depth = 1
+    i = start + 1
+    in_str = False
+    esc = False
+    while i < len(s):
+        c = s[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                in_str = False
+            i += 1
+            continue
+        # not in string
+        if c == '"':
+            in_str = True
+            i += 1
+            continue
+        # skip // comments
+        if c == "/" and i + 1 < len(s) and s[i+1] == "/":
+            # skip to end of line
+            j = s.find("\n", i+2)
+            if j == -1:
+                return len(s) - 1
+            i = j + 1
+            continue
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return i
+        i += 1
+    raise ValueError("Unbalanced braces")
+
+def _iter_top_blocks(s: str):
+    """Yield (key, start_line_start, block_start_brace, end_brace_idx, header, inner_start, inner_end)."""
+    i = 0
+    while True:
+        brace = s.find("{", i)
+        if brace == -1:
+            return
+        # find start of header line
+        line_start = s.rfind("\n", 0, brace)
+        if line_start == -1:
+            line_start = 0
+        else:
+            line_start += 1
+        header = s[line_start:brace].strip()
+        # skip if header looks empty or commented
+        if not header or header.startswith("//"):
+            i = brace + 1
+            continue
+        # Only treat as top-level if brace is at nesting level 0
+        depth = 0
+        j = i
+        in_str = False
+        esc = False
+        while j < brace:
+            c = s[j]
+            if in_str:
+                if esc:
+                    esc = False
+                elif c == "\\":
+                    esc = True
+                elif c == '"':
+                    in_str = False
+                j += 1
+                continue
+            if c == '"':
+                in_str = True
+                j += 1
+                continue
+            if c == "/" and j + 1 < len(s) and s[j+1] == "/":
+                nl = s.find("\n", j+2)
+                if nl == -1:
+                    break
+                j = nl + 1
+                continue
+            if c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+            j += 1
+        if depth != 0:
+            i = brace + 1
+            continue
+        end_brace = _find_matching_brace(s, brace)
+        inner_start = brace + 1
+        inner_end = end_brace
+        key = " ".join(header.split())  # normalize whitespace in key
+        yield (key, line_start, brace, end_brace, header, inner_start, inner_end)
+        i = end_brace + 1
+
+def _split_immediate_children(block_inner: str):
+    """Return (ordered_lines, ordered_blocks)
+    - ordered_lines: list of (name, full_line)
+    - ordered_blocks: list of (key, full_text)
+    Only immediate depth-0 children within a block.
+    """
+    lines = []
+    blocks = []
+    i = 0
+    depth = 0
+    in_str = False
+    esc = False
+    line_start = 0
+    while i < len(block_inner):
+        c = block_inner[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                in_str = False
+            i += 1
+            continue
+        if c == '"':
+            in_str = True
+            i += 1
+            continue
+        # line comments
+        if c == "/" and i + 1 < len(block_inner) and block_inner[i+1] == "/":
+            nl = block_inner.find("\n", i+2)
+            if nl == -1:
+                nl = len(block_inner)
+            if depth == 0:
+                # treat the comment as part of the current line; skip it
+                pass
+            i = nl + 1
+            continue
+        if c == "{":
+            if depth == 0:
+                header_line_start = block_inner.rfind("\n", 0, i)
+                if header_line_start == -1:
+                    header_line_start = 0
+                else:
+                    header_line_start += 1
+                header = block_inner[header_line_start:i].strip()
+                endb = _find_matching_brace(block_inner, i)
+                full = block_inner[header_line_start:endb+1]
+                key = " ".join(header.split())
+                blocks.append((key, full))
+                i = endb + 1
+                line_start = i
+                continue
+            depth += 1
+            i += 1
+            continue
+        if c == "}":
+            if depth > 0:
+                depth -= 1
+            i += 1
+            continue
+        if c == "\n":
+            if depth == 0:
+                line = block_inner[line_start:i].rstrip()
+                if line.strip():
+                    raw = line.strip()
+                    cm = raw.find("//")
+                    raw_key = raw[:cm].strip() if cm != -1 else raw
+                    name = raw_key.split()[0] if raw_key else raw[:2]
+                    lines.append((name, line))
+                line_start = i + 1
+            i += 1
+            continue
+        i += 1
+    if line_start < len(block_inner):
+        tail = block_inner[line_start:].rstrip()
+        if tail.strip():
+            raw = tail.strip()
+            cm = raw.find("//")
+            raw_key = raw[:cm].strip() if cm != -1 else raw
+            name = raw_key.split()[0] if raw_key else raw[:2]
+            lines.append((name, tail))
+    return lines, blocks
+
+def _merge_block_inner(base_inner: str, override_inner: str, indent: str) -> str:
+    base_lines, base_blocks = _split_immediate_children(base_inner)
+    o_lines, o_blocks = _split_immediate_children(override_inner)
+
+    base_line_idx = {k: i for i, (k, _) in enumerate(base_lines)}
+    base_block_idx = {k: i for i, (k, _) in enumerate(base_blocks)}
+
+    merged_lines = list(base_lines)
+    merged_blocks = list(base_blocks)
+
+    for k, line in o_lines:
+        if k in base_line_idx:
+            merged_lines[base_line_idx[k]] = (k, line)
+        else:
+            merged_lines.append((k, line))
+
+    for k, block in o_blocks:
+        if k in base_block_idx:
+            merged_blocks[base_block_idx[k]] = (k, block)
+        else:
+            merged_blocks.append((k, block))
+
+    out = []
+    for _, line in merged_lines:
+        stripped = line.lstrip()
+        out.append(indent + stripped)
+    if merged_lines and merged_blocks:
+        out.append("")
+    for _, block in merged_blocks:
+        import textwrap
+        blk = textwrap.dedent(block.strip("\n"))
+        blk = "\n".join(indent + ln for ln in blk.splitlines()) + "\n"
+        out.append(blk)
+    if out and out[-1] != "":
+        out.append("")
+    return "\n".join(out)
+
+def merge_kdl_documents(base: str, override: str) -> str:
+    base_blocks = list(_iter_top_blocks(base))
+    base_index = {key: (start, end, brace, header, inner_start, inner_end)
+                  for key, start, brace, end, header, inner_start, inner_end in base_blocks}
+
+    replacements = []
+    appended = []
+
+    for key, o_start, o_brace, o_end, o_header, o_inner_start, o_inner_end in _iter_top_blocks(override):
+        o_inner = override[o_inner_start:o_inner_end]
+        if key in base_index:
+            b_start, b_end, b_brace, b_header, b_inner_start, b_inner_end = base_index[key]
+            b_inner = base[b_inner_start:b_inner_end]
+            # detect child indent from base
+            child_indent = " " * 4
+            m = re.search(r"\n([ \t]+)\S", base[b_brace:b_end])
+            if m:
+                child_indent = m.group(1)
+            merged_inner = _merge_block_inner(b_inner, o_inner, child_indent)
+            new_block = base[b_start:b_brace+1] + "\n" + merged_inner + "}\n"
+            replacements.append((b_start, b_end+1, new_block))
+        else:
+            block_text = override[o_start:o_end+1]
+            appended.append(block_text)
+
+    if replacements:
+        replacements.sort(key=lambda x: x[0])
+        out = []
+        cursor = 0
+        for start, end, new_text in replacements:
+            out.append(base[cursor:start])
+            out.append(new_text)
+            cursor = end
+        out.append(base[cursor:])
+        merged = "".join(out)
+    else:
+        merged = base
+
+    if appended:
+        merged = merged.rstrip() + "\n\n" + "\n\n".join(b.strip("\n") for b in appended) + "\n"
+    return merged
+# --- end helpers ---
+
+def install_niri(force=False):
+    hostname = socket.gethostname()
+    general_cfg = NIRI_SRC / "general.kdl"
+    device_cfg = NIRI_SRC / "devices" / f"{hostname}.kdl"
+    target_dir = NIRI_DST
+    target_file = target_dir / "config.kdl"
+
+    # Ensure target dir is a real directory (unlink symlink if present)
+    if target_dir.is_symlink():
+        target_dir.unlink()
+    if target_dir.exists() and not target_dir.is_dir():
+        if force:
+            target_dir.unlink()
+        else:
+            print(f"{target_dir} exists and is not a directory. Use --replace to overwrite.")
+            return
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    base = general_cfg.read_text()
+    if device_cfg.exists():
+        override = device_cfg.read_text()
+        final_text = merge_kdl_documents(base, override)
+        print(f"Merged `general.kdl` + `devices/{hostname}.kdl`")
+    else:
+        final_text = base
+        print(f"Using `general.kdl` only (no `devices/{hostname}.kdl`).")
+
+    # Write target file
+    if target_file.exists() and not force:
+        if not confirm_overwrite(target_file, force):
+            return
+    target_file.write_text(final_text if final_text.endswith("\n") else final_text + "\n")
+    print(f"Installed Niri config -> `{target_file}`")
 
 INSTALLERS = {
     "bashrc": install_bashrc,
