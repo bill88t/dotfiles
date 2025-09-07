@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+
+import os
+import re
+import tarfile
+import tempfile
+import requests
+import pyalpm
+
+PACMAN_CONF = "/etc/pacman.conf"
+BREDOS_REPOS = ["BredOS-any", "BredOS-multilib", "BredOS"]
+UPSTREAM_REPOS = ["core", "extra"]
+
+ARCH = "aarch64"
+
+def parse_pacman_conf():
+    repos = {}
+    current_repo = None
+    with open(PACMAN_CONF) as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("[") and line.endswith("]"):
+                current_repo = line.strip("[]")
+                repos[current_repo] = []
+            elif line.startswith("Include") and current_repo:
+                include_file = line.split("=", 1)[1].strip()
+                if os.path.exists(include_file):
+                    with open(include_file) as inc:
+                        for url in inc:
+                            url = url.strip()
+                            if url and not url.startswith("#"):
+                                if url.startswith("Server"):
+                                    url = url.split("=", 1)[1].strip()
+                                repos[current_repo].append(url)
+    return repos
+
+def fetch_db(url_template, repo):
+    url_base = (
+        url_template.replace("$arch", ARCH)
+                    .replace("$repo", repo)
+                    .rstrip("/")
+    )
+    # Pacman repos store DBs at <base>/<repo>.db
+    db_url = f"{url_base}/{repo}.db"
+    r = requests.get(db_url, stream=True, timeout=30)
+    if r.status_code != 200:
+        return None
+    tmp = tempfile.NamedTemporaryFile(delete=False)
+    for chunk in r.iter_content(8192):
+        tmp.write(chunk)
+    tmp.close()
+    return tmp.name
+
+def parse_db(path):
+    packages = {}
+    with tarfile.open(path, "r:*") as tar:
+        for member in tar.getmembers():
+            if "/" not in member.name:
+                continue
+            pkgname = member.name.split("/", 1)[0]
+            if pkgname not in packages:
+                packages[pkgname] = {}
+            if member.name.endswith("/desc"):
+                f = tar.extractfile(member)
+                if f:
+                    content = f.read().decode()
+                    name = re.search(r"%NAME%\n([^\n]+)", content)
+                    version = re.search(r"%VERSION%\n([^\n]+)", content)
+                    if name and version:
+                        packages[name.group(1)] = version.group(1)
+    return packages
+
+def aur_version(pkgname):
+    url = f"https://aur.archlinux.org/rpc/?v=5&type=info&arg[]={pkgname}"
+    r = requests.get(url, timeout=15)
+    data = r.json()
+    if data["resultcount"] == 1:
+        return data["results"][0]["Version"]
+    return None
+
+def main():
+    repos = parse_pacman_conf()
+    bredos_pkgs = {}
+    upstream_pkgs = {repo: {} for repo in UPSTREAM_REPOS}
+
+    # Fetch and parse upstream repos
+    for repo in UPSTREAM_REPOS:
+        for url in repos.get(repo, []):
+            db = fetch_db(url, repo)
+            if db:
+                upstream_pkgs[repo].update(parse_db(db))
+                os.unlink(db)
+                break
+
+    # Fetch and parse BredOS repos
+    for repo in BREDOS_REPOS:
+        for url in repos.get(repo, []):
+            db = fetch_db(url, repo)
+            if db:
+                bredos_pkgs.update(parse_db(db))
+                os.unlink(db)
+                break
+
+    # Compare versions
+    for pkg, bredos_ver in bredos_pkgs.items():
+        upstream_ver = None
+        for repo in UPSTREAM_REPOS:
+            if pkg in upstream_pkgs[repo]:
+                upstream_ver = upstream_pkgs[repo][pkg]
+                break
+        if not upstream_ver:
+            upstream_ver = aur_version(pkg)
+        if upstream_ver:
+            cmp_result = pyalpm.vercmp(upstream_ver, bredos_ver)
+            if cmp_result > 0:
+                print(f"{pkg}: {bredos_ver} -> {upstream_ver}")
+
+if __name__ == "__main__":
+    main()
