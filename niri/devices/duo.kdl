@@ -1,3 +1,7 @@
+window-rule {
+    open-fullscreen false
+}
+
 input {
     tablet {
         // map-to-output "DSI-1"
