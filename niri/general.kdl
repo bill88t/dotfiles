@@ -27,7 +27,7 @@ input {
     }
 
     trackpoint {
-        // natural-scroll
+        natural-scroll
         // accel-speed 0.2
         // accel-profile "flat"
     }
