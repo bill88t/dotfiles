@@ -35,7 +35,7 @@ input {
 
 layout {
     gaps 4
-    center-focused-column "on-overflow"
+    center-focused-column "never"
 
     preset-column-widths {
         proportion 0.3333
@@ -45,6 +45,13 @@ layout {
     }
 
     default-column-width { proportion 0.5; }
+
+    // preset-window-height {
+    //     proportion 0.3333
+    //     proportion 0.5
+    //     proportion 0.6667
+    //     proportion 1.0
+    // }
 
     focus-ring {
         // off
@@ -135,12 +142,18 @@ binds {
     Mod+Ctrl+3 { move-column-to-first; }
     Mod+Ctrl+4  { move-column-to-last; }
 
-    Mod+WheelScrollDown      cooldown-ms=100 { focus-column-right; }
-    Mod+WheelScrollUp        cooldown-ms=100 { focus-column-left; }
-    Mod+WheelScrollRight     cooldown-ms=100 { focus-column-right; }
-    Mod+WheelScrollLeft      cooldown-ms=100 { focus-column-left; }
-    Mod+Shift+WheelScrollDown cooldown-ms=100 { focus-workspace-down; }
-    Mod+Shift+WheelScrollUp   cooldown-ms=100 { focus-workspace-up; }
+    Mod+WheelScrollDown          cooldown-ms=100 { focus-column-right; }
+    Mod+TouchpadScrollDown       cooldown-ms=100 { focus-column-right; }
+    Mod+WheelScrollUp            cooldown-ms=100 { focus-column-left; }
+    Mod+TouchpadScrollUp         cooldown-ms=100 { focus-column-left; }
+    Mod+WheelScrollRight         cooldown-ms=100 { focus-column-right; }
+    Mod+TouchpadScrollRight      cooldown-ms=100 { focus-column-right; }
+    Mod+WheelScrollLeft          cooldown-ms=100 { focus-column-left; }
+    Mod+TouchpadScrollLeft       cooldown-ms=100 { focus-column-left; }
+    Mod+Shift+WheelScrollDown    cooldown-ms=100 { focus-workspace-down; }
+    Mod+Shift+TouchpadScrollDown cooldown-ms=100 { focus-workspace-down; }
+    Mod+Shift+WheelScrollUp      cooldown-ms=100 { focus-workspace-up; }
+    Mod+Shift+TouchpadScrollUp   cooldown-ms=100 { focus-workspace-up; }
 
     // Mod+WheelScrollRight      { focus-column-right; }
     // Mod+WheelScrollLeft       { focus-column-left; }
