@@ -36,9 +36,60 @@ tooltip {
 #memory,
 #battery,
 #network,
-#pulseaudio {
+#pulseaudio,
+#pulseaudio-slider {
     margin-left: 4px;
     padding: 0px 4px;
+    border: 2px solid @text;
+    background-color: @base;
+}
+
+#pulseaudio-slider slider {
+    min-height: 0px;
+    min-width: 0px;
+    box-shadow: none;
+    background-color: @text;
+}
+
+#pulseaudio-slider trough {
+    min-height: 4px;
+    min-width: 80px;
+    border-radius: 5px;
+    background-color: @text;
+}
+
+#pulseaudio-slider highlight {
+    min-width: 2px;
+    border: 2px solid @text;
+    background-color: @text;
+}
+
+#custom-start {
+    padding: 1px 3px 0 2px;
+    margin: 0 4px 0 0px;
+    font-size: 14px;
+    color: @text;
+    background-color: @base;
+    border: 2px solid @text;
+    border-radius: 6px;
+}
+
+#custom-niri_left,
+#custom-niri_up,
+#custom-niri_down,
+#custom-niri_right {
+    padding: 2px 6px;
+    margin-left: 2px;
+    margin-right: 2px;
+    font-size: 14px;
+    color: @text;
+    background-color: @base;
+    border: 2px solid @text;
+    border-radius: 6px;
+}
+
+#custom-niri_left {
+    margin-left: 4px;
 }
 
 #workspaces {

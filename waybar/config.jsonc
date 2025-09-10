@@ -10,8 +10,13 @@
     "margin-left": 0,
 
     "modules-left": [
+        "custom/start",
         "clock",
+        "custom/niri_left",
+        "custom/niri_up",
         "niri/workspaces",
+        "custom/niri_down",
+        "custom/niri_right"
     ],
 
     "modules-center": [
@@ -21,14 +26,45 @@
         "cpu",
         "memory",
         "network",
-        "pulseaudio",
+        "pulseaudio#source",
+        "pulseaudio/slider",
         "tray",
         "battery"
     ],
 
+    "custom/start": {
+        "format": "🍞",
+        "interval": 0,
+        "on-click": "sh -c \"killall fuzzel || fuzzel\"",
+    },
+    "custom/niri_left": {
+        "format": "◀",
+        "interval": 0,
+        "on-click": "niri msg action focus-column-left"
+    },
+
+    "custom/niri_up": {
+        "format": "▲",
+        "interval": 0,
+        "on-click": "niri msg action focus-workspace-up"
+    },
+
+    "custom/niri_down": {
+        "format": "▼",
+        "interval": 0,
+        "on-click": "niri msg action focus-workspace-down"
+    },
+
+    "custom/niri_right": {
+        "format": "▶",
+        "interval": 0,
+        "on-click": "niri msg action focus-column-right"
+    },
+
+
     "cpu": {
         "format": "CPU {usage}%",
-        "interval": 2,
+        "interval": 2
     },
 
     "memory": {
@@ -38,6 +74,22 @@
         "states": {
             "critical": 85
         }
+    },
+
+    "pulseaudio/slider": {
+        "min": 0,
+        "max": 100,
+        "orientation": "horizontal"
+    },
+
+    "pulseaudio#source": {
+        "format" : "MIC {format_source}",
+        "format-source-muted": "MUTE",
+        "on-click": "pactl set-source-mute @DEFAULT_SOURCE@ toggle",
+        "on-click-right": "/usr/bin/pavucontrol",
+        "on-scroll-down": "pactl set-source-volume @DEFAULT_SOURCE@ -5%",
+        "on-scroll-up": "pactl set-source-volume @DEFAULT_SOURCE@ +5%"
+
     },
 
     "battery": {
@@ -59,7 +111,7 @@
     "clock": {
         "format": "{:%a %d %b | %H:%M:%S}",
         "tooltip": false,
-        "interval": 1,
+        "interval": 1
     },
 
     "tray": {
@@ -68,11 +120,11 @@
     },
 
     "network": {
-            "format-wifi" : "W d{bandwidthDownBits} | u{bandwidthUpBits}",
-            "format-ethernet": "E d{bandwidthDownBits} | u{bandwidthUpBits}",
+            "format-wifi" : "W d{bandwidthDownBytes} | u{bandwidthUpBytes}",
+            "format-ethernet": "E d{bandwidthDownBytes} | u{bandwidthUpBytes}",
             "format-disconnected" : "DISCONNECTED",
             "on-click": "nm-connection-editor",
             "interval": 3,
-            "tooltip": false,
+            "tooltip": false
     },
 }
