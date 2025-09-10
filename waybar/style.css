@@ -45,10 +45,9 @@ tooltip {
 }
 
 #pulseaudio-slider slider {
-    min-height: 0px;
-    min-width: 0px;
+    min-height: 0;
+    min-width: 0;
     box-shadow: none;
-    background-color: @text;
 }
 
 #pulseaudio-slider trough {
