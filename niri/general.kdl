@@ -74,6 +74,7 @@ spawn-at-startup "/home/bill88t/git/dotfiles/waybar/waybar.sh"
 spawn-at-startup "/home/bill88t/git/dotfiles/stmako"
 spawn-at-startup "swww-daemon"
 spawn-at-startup "/usr/lib/polkit-kde-authentication-agent-1"
+spawn-at-startup "kbuildsycoca6"
 
 hotkey-overlay {
     skip-at-startup
@@ -92,9 +93,6 @@ window-rule {
     geometry-corner-radius 10
     clip-to-geometry true
 }
-
-// Install `archlinux-xdg-menu` and run
-// XDG_MENU_PREFIX=arch- kbuildsycoca6
 
 environment {
     XDG_MENU_PREFIX "arch-"
