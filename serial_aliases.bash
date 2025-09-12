@@ -12,4 +12,4 @@ alias utio='tio /dev/ttyUSB0'  # USB0
 alias utio1='tio /dev/ttyUSB1' # USB1
 alias utio2='tio /dev/ttyUSB2' # USB2
 
-alias picoprog='flashprog -p serprog:dev=/dev/ttyACM0:115200,spispeed=12M'
+alias picoprog='flashprog -p serprog:dev=/dev/ttyACM1:115200,spispeed=12M'

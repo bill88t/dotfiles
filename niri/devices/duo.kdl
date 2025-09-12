@@ -3,14 +3,25 @@ window-rule {
 }
 
 input {
+    touch {
+        map-to-output "DSI-1"
+    }
+
     tablet {
-        // map-to-output "DSI-1"
+        map-to-output "DSI-1"
+        calibration-matrix 0.63 0.0 0.37 0.0 1.0 0.0
     }
 }
 
 output "DSI-1" {
+    position x=0 y=1080
     transform "270"
 }
+
+output "DP-1" {
+    position x=0 y=0
+}
+
 
 debug {
     render-drm-device "/dev/dri/renderD130"
