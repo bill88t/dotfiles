@@ -73,13 +73,13 @@ tooltip {
     border-radius: 6px;
 }
 
+#custom-niri_close,
+#custom-niri_resize,
+#custom-niri_overview,
 #custom-niri_left,
 #custom-niri_up,
 #custom-niri_down,
 #custom-niri_right {
-    padding: 2px 6px;
-    margin-left: 2px;
-    margin-right: 2px;
     font-size: 14px;
     color: @text;
     background-color: @base;
@@ -87,8 +87,31 @@ tooltip {
     border-radius: 6px;
 }
 
-#custom-niri_left {
-    margin-left: 4px;
+#custom-niri_close {
+    margin-left: 6px;
+    padding: 0px 6px;
+    padding-top: 1px;
+}
+
+#custom-niri_resize {
+    margin-left: 1px;
+    padding: 0px 6px;
+}
+
+#custom-niri_overview {
+    margin-left: 1px;
+    padding: 0px 6px;
+    padding-top: 2px;
+    margin-right: 4px;
+}
+
+#custom-niri_left,
+#custom-niri_up,
+#custom-niri_down,
+#custom-niri_right {
+    padding: 0px 6px;
+    margin-left: 2px;
+    font-size: 14px;
 }
 
 #workspaces {

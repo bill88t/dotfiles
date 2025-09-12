@@ -12,6 +12,9 @@
     "modules-left": [
         "custom/start",
         "clock",
+        "custom/niri_close",
+        "custom/niri_resize",
+        "custom/niri_overview",
         "custom/niri_left",
         "custom/niri_up",
         "niri/workspaces",
@@ -37,6 +40,25 @@
         "interval": 0,
         "on-click": "sh -c \"killall fuzzel || fuzzel\"",
     },
+
+    "custom/niri_close": {
+        "format": "🗙",
+        "interval": 0,
+        "on-click": "niri msg action close-window"
+    },
+
+    "custom/niri_resize": {
+        "format": "⥂",
+        "interval": 0,
+        "on-click": "niri msg action switch-preset-column-width"
+    },
+
+    "custom/niri_overview": {
+        "format": "❏",
+        "interval": 0,
+        "on-click": "niri msg action toggle-overview"
+    },
+
     "custom/niri_left": {
         "format": "◀",
         "interval": 0,
