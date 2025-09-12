@@ -1,5 +1,6 @@
 alias yayau='while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns $(pacman -Qdtq); done' # Autoremove
 alias yayauf='while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns --noconfirm $(pacman -Qdtq); done'
+alias yaycc='(yes | yay -Scc) && (while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns $(pacman -Qdtq); done)' # Cleanup fully
 alias yayc='yes | yay -Scc' # Cleanup locally stored packages
 alias yayd='yay -Su --devel' # Devel packages upgrade
 alias yayexpl="yay -Qeq"
