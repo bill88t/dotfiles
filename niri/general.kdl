@@ -106,9 +106,9 @@ gestures {
 
 binds {
     Mod+T { spawn "alacritty"; }
-    Mod+E { spawn "dolphin"; }
+    Mod+E { spawn "thunar"; }
     Mod+B { spawn "librewolf"; }
-    Mod+D { spawn "fuzzel"; }
+    Mod+D { spawn "/home/bill88t/git/dotfiles/toggle_fuzzel"; }
     Mod+M { spawn "thunderbird"; }
     Mod+C { spawn "gnome-calculator"; }
 

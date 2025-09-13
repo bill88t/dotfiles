@@ -38,7 +38,7 @@
     "custom/start": {
         "format": "🍞",
         "interval": 0,
-        "on-click": "sh -c \"killall fuzzel || fuzzel\"",
+        "on-click": "sh -c /home/bill88t/git/dotfiles/toggle_fuzzel",
     },
 
     "custom/niri_close": {
