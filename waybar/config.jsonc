@@ -39,48 +39,56 @@
         "format": "🍞",
         "interval": 0,
         "on-click": "sh -c /home/bill88t/git/dotfiles/toggle_fuzzel",
+        "tooltip": false
     },
 
     "custom/niri_close": {
         "format": "🗙",
         "interval": 0,
-        "on-click": "niri msg action close-window"
+        "on-click": "niri msg action close-window",
+        "tooltip": false
     },
 
     "custom/niri_resize": {
         "format": "⥂",
         "interval": 0,
-        "on-click": "niri msg action switch-preset-column-width"
+        "on-click": "niri msg action switch-preset-column-width",
+        "tooltip": false
     },
 
     "custom/niri_overview": {
         "format": "❏",
         "interval": 0,
-        "on-click": "niri msg action toggle-overview"
+        "on-click": "niri msg action toggle-overview",
+        "tooltip": false
     },
 
     "custom/niri_left": {
         "format": "◀",
         "interval": 0,
-        "on-click": "niri msg action focus-column-left"
+        "on-click": "niri msg action focus-column-left",
+        "tooltip": false
     },
 
     "custom/niri_up": {
         "format": "▲",
         "interval": 0,
-        "on-click": "niri msg action focus-workspace-up"
+        "on-click": "niri msg action focus-workspace-up",
+        "tooltip": false
     },
 
     "custom/niri_down": {
         "format": "▼",
         "interval": 0,
-        "on-click": "niri msg action focus-workspace-down"
+        "on-click": "niri msg action focus-workspace-down",
+        "tooltip": false
     },
 
     "custom/niri_right": {
         "format": "▶",
         "interval": 0,
-        "on-click": "niri msg action focus-column-right"
+        "on-click": "niri msg action focus-column-right",
+        "tooltip": false
     },
 
 
