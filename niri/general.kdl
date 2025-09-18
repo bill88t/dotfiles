@@ -81,8 +81,8 @@ hotkey-overlay {
 }
 
 prefer-no-csd
-// screenshot-path "~/Pictures/Screenshots/Screenshot %Y-%m-%d %H-%M-%S.png"
-screenshot-path null
+screenshot-path "~/Pictures/Screenshots/Screenshot %Y-%m-%d %H-%M-%S.png"
+// screenshot-path null
 
 window-rule {
     match app-id=r#"librewolf$"# title="^Picture-in-Picture$"
