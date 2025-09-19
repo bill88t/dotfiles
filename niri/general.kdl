@@ -206,10 +206,11 @@ binds {
     Alt+Pause { screenshot-window; }
 
     // Session Management
-    Ctrl+Alt+Home  { quit skip-confirmation=true; }
-    Ctrl+Alt+Print { spawn "reboot"; }
-    Ctrl+Alt+Pause { spawn "reboot"; }
-    Ctrl+Alt+Delete { spawn "poweroff"; }
+    Ctrl+Alt+Backslash { quit skip-confirmation=true; }
+    Ctrl+Alt+Home      { quit skip-confirmation=true; }
+    Ctrl+Alt+Print     { spawn "reboot"; }
+    Ctrl+Alt+Pause     { spawn "reboot"; }
+    Ctrl+Alt+Delete    { spawn "poweroff"; }
 
     // Brightness
     Mod+L { power-off-monitors; }
