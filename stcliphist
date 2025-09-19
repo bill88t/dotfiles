@@ -1,0 +1,5 @@
+#!/usr/bin/sh
+
+killall wl-paste 2>/dev/null || true
+wl-paste --watch cliphist store &
+wl-paste --type image --watch cliphist store &

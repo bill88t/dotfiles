@@ -18,6 +18,38 @@ GPG_CONF_SRC = SCRIPT_DIR / "gpg-agent.conf"
 GPG_CONF_DST = HOME / ".gnupg" / "gpg-agent.conf"
 NIRI_SRC = SCRIPT_DIR / "niri"
 NIRI_DST = HOME / ".config/niri"
+NIRI_PKGS = [
+    "niri",
+    "cliphist",
+    "swww",
+    "archlinux-xdg-menu",
+    "fuzzel",
+    "alacritty",
+    "thunar-media-tags-plugin",
+    "tumbler",
+    "catfish",
+    "waybar",
+    "thunar-volman",
+    "thunar-archive-plugin",
+    "thunar",
+    "noto-fonts-emoji",
+]
+
+
+def install_packages(package_list: list) -> bool:
+    try:
+        print("Updating package database...")
+        subprocess.run(["yay", "-Sy"], check=True)
+
+        if package_list:
+            print(f"Installing packages: [', '.join(package_list)]")
+            cmd = ["yay", "-S", "--needed", "--noconfirm"] + package_list
+            subprocess.run(cmd, check=True)
+        return True
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
+        return False
 
 
 def confirm_overwrite(path, force) -> bool:
@@ -107,19 +139,6 @@ def parse_ranges(input_str) -> set:
         else:
             selected.add(int(part))
     return selected
-
-
-def install_packages(source="", force=False):
-    try:
-        with open(PACKAGE_LIST) as f:
-            pkgs = [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
-    except Exception as e:
-        print(f"Failed to read packages.txt: {e}")
-        return
-
-    subprocess.run(["yay", "-S", "--needed"] + pkgs)
 
 
 def list_groups():
@@ -449,6 +468,10 @@ def install_niri(force=False):
     target_dir = NIRI_DST
     target_file = target_dir / "config.kdl"
 
+    # Install niri packages
+    if not install_packages(NIRI_PKGS):
+        return
+
     # Ensure target dir is a real directory (unlink symlink if present)
     if target_dir.is_symlink():
         target_dir.unlink()
@@ -474,6 +497,7 @@ def install_niri(force=False):
         if not confirm_overwrite(target_file, force):
             return
     target_file.write_text(final_text if final_text.endswith("\n") else final_text + "\n")
+
     print(f"Installed Niri config -> `{target_file}`")
 
 INSTALLERS = {

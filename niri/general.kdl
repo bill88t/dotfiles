@@ -72,6 +72,7 @@ layout {
 
 spawn-at-startup "/home/bill88t/git/dotfiles/waybar/waybar.sh"
 spawn-at-startup "/home/bill88t/git/dotfiles/stmako"
+spawn-at-startup "/home/bill88t/git/dotfiles/stcliphist"
 spawn-at-startup "swww-daemon"
 spawn-at-startup "/usr/lib/polkit-kde-authentication-agent-1"
 spawn-at-startup "kbuildsycoca6"
@@ -111,6 +112,10 @@ binds {
     Mod+D { spawn "/home/bill88t/git/dotfiles/toggle_fuzzel"; }
     Mod+M { spawn "thunderbird"; }
     Mod+C { spawn "gnome-calculator"; }
+
+    // Clipboard
+    Mod+Shift+Z { spawn "/home/bill88t/git/dotfiles/cliphist-wipe"; }
+    Mod+Z       { spawn "/home/bill88t/git/dotfiles/cliphist-view"; }
 
     XF86AudioRaiseVolume       allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+"; }
     XF86AudioLowerVolume       allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
