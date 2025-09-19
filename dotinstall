@@ -33,6 +33,7 @@ NIRI_PKGS = [
     "thunar-archive-plugin",
     "thunar",
     "noto-fonts-emoji",
+    "inter-font",
 ]
 
 
@@ -42,7 +43,7 @@ def install_packages(package_list: list) -> bool:
         subprocess.run(["yay", "-Sy"], check=True)
 
         if package_list:
-            print(f"Installing packages: [', '.join(package_list)]")
+            print(f"Installing packages: {', '.join(package_list)}")
             cmd = ["yay", "-S", "--needed", "--noconfirm"] + package_list
             subprocess.run(cmd, check=True)
         return True
