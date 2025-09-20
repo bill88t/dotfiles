@@ -28,6 +28,7 @@
     "modules-right": [
         "cpu",
         "memory",
+        "custom/governor",
         "network",
         "pulseaudio#source",
         "pulseaudio/slider",
@@ -35,10 +36,17 @@
         "battery"
     ],
 
+    "custom/governor": {
+        "exec": "~/git/dotfiles/waybar/govfetch",
+        "interval": 2,
+        "return-type": "json",
+        "tooltip": false
+    },
+
     "custom/start": {
         "format": "🍞",
         "interval": 0,
-        "on-click": "sh -c /home/bill88t/git/dotfiles/toggle_fuzzel",
+        "on-click": "~/git/dotfiles/toggle_fuzzel",
         "tooltip": false
     },
 
