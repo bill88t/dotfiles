@@ -137,14 +137,8 @@ tooltip {
 
 #workspaces button.urgent {
     background-color: @red;
-	color: @crust;
-	border: 2px solid @red;
-}
-
-#workspaces button.empty {
-    background: transparent;
-    color: transparent;
-    border: 0px;
+    color: @crust;
+    border: 2px solid @red;
 }
 
 #clock {
