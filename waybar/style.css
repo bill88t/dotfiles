@@ -64,6 +64,10 @@ tooltip {
     background-color: @text;
 }
 
+#custom-governor {
+    color: @text;
+}
+
 #custom-start {
     padding: 1px 3px 0 2px;
     margin: 0 4px 0 0px;
