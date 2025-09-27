@@ -34,6 +34,9 @@ NIRI_PKGS = [
     "thunar",
     "noto-fonts-emoji",
     "inter-font",
+    "xwayland-satellite",
+    "xdg-desktop-portal-gnome",
+    "xdg-desktop-portal-gtk"
 ]
 
 
