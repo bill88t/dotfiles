@@ -6,3 +6,7 @@ alias rkdb3566="sudo rkdeveloptool db ~/git/dotfiles/rk356x_spl_loader_ddr1056_v
 alias rkf="sudo rkdeveloptool wl 0"
 alias rkci="sudo rkdeveloptool rci"
 alias rkrd="sudo rkdeveloptool rd"
+
+alias rksd="sudo rkdeveloptool cs 2"
+alias rkmmc="sudo rkdeveloptool cs 1"
+alias rkspi="sudo rkdeveloptool cs 9"
