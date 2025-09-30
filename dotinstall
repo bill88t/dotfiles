@@ -36,7 +36,8 @@ NIRI_PKGS = [
     "inter-font",
     "xwayland-satellite",
     "xdg-desktop-portal-gnome",
-    "xdg-desktop-portal-gtk"
+    "xdg-desktop-portal-gtk",
+    "polkit-kde-agent"
 ]
 
 
