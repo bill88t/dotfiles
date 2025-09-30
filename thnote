@@ -1,11 +1,66 @@
 #!/usr/bin/env python3
-
 import sys
-import os
-
+import textwrap
+from datetime import datetime
 from escpos.printer import File as _Fl
 
 DEVICE = "/dev/usb/lp0"
+
+LINE1 = "╔═╦════╦═╦══════════════════════╦═╦══════════╦═╗"
+LINE2_PREFIX = "╠═╣ BS ╠═╣"
+MID_CELL_WIDTH = 22
+LINE2_DATE_AFFIX = "╠═╣"
+LINE3 = "║ ╚════╝ ╚══════════════════════╝ ╚══════════╝ ║"
+CONTENT_WIDTH = 46
+CONTENT_LINE_FMT = "║{:<" + str(CONTENT_WIDTH) + "}║"
+LINE5 = "╚══════════════════════════════════════════════╝"
+
+def build_date_cell(dt_str: str) -> str:
+    cell = " " + dt_str + " "
+    if len(cell) != 10:
+        return cell[:10].ljust(10)
+    return cell
+
+def build_line2_with_title(title: str, date_str: str) -> str:
+    if len(title) > MID_CELL_WIDTH:
+        raise ValueError("title too long")
+    left = (MID_CELL_WIDTH - len(title)) // 2
+    right = MID_CELL_WIDTH - len(title) - left
+    mid = (" " * left) + title + (" " * right)
+    date_cell = build_date_cell(date_str)
+    return LINE2_PREFIX + mid + LINE2_DATE_AFFIX + date_cell + LINE2_DATE_AFFIX
+
+def ask_title():
+    while True:
+        try:
+            title = input(f"Title (max {MID_CELL_WIDTH} chars): ")
+        except EOFError:
+            raise SystemExit(0)
+        if len(title) <= MID_CELL_WIDTH:
+            return title
+        sys.stderr.write(f"Error: title is too long ({len(title)} > {MID_CELL_WIDTH}). Try again.\n")
+
+def send_line(device, s: str):
+    device._raw(bytes(s + "\n", "cp437", errors="replace"))
+
+def flush_buffer(device, buffer):
+    content = "".join(buffer)
+    if content == "":
+        return
+    wrapped = textwrap.wrap(
+        content,
+        width=CONTENT_WIDTH,
+        replace_whitespace=False,
+        drop_whitespace=False,
+        break_long_words=True,
+        break_on_hyphens=False,
+    )
+    if not wrapped:
+        send_line(device, CONTENT_LINE_FMT.format(""))
+    else:
+        for chunk in wrapped:
+            send_line(device, CONTENT_LINE_FMT.format(chunk))
+    buffer.clear()
 
 def main():
     try:
@@ -14,22 +69,42 @@ def main():
         device.text("\x1b\x21\x00")
         device._raw(bytes([27, 51, 1]))
 
+        title = ask_title()
+        date_str = datetime.now().strftime("%d/%m/%y")
+
+        send_line(device, LINE1)
+        send_line(device, build_line2_with_title(title, date_str))
+        send_line(device, LINE3)
+
         buffer = []
-        while True:
-            ch = sys.stdin.read(1)  # read single char
-            if not ch:  # EOF (Ctrl+D)
-                break
-            if ch == "\n":
-                line = "".join(buffer) + "\n"
-                device._raw(bytes(line, "cp437"))
-                buffer.clear()
-            else:
-                buffer.append(ch)
+        print("Body:")
+        try:
+            while True:
+                ch = sys.stdin.read(1)
+                if ch == "":
+                    # EOF: print incomplete buffer (if any) and exit loop
+                    flush_buffer(device, buffer)
+                    break
+                if ch == "\n":
+                    if buffer:
+                        flush_buffer(device, buffer)
+                    else:
+                        send_line(device, CONTENT_LINE_FMT.format(""))
+                else:
+                    buffer.append(ch)
+        except KeyboardInterrupt:
+            # treat Ctrl+C same as Ctrl+D: print incomplete buffer then continue to closing
+            flush_buffer(device, buffer)
+
+        send_line(device, LINE5)
         device._raw(b"\n\n\n\n\x1dV\x00")
+
     except FileNotFoundError:
         sys.stderr.write(f"Error: {DEVICE} not found.\n")
+        raise SystemExit(1)
     except PermissionError:
         sys.stderr.write(f"Error: Permission denied opening {DEVICE}.\n")
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     main()
