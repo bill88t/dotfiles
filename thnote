@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+
+from escpos.printer import File as _Fl
+
+DEVICE = "/dev/usb/lp0"
+
+def main():
+    try:
+        device = _Fl(DEVICE)
+        device.text("\x1b\x61\x00")
+        device.text("\x1b\x21\x00")
+        device._raw(bytes([27, 51, 1]))
+
+        buffer = []
+        while True:
+            ch = sys.stdin.read(1)  # read single char
+            if not ch:  # EOF (Ctrl+D)
+                break
+            if ch == "\n":
+                line = "".join(buffer) + "\n"
+                device._raw(bytes(line, "cp437"))
+                buffer.clear()
+            else:
+                buffer.append(ch)
+        device._raw(b"\n\n\n\n\x1dV\x00")
+    except FileNotFoundError:
+        sys.stderr.write(f"Error: {DEVICE} not found.\n")
+    except PermissionError:
+        sys.stderr.write(f"Error: Permission denied opening {DEVICE}.\n")
+
+if __name__ == "__main__":
+    main()
