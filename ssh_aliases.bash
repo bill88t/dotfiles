@@ -326,3 +326,5 @@ alias fsprion="sshfsattach bill88t@prion.ling-draconis.ts.net:/home/bill88t -n p
 
 alias nfsprionarray="nsshfsattach bill88t@prion.ling-draconis.ts.net:/mnt/Array -n prionarray"
 alias nfsprion="nsshfsattach bill88t@prion.ling-draconis.ts.net:/home/bill88t -n prion"
+
+alias sthnote="sshc && ssh bill88t@prion.ling-draconis.ts.net /home/bill88t/git/dotfiles/thnote"
