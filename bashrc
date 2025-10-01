@@ -26,7 +26,6 @@ color_prompt=yes
 . ~/git/dotfiles/th_aliases.bash        # For using my thermal printer
 . ~/git/dotfiles/gpg_aliases.bash       # GPG command aliases
 . ~/git/dotfiles/rkdev_aliases.bash     # rkdeveloptool aliases
-. ~/git/dotfiles/governor_aliases.bash  # governor settings aliases
 . ~/git/dotfiles/veracrypt_aliases.bash # veracrypt aliases
 
 # Distro command aliases
@@ -44,6 +43,6 @@ color_prompt=yes
 #. ~/git/dotfiles/r5t_aliases.bash       # Rock 5T
 
 # Shell extras
-. ~/git/dotfiles/zoxide_loader     # z directory changer
+. ~/git/dotfiles/zoxide_loader.bash      # z directory changer
 
 bredos-news || true
