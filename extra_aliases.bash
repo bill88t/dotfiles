@@ -110,6 +110,32 @@ zarchive() {
   fi
 }
 
+zextract() {
+  if [ $# -ne 1 ]; then
+    echo "Usage: zextract archive_name.tar.zst"
+    return 1
+  fi
+
+  archive_file="$1"
+
+  if [ ! -f "$archive_file" ]; then
+    echo "Error: File '$archive_file' does not exist."
+    return 1
+  fi
+
+  # Extract using zstd -> tar
+  zstd -d -c --long=31 "$archive_file" | tar -xf -
+
+  if [ $? -eq 0 ]; then
+    echo "Successfully extracted archive $archive_file, removing archive file"
+    rm "$archive_file"
+    return 0
+  else
+    echo "Failed to extract archive $archive_file, keeping archive file"
+    return 1
+  fi
+}
+
 alias tiny_rsync='rsync --whole-file --info=progress2 -zaHAX'
 alias best_rsync='rsync --info=progress2 -zaHAX'
 

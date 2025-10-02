@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+import os, sys, time, psutil
+
+PID_FILE = "/tmp/ram_relief.pid"
+
+def pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True  # alive but not ours
+
+def kill_biggest_hog():
+    me = os.getpid()
+    hog = None
+    max_rss = -1
+    for p in psutil.process_iter(['pid','memory_info','name']):
+        try:
+            if p.pid == me:
+                continue
+            rss = p.info['memory_info'].rss
+            if rss > max_rss:
+                hog, max_rss = p, rss
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    if hog:
+        print(f"Killing {hog.pid} ({hog.info['name']}) using {max_rss//1024//1024} MB")
+        hog.kill()
+
+def main():
+    if os.path.exists(PID_FILE):
+        try:
+            with open(PID_FILE) as f:
+                oldpid = int(f.read().strip())
+        except Exception:
+            oldpid = None
+
+        if oldpid and pid_alive(oldpid):
+            # another copy is alive -> emergency action
+            kill_biggest_hog()
+            return
+        else:
+            # stale pidfile
+            os.remove(PID_FILE)
+
+    # we are the first instance
+    with open(PID_FILE, "w") as f:
+        f.write(str(os.getpid()))
+
+    try:
+        time.sleep(1)
+    finally:
+        if os.path.exists(PID_FILE):
+            os.remove(PID_FILE)
+
+if __name__ == "__main__":
+    main()
