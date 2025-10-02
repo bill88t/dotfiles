@@ -10,6 +10,7 @@ import pyalpm
 PACMAN_CONF = "/etc/pacman.conf"
 BREDOS_REPOS = ["BredOS-any", "BredOS-multilib", "BredOS"]
 UPSTREAM_REPOS = ["core", "extra"]
+EXCLUDE = ["aic8800-dkms", "iwd", "box86-git", "grub", "mkinitcpio", "pkgconf", "r8126-dkms"]
 
 ARCH = "aarch64"
 
@@ -103,17 +104,18 @@ def main():
 
     # Compare versions
     for pkg, bredos_ver in bredos_pkgs.items():
-        upstream_ver = None
-        for repo in UPSTREAM_REPOS:
-            if pkg in upstream_pkgs[repo]:
-                upstream_ver = upstream_pkgs[repo][pkg]
-                break
-        if not upstream_ver:
-            upstream_ver = aur_version(pkg)
-        if upstream_ver:
-            cmp_result = pyalpm.vercmp(upstream_ver, bredos_ver)
-            if cmp_result > 0:
-                print(f"{pkg}: {bredos_ver} -> {upstream_ver}")
+        if pkg not in EXCLUDE:
+            upstream_ver = None
+            for repo in UPSTREAM_REPOS:
+                if pkg in upstream_pkgs[repo]:
+                    upstream_ver = upstream_pkgs[repo][pkg]
+                    break
+            if not upstream_ver:
+                upstream_ver = aur_version(pkg)
+            if upstream_ver:
+                cmp_result = pyalpm.vercmp(upstream_ver, bredos_ver)
+                if cmp_result > 0:
+                    print(f"{pkg}: {bredos_ver} -> {upstream_ver}")
 
 if __name__ == "__main__":
     main()
