@@ -46,14 +46,15 @@ upkg() {
     local cache_dir="$HOME/.cache/yay/$pkg"
     local newpkg=""
 
-    # Check ~/built first
+    # Check ~/Built first - using more precise matching pattern
     if [[ -d "$built_dir" ]]; then
-        newpkg=$(ls "$built_dir"/${pkg}-*-*.pkg.tar.zst 2>/dev/null | sort -V | tail -n1)
+        # Add a dash after pkg name and ensure we're not matching other packages
+        newpkg=$(find "$built_dir" -type f -name "${pkg}-[0-9]*-[0-9]*.pkg.tar.zst" | sort -V | tail -n1)
     fi
 
-    # Fallback to yay cache
+    # Fallback to yay cache - using more precise matching pattern
     if [[ -z "$newpkg" && -d "$cache_dir" ]]; then
-        newpkg=$(ls "$cache_dir"/${pkg}-*-*.pkg.tar.zst 2>/dev/null | sort -V | tail -n1)
+        newpkg=$(find "$cache_dir" -type f -name "${pkg}-[0-9]*-[0-9]*.pkg.tar.zst" | sort -V | tail -n1)
     fi
 
     if [[ -z "$newpkg" ]]; then
@@ -75,9 +76,9 @@ upkg() {
 
     cd "$repo_dir" || return 1
 
-    # Find and remove old package if it exists
+    # Find and remove old package if it exists - also using more precise matching
     local oldpkg
-    oldpkg=$(ls ${pkg}-*-*.pkg.tar.zst 2>/dev/null | sort -V | tail -n1)
+    oldpkg=$(find . -type f -name "${pkg}-[0-9]*-[0-9]*.pkg.tar.zst" | sort -V | tail -n1)
     if [[ -n "$oldpkg" ]]; then
         ./db.sh remove "$pkg"
         rm -f "$oldpkg" "$oldpkg.sig"
