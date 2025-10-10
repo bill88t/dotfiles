@@ -317,6 +317,10 @@ alias r5t="sshc && ssh bill88t@r5t.ling-draconis.ts.net"
 alias r5t="sshc && ssh bill88t@r5t.ling-draconis.ts.net"
 alias r5bp="sshc && ssh bill88t@r5bp.ling-draconis.ts.net"
 
+# Tailscale as vpn
+alias tsprion="sudo tailscale set --exit-node=prion"
+alias tsnone="sudo tailscale set --exit-node="
+
 # Insecure
 alias cssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR'
 alias csftp="sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
