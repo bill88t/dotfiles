@@ -154,6 +154,12 @@ def list_groups():
         print(f" - {k}")
 
 
+def install_gitconf(force=False):
+    subprocess.run(
+        'bash -c "source ~/git/dotfiles/secrets.bash && git-secrets-install"',
+        shell=True,
+    )
+
 def install_gpgconf(force=False):
     gnupg_home = GPG_CONF_DST.parent
     gnupg_home.mkdir(mode=0o700, exist_ok=True)
@@ -517,6 +523,7 @@ INSTALLERS = {
     "bashrc": install_bashrc,
     "alacritty": install_alacritty,
     "packages": install_packages,
+    "gitconf": install_gitconf,
     "gpgconf": install_gpgconf,
     "niri": install_niri,
     "makepkg": install_makepkg,

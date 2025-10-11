@@ -20,7 +20,7 @@ verprivattach() {
     done
 
     if [[ -z "$device" || -z "$password" ]]; then
-        echo "Usage: verprivattach [-n name] -p password <device-or-container>"
+        echo "Usage: verprivattach -p password <device-or-container>"
         return 1
     fi
 
@@ -28,27 +28,31 @@ verprivattach() {
     local prefix="veracrypt"
     local mountpoint
 
-    if [[ -z "$name" ]]; then
-        local i=1
-        while [[ -e "$base/$prefix$i" ]]; do
-            i=$((i+1))
-        done
-        mountpoint="$base/$prefix$i"
-    else
-        mountpoint="$base/$name"
-    fi
+    local i=1
+    while [[ -e "$base/$prefix$i" ]]; do
+        i=$((i+1))
+    done
+    mountpoint="$base/$prefix$i"
 
     echo "Mounting $device to $mountpoint.."
 
-    if veracrypt -t --pim=0 --password="$password" --protect-hidden=no -k="" "$device" "$mountpoint"; then
+    if veracrypt -t --pim=0 --password="$password" --protect-hidden=no -k="" "$device" "$mountpoint" --fs-options="relatime,ssd,discard=async,compress=zstd,space_cache=v2"; then
         echo "Mounted hidden volume at $mountpoint."
     else
       echo "Failed to mount $device"
       return 1
     fi
 
-    echo "Press Enter to unmount..."
-    read -r _
+    cd $mountpoint
+    if [[ -f .loadsh ]]; then
+        echo "Entering environment, exit to unmount.."
+        /usr/bin/env -i "$SHELL" --rcfile <(echo "export HOME="$mountpoint";source .loadsh")
+        echo "Unmounting.."
+    else
+        echo "Press Enter to unmount..."
+        read -r _
+    fi
+    cd -
 
     while true; do
         if veracrypt -t -u "$mountpoint"; then
@@ -84,7 +88,7 @@ verpubattach() {
     done
 
     if [[ -z "$device" || -z "$password" ]]; then
-        echo "Usage: verpubvattach [-n name] -p password <device-or-container>"
+        echo "Usage: verpubvattach -p password <device-or-container>"
         return 1
     fi
 
@@ -92,15 +96,11 @@ verpubattach() {
     local prefix="veracrypt"
     local mountpoint
 
-    if [[ -z "$name" ]]; then
-        local i=1
-        while [[ -e "$base/$prefix$i" ]]; do
-            i=$((i+1))
-        done
-        mountpoint="$base/$prefix$i"
-    else
-        mountpoint="$base/$name"
-    fi
+    local i=1
+    while [[ -e "$base/$prefix$i" ]]; do
+        i=$((i+1))
+    done
+    mountpoint="$base/$prefix$i"
 
     echo "Mounting $device to $mountpoint.."
 
