@@ -12,7 +12,7 @@ BREDOS_REPOS = ["BredOS-any", "BredOS-multilib", "BredOS"]
 UPSTREAM_REPOS = ["core", "extra"]
 EXCLUDE = ["aic8800-dkms", "iwd", "box86-git", "grub", "mkinitcpio", "pkgconf", "r8126-dkms"]
 
-ARCH = "aarch64"
+ARCH = os.uname().machine
 
 def parse_pacman_conf():
     repos = {}

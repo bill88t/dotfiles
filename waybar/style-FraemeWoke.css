@@ -1,0 +1,195 @@
+@import "mocha-FraemeWoke.css";
+
+* {
+    border: none;
+    min-height: 0;
+    font-family: "Noto Sans Mono";
+    font-weight: 500;
+    font-size: 11px;
+    padding: 0px;
+    border-radius: 8px;
+}
+
+window#waybar {
+    background: transparent;
+}
+
+window#waybar  #window {
+    padding: 4px 4px;
+}
+
+window#waybar.empty #window {
+    background: transparent;
+    font-size: 0px;
+    border: 0px;
+}
+
+tooltip {
+    background-color: @base;
+    border: 2px solid @text;
+    font-size: 2px;
+	color: @text;
+}
+
+#tray,
+#cpu,
+#custom-governor,
+#memory,
+#battery,
+#network,
+#pulseaudio,
+#pulseaudio-slider {
+    margin-left: 4px;
+    padding: 0px 4px;
+    border: 2px solid @text;
+    background-color: @base;
+}
+
+#pulseaudio-slider slider {
+    min-height: 0;
+    min-width: 0;
+    box-shadow: none;
+}
+
+#pulseaudio-slider trough {
+    min-height: 4px;
+    min-width: 80px;
+    border-radius: 5px;
+    background-color: @text;
+}
+
+#pulseaudio-slider highlight {
+    min-width: 2px;
+    border: 2px solid @text;
+    background-color: @text;
+}
+
+#custom-governor {
+    color: @text;
+}
+
+#custom-start {
+    padding: 1px 3px 0 2px;
+    margin: 0 4px 0 0px;
+    font-size: 14px;
+    color: @text;
+    background-color: @base;
+    border: 2px solid @text;
+    border-radius: 6px;
+}
+
+#custom-powermenu,
+#custom-niri_close,
+#custom-niri_resize,
+#custom-niri_overview,
+#custom-niri_left,
+#custom-niri_up,
+#custom-niri_down,
+#custom-niri_right {
+    font-size: 14px;
+    color: @text;
+    background-color: @base;
+    border: 2px solid @text;
+    border-radius: 6px;
+}
+
+#custom-powermenu {
+    margin-left: 4px;
+    padding-left: 2px;
+    padding-right: 2px
+}
+#custom-niri_close {
+    margin-left: 6px;
+    padding: 0px 6px;
+    padding-top: 1px;
+}
+
+#custom-niri_resize {
+    margin-left: 1px;
+    padding: 0px 6px;
+}
+
+#custom-niri_overview {
+    margin-left: 1px;
+    padding: 0px 6px;
+    padding-top: 2px;
+    margin-right: 4px;
+}
+
+#custom-niri_left,
+#custom-niri_up,
+#custom-niri_down,
+#custom-niri_right {
+    padding: 0px 6px;
+    margin-left: 2px;
+    font-size: 14px;
+}
+
+#workspaces {
+    margin: 1px 0px 1px 4px;
+}
+
+#workspaces button {
+    all: initial;
+    min-width: 0;
+    box-shadow: inset 0 -3px transparent;
+    padding: 2px 2px;
+    color: @text;
+    background-color: @base;
+    border: 1px solid @text;
+    border-radius: 6px;
+    margin-right: 2px;
+}
+
+#workspaces button.active {
+    color: @crust;
+    background-color: @text;
+}
+
+#workspaces button.urgent {
+    background-color: @red;
+    color: @crust;
+    border: 2px solid @red;
+}
+
+#clock {
+    padding: 0px 4px;
+    background-color: @base;
+    border: 2px solid @text;
+    color: @text;
+}
+
+#window,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#battery,
+#tray {
+    background-color: @base;
+    border: 2px solid @text;
+    color: @text;
+}
+
+#network {
+	min-width: 175px;
+}
+
+#cpu,
+#memory,
+#battery {
+	min-width: 60px;
+}
+
+#cpu.critical,
+#memory.critical {
+    color: @red;
+    border: 2px solid @red;
+}
+
+#battery.warning,
+#battery.critical,
+#battery.urgent {
+    color: @red;
+    border: 2px solid @red;
+}

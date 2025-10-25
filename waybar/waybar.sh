@@ -32,9 +32,18 @@ cleanup() {
 }
 trap 'cleanup; exit 0' INT TERM EXIT
 
+HOSTNAME=$(hostname)
+BASE_DIR=~/git/dotfiles/waybar
+
 while :; do
-    waybar -c ~/git/dotfiles/waybar/config.jsonc \
-           -s ~/git/dotfiles/waybar/style.css >/dev/null 2>&1 &
+    # --- dynamically pick config and style each restart ---
+    CONFIG="$BASE_DIR/config.jsonc"
+    STYLE="$BASE_DIR/style.css"
+
+    [ -f "$BASE_DIR/config-${HOSTNAME}.jsonc" ] && CONFIG="$BASE_DIR/config-${HOSTNAME}.jsonc"
+    [ -f "$BASE_DIR/style-${HOSTNAME}.css" ] && STYLE="$BASE_DIR/style-${HOSTNAME}.css"
+
+    waybar -c "$CONFIG" -s "$STYLE" >/dev/null 2>&1 &
     child_pid=$!
     echo "$child_pid" > "$PIDFILE"
 
