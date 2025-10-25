@@ -1,6 +1,6 @@
 alias yayau='while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns $(pacman -Qdtq); done' # Autoremove
 alias yayauf='while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns --noconfirm $(pacman -Qdtq); done'
-alias yaycc='(while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns $(pacman -Qdtq); done) && ([ -d ~/Built ] && rm ~/Built/* || true) && (yes | yay -Scc)' # Cleanup fully
+alias yaycc='(while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns $(pacman -Qdtq); done) && (sudo rm -r /var/cache/pacman/pkg/download-* 2>&1 || true) && ([ -d ~/Built ] && rm ~/Built/* || true) && (yes | yay -Scc)' # Cleanup fully
 alias yayc='yes | yay -Scc' # Cleanup locally stored packages
 alias yayd='yay -Su --devel' # Devel packages upgrade
 alias yayexpl="yay -Qeq"

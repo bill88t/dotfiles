@@ -1,0 +1,7 @@
+output "eDP-1" {
+    scale 1.25
+}
+
+environment {
+    QT_QPA_PLATFORMTHEME "qt6ct"
+}

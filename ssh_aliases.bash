@@ -316,6 +316,7 @@ alias op5u="sshc && ssh bill88t@op5u.ling-draconis.ts.net"
 alias r5t="sshc && ssh bill88t@r5t.ling-draconis.ts.net"
 alias r5t="sshc && ssh bill88t@r5t.ling-draconis.ts.net"
 alias r5bp="sshc && ssh bill88t@r5bp.ling-draconis.ts.net"
+alias fw="sshc && ssh bill88t@fw.ling-draconis.ts.net"
 
 # Tailscale as vpn
 alias tsprion="sudo tailscale set --exit-node=prion"
