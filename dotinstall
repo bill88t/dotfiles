@@ -39,7 +39,9 @@ NIRI_PKGS = [
     "xwayland-satellite",
     "xdg-desktop-portal-gnome",
     "xdg-desktop-portal-gtk",
-    "polkit-kde-agent"
+    "polkit-kde-agent",
+    "adw-gtk-theme",
+    "papirus-icon-theme"
 ]
 
 
@@ -511,7 +513,10 @@ def install_niri(force=False) -> None:
             return
     target_file.write_text(final_text if final_text.endswith("\n") else final_text + "\n")
 
-    print(f"Installed Niri config -> `{target_file}`")
+    print("Applying GTK theming.. ", end="")
+    subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", "adw-gtk3-dark"], check=True)
+    subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "icon-theme", "Papirus-Dark"], check=True)
+    print(f"OK\nInstalled Niri config -> `{target_file}`")
 
 def install_makepkg(force=False) -> None:
     makepkg_home = MAKEPKG_DST.parent
