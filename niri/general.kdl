@@ -49,7 +49,7 @@ layout {
     // preset-window-height {
     //     proportion 0.3333
     //     proportion 0.5
-    //     proportion 0.6667
+    //     proportion 0.6666
     //     proportion 1.0
     // }
 
@@ -92,7 +92,7 @@ window-rule {
 
 window-rule {
     match app-id=r#"^legcord$"#
-    default-column-width { proportion 0.6667; }
+    default-column-width { proportion 0.6666; }
 }
 
 window-rule {
