@@ -233,7 +233,10 @@ binds {
     Ctrl+Alt+Delete    { spawn "poweroff"; }
 
     // Brightness
-    Mod+L { power-off-monitors; }
+    Mod+P { power-off-monitors; }
     XF86MonBrightnessDown cooldown-ms=30 { spawn "brightnessctl" "s" "5%-"; }
     XF86MonBrightnessUp cooldown-ms=30 { spawn "brightnessctl" "s" "5%+"; }
+
+    // Lock Screen
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/forest_fog_trees_132037_1920x1200.jpg" "--font" "Inter"; }
 }

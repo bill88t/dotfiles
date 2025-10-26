@@ -25,6 +25,7 @@ NIRI_PKGS = [
     "cliphist",
     "swww",
     "mako",
+    "swaylock",
     "archlinux-xdg-menu",
     "fuzzel",
     "alacritty",
