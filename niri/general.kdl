@@ -101,6 +101,11 @@ window-rule {
 }
 
 window-rule {
+    match app-id=r#"^librewolf$"#
+    default-column-width { proportion 1.0; }
+}
+
+window-rule {
     geometry-corner-radius 10
     clip-to-geometry true
 }
