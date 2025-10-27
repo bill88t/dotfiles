@@ -473,8 +473,22 @@ def merge_kdl_documents(base: str, override: str) -> str:
     else:
         merged = base
 
+    # Extract top-level non-block lines from override and append them
+    override_top_lines = []
+    for line in override.split('\n'):
+        stripped = line.strip()
+        if stripped and not stripped.startswith("//") and '{' not in stripped and '}' not in stripped:
+            # Check if this line is before any blocks
+            # (simple heuristic: if line appears before first '{', it's top-level)
+            if override.find(line) < override.find('{'):
+                override_top_lines.append(line)
+
+    if override_top_lines:
+        merged = merged.rstrip() + "\n" + "\n".join(override_top_lines) + "\n"
+
     if appended:
         merged = merged.rstrip() + "\n\n" + "\n\n".join(b.strip("\n") for b in appended) + "\n"
+
     return merged
 # --- end helpers ---
 
