@@ -26,7 +26,7 @@ alias mksdi="(updpkgsums || true) && makepkg -sid"
 alias mksdif="(updpkgsums || true) && makepkg -sid --noconfirm"
 alias mkdl="(updpkgsums || true) && makepkg --nobuild"
 alias mkc="rm -rf pkg src"
-alias mkcc="rm -rf pkg src *.zst"
+alias mkcc="([ -d ~/Built ] && rm ~/Built/* || true) && rm -rf pkg src *.zst"
 alias mkrpk="makepkg -Rdf"
 alias mkms="makepkg --noprepare --noextract -df"
 
