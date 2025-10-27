@@ -95,6 +95,12 @@ window-rule {
     default-column-width { proportion 0.6666; }
 }
 
+
+window-rule {
+    match app-id=r#"^thunderbird$"#
+    default-column-width { proportion 0.6666; }
+}
+
 window-rule {
     match app-id=r#"^com.ayugram"#
     default-column-width { proportion 0.3333; }
