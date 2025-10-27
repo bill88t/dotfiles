@@ -1,3 +1,5 @@
+spawn-at-startup "/home/bill88t/git/dotfiles/waymount.sh"
+
 output "eDP-1" {
     scale 1.25
 }
