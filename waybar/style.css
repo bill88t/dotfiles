@@ -37,31 +37,11 @@ tooltip {
 #memory,
 #battery,
 #network,
-#pulseaudio,
-#pulseaudio-slider {
-    margin-left: 4px;
+#pulseaudio {
+    margin-left: 2px;
     padding: 0px 4px;
     border: 2px solid @text;
     background-color: @base;
-}
-
-#pulseaudio-slider slider {
-    min-height: 0;
-    min-width: 0;
-    box-shadow: none;
-}
-
-#pulseaudio-slider trough {
-    min-height: 4px;
-    min-width: 80px;
-    border-radius: 5px;
-    background-color: @text;
-}
-
-#pulseaudio-slider highlight {
-    min-width: 2px;
-    border: 2px solid @text;
-    background-color: @text;
 }
 
 #custom-governor {
@@ -70,7 +50,7 @@ tooltip {
 
 #custom-start {
     padding: 1px 3px 0 2px;
-    margin: 0 4px 0 0px;
+    margin: 0 6px 0 0;
     font-size: 14px;
     color: @text;
     background-color: @base;
@@ -85,7 +65,9 @@ tooltip {
 #custom-niri_left,
 #custom-niri_up,
 #custom-niri_down,
-#custom-niri_right {
+#custom-niri_right,
+#custom-vol_down,
+#custom-vol_up {
     font-size: 14px;
     color: @text;
     background-color: @base;
@@ -93,8 +75,27 @@ tooltip {
     border-radius: 6px;
 }
 
-#custom-powermenu {
+#pulseaudio {
+    min-width: 35px;
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+#custom-vol_down,
+#custom-vol_up {
+    font-size: 18px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+#custom-vol_down {
     margin-left: 4px;
+}
+
+#custom-powermenu {
+    margin-left: 6px;
     padding-left: 2px;
     padding-right: 2px
 }
@@ -153,7 +154,7 @@ tooltip {
 }
 
 #clock {
-    padding: 0px 4px;
+    padding: 0px 6px;
     background-color: @base;
     border: 2px solid @text;
     color: @text;
@@ -171,14 +172,18 @@ tooltip {
     color: @text;
 }
 
+#tray {
+    margin-left: 6px;
+}
+
 #network {
-	min-width: 175px;
+    min-width: 175px;
 }
 
 #cpu,
 #memory,
 #battery {
-	min-width: 60px;
+    min-width: 60px;
 }
 
 #cpu.critical,

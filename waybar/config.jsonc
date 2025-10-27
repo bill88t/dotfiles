@@ -31,11 +31,12 @@
         "custom/governor",
         "network",
         "pulseaudio#source",
-        "pulseaudio/slider",
+        "custom/vol_down",
+        "pulseaudio#sink",
+        "custom/vol_up",
         "tray",
         "battery",
         "custom/powermenu"
-
     ],
 
     "custom/governor": {
@@ -108,7 +109,6 @@
         "tooltip": false
     },
 
-
     "cpu": {
         "format": "CPU {usage}%",
         "interval": 2
@@ -118,26 +118,41 @@
         "format": "RAM {percentage}%",
         "on-click": "~/git/dotfiles/ramkill",
         "interval": 2,
-
         "states": {
             "critical": 85
         }
     },
 
-    "pulseaudio/slider": {
-        "min": 0,
-        "max": 150,
-        "orientation": "horizontal"
+    "custom/vol_down": {
+        "format": "–",
+        "interval": 0,
+        "on-click": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05-",
+        "tooltip": false
+    },
+
+    "custom/vol_up": {
+        "format": "+",
+        "interval": 0,
+        "on-click": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+",
+        "tooltip": false
+    },
+
+    "pulseaudio#sink": {
+        "format": "{volume}%",
+        "format-muted": "MUTE",
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+",
+        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05-",
+        "tooltip": false
     },
 
     "pulseaudio#source": {
-        "format" : "MIC {format_source}",
+        "format": "MIC {format_source}",
         "format-source-muted": "MUTE",
         "on-click": "pactl set-source-mute @DEFAULT_SOURCE@ toggle",
         "on-click-right": "/usr/bin/pavucontrol",
         "on-scroll-down": "pactl set-source-volume @DEFAULT_SOURCE@ -5%",
         "on-scroll-up": "pactl set-source-volume @DEFAULT_SOURCE@ +5%"
-
     },
 
     "battery": {
@@ -168,11 +183,11 @@
     },
 
     "network": {
-            "format-wifi" : "W d{bandwidthDownBytes} | u{bandwidthUpBytes}",
-            "format-ethernet": "E d{bandwidthDownBytes} | u{bandwidthUpBytes}",
-            "format-disconnected" : "DISCONNECTED",
-            "on-click": "nm-connection-editor",
-            "interval": 3,
-            "tooltip": false
-    },
+        "format-wifi": "W d{bandwidthDownBytes} | u{bandwidthUpBytes}",
+        "format-ethernet": "E d{bandwidthDownBytes} | u{bandwidthUpBytes}",
+        "format-disconnected": "DISCONNECTED",
+        "on-click": "nm-connection-editor",
+        "interval": 3,
+        "tooltip": false
+    }
 }
