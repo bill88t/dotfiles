@@ -1,3 +1,17 @@
+alias gp='git push'
+alias gl='git pull'
+
+alias gs='git status'
+
+alias gc='git clone'
+alias gcr='git clone --recursive'
+
+alias gw='git switch'
+
+alias ga='git add'
+
+alias gm='git commit'
+alias gma='git commit -a'
 alias gck='git checkout'
 alias gckb='git checkout -b'
 
