@@ -490,6 +490,23 @@ def merge_kdl_documents(base: str, override: str) -> str:
         merged = merged.rstrip() + "\n\n" + "\n\n".join(b.strip("\n") for b in appended) + "\n"
 
     return merged
+
+def _finalize_kdl_text(text: str) -> str:
+    """Filter out comment lines and normalize newlines in final text."""
+    final_lines = []
+    for line in text.split('\n'):
+        unspaced = line
+        while unspaced.startswith(" "):
+            unspaced = unspaced[1:]
+        if unspaced and not unspaced.startswith("//"):
+            final_lines.append(line)
+
+    result = "\n".join(final_lines)
+    # Normalize multiple newlines to single newline
+    while "\n\n" in result:
+        result = result.replace("\n\n", "\n")
+
+    return result
 # --- end helpers ---
 
 def install_niri(force=False) -> None:
@@ -522,6 +539,9 @@ def install_niri(force=False) -> None:
     else:
         final_text = base
         print(f"Using `general.kdl` only (no `devices/{hostname}.kdl`).")
+
+    # Finalize: filter comment lines and normalize newlines
+    final_text = _finalize_kdl_text(final_text)
 
     # Write target file
     if target_file.exists() and not force:
