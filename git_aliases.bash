@@ -19,7 +19,6 @@ alias gfa='git fetch --all && git fetch --all'
 
 alias gpa='git push --all'                   # Push to all branches
 alias gpf='git push --force-with-lease'      # Safer force push
-alias gpl='git pull --rebase'                # Pull with rebase (avoid merge commits)
 
 alias gaa='git add .'                        # Add all files
 alias gau='git add --update'                 # Add only tracked files
@@ -30,8 +29,8 @@ alias gms='git commit --squash'              # Create squash commit
 alias grs='git reset --soft'                 # Soft reset (keep changes staged)
 alias grm='git reset --mixed'                # Mixed reset (keep changes unstaged)
 
-alias gl='git log --oneline'                 # Better log view (or add: -n 10 --graph)
-alias glg='git log --graph --oneline --all'  # Graph view of all branches
+alias glog='git log --oneline'                 # Better log view (or add: -n 10 --graph)
+alias glogg='git log --graph --oneline --all'  # Graph view of all branches
 
 alias gst='git stash'                        # Stash changes
 alias gstp='git stash pop'                   # Apply stashed changes
