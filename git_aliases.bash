@@ -35,6 +35,9 @@ alias gst='git stash'                        # Stash changes
 alias gstp='git stash pop'                   # Apply stashed changes
 alias gstl='git stash list'                  # List stashes
 
+alias grg='git remote get'
+alias grgs='git remote set'
+
 alias grm='git remote -v'                    # List remotes with URLs
 alias grp='git remote prune origin'          # Remove deleted remote branches
 
