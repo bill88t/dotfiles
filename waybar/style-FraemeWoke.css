@@ -14,7 +14,7 @@ window#waybar {
     background: transparent;
 }
 
-window#waybar  #window {
+window#waybar #window {
     padding: 4px 4px;
 }
 
@@ -145,6 +145,12 @@ tooltip {
 #workspaces button.active {
     color: @crust;
     background-color: @text;
+}
+
+#workspaces button.empty {
+    background: transparent;
+    color: @text;
+    background-color: transparent;
 }
 
 #workspaces button.urgent {
