@@ -166,6 +166,10 @@
     },
 
     "niri/workspaces": {
+        "format": "{icon}",
+        "format-icons": {
+          "empty": "E",
+        },
         "disable-scroll": true,
         "all-outputs": true,
         "tooltip": false
