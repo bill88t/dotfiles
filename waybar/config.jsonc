@@ -168,7 +168,7 @@
     "niri/workspaces": {
         "format": "{icon}",
         "format-icons": {
-          "empty": "E",
+          "empty": "",
         },
         "disable-scroll": true,
         "all-outputs": true,

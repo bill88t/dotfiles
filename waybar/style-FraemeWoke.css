@@ -149,7 +149,9 @@ tooltip {
 
 #workspaces button.empty {
     background: transparent;
-    color: @text;
+    border: 0;
+    margin: 0;
+    padding: 0;
     background-color: transparent;
 }
 
