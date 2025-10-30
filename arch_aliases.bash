@@ -5,7 +5,7 @@ alias yayc='yes | yay -Scc' # Cleanup locally stored packages
 alias yayd='yay -Su --devel' # Devel packages upgrade
 alias yayexpl="yay -Qeq"
 
-alias mksrc="(updpkgsums || true) -S > .SRCINFO"
+alias mksrc="(updpkgsums || true) && (makepkg --printsrcinfo > .SRCINFO || true)"
 alias mkncs="makepkg -rA --skipchecksums --skippgpcheck -s"
 alias mkncsi="makepkg -rA --skipchecksums --skippgpcheck -si"
 alias mkncsif="makepkg -rA --skipchecksums --skippgpcheck -si --noconfirm"
