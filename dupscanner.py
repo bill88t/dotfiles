@@ -50,7 +50,6 @@ def find_duplicates(folder, output_file, hash_algo='sha1'):
     # Write results
     with open(output_file, 'w') as f:
         for paths in duplicates.values():
-            f.write("Duplicate group:\n")
             for p in paths:
                 f.write(f"{p}\n")
             f.write("\n")
