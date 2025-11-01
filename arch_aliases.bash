@@ -1,6 +1,27 @@
 alias yayau='while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns $(pacman -Qdtq); done' # Autoremove
 alias yayauf='while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns --noconfirm $(pacman -Qdtq); done'
-alias yaycc='(while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns $(pacman -Qdtq); done) && (sudo rm -r /var/cache/pacman/pkg/download-* 2>&1 || true) && ([ -d ~/Built ] && rm ~/Built/* || true) && (yes | yay -Scc)' # Cleanup fully
+
+alias yaycc='
+echo "==> Removing orphaned packages..."
+orphans=$(pacman -Qdtq 2>/dev/null)
+if [[ -n "$orphans" ]]; then
+  sudo pacman -Rns --noconfirm $orphans
+else
+  echo "   No orphans found."
+fi
+
+echo "==> Cleaning pacman cache..."
+sudo rm -rf /var/cache/pacman/pkg/download-* 2>/dev/null || true
+
+if [[ -d ~/Built ]]; then
+  echo "==> Cleaning ~/Built..."
+  rm -rf ~/Built/* 2>/dev/null || true
+fi
+
+echo "==> Deep cleaning yay cache..."
+yes | yay -Scc >/dev/null 1>/dev/null 2>/dev/null
+'
+
 alias yayc='yes | yay -Scc' # Cleanup locally stored packages
 alias yayd='yay -Su --devel' # Devel packages upgrade
 alias yayexpl="yay -Qeq"
@@ -26,7 +47,7 @@ alias mksdi="(updpkgsums || true) && makepkg -sid"
 alias mksdif="(updpkgsums || true) && makepkg -sid --noconfirm"
 alias mkdl="(updpkgsums || true) && makepkg --nobuild"
 alias mkc="rm -rf pkg src"
-alias mkcc="([ -d ~/Built ] && rm ~/Built/* || true) && rm -rf pkg src *.zst"
+alias mkcc="([ -d ~/Built ] && rm ~/Built/* 2>/dev/null || true) && rm -rf pkg src *.zst"
 alias mkrpk="makepkg -Rdf"
 alias mkms="makepkg --noprepare --noextract -df"
 
