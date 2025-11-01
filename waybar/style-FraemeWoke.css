@@ -50,7 +50,6 @@ tooltip {
 
 #custom-start {
     padding: 1px 3px 0 2px;
-    margin: 0 6px 0 0;
     font-size: 14px;
     color: @text;
     background-color: @base;
@@ -95,7 +94,7 @@ tooltip {
 }
 
 #custom-powermenu {
-    margin-left: 6px;
+    margin-left: 2px;
     padding-left: 2px;
     padding-right: 2px
 }

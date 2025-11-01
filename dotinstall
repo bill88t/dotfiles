@@ -46,15 +46,19 @@ NIRI_PKGS = [
     "papirus-icon-theme"
 ]
 
+args = None
 
 def install_packages(package_list: list) -> bool:
+    if args.nopacman:
+        return True
+
     try:
         print("Updating package database...")
-        subprocess.run(["yay", "-Sy"], check=True)
+        subprocess.run(["sudo", "pacman", "-Sy"], check=True)
 
         if package_list:
             print(f"Installing packages: {', '.join(package_list)}")
-            cmd = ["yay", "-S", "--needed", "--noconfirm"] + package_list
+            cmd = ["sudo", "pacman", "-S", "--needed", "--noconfirm"] + package_list
             subprocess.run(cmd, check=True)
         return True
 
@@ -197,10 +201,15 @@ def interactive_mode(force=False):
 
 
 def main():
+    global args
+
     parser = argparse.ArgumentParser(description="Dotfiles installer")
     parser.add_argument("group", nargs="?", help="Group to install")
     parser.add_argument(
         "-r", "--replace", action="store_true", help="Overwrite existing files"
+    )
+    parser.add_argument(
+        "-q", "--nopacman", action="store_true", help="Skip pacman-installing packages"
     )
     args = parser.parse_args()
 

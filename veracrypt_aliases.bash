@@ -56,6 +56,7 @@ verprivattach() {
 
     while true; do
         if veracrypt -t -u "$mountpoint"; then
+            sudo eject $(lsblk -no pkname "$device" | sed 's|^|/dev/|')
             return 0
         fi
     done
