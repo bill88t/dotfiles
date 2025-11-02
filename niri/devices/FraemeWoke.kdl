@@ -10,6 +10,7 @@ environment {
 
 binds {
     Mod+P { spawn "/home/bill88t/git/dotfiles/fw12cycle.sh"; }
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/forest_autumn_fog_123115_1920x1200.jpg" "--font" "Inter"; }
 }
 
 input {

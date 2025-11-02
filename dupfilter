@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+import sys, os
+
+if len(sys.argv) != 2:
+    print(f"Usage: {sys.argv[0]} <filelist.txt>", file=sys.stderr)
+    sys.exit(1)
+
+with open(sys.argv[1], 'r', encoding='utf-8', errors='ignore') as f:
+    content = f.read().strip()
+
+groups = [block.strip().splitlines() for block in content.split("\n\n") if block.strip()]
+
+to_delete = []
+
+def path_has_dot(path):
+    dirs = os.path.dirname(path).split(os.sep)
+    return any("." in d for d in dirs if d)
+
+for group in groups:
+    keeper = None
+
+    # Priority 1: Faves
+    keeper = next((f for f in group if "Faves" in f), None)
+
+    # Priority 2: any file not containing Unsorted
+    if not keeper:
+        keeper = next((f for f in group if "Unsorted" not in f), None)
+
+    # Priority 3: any file with no dot in path
+    if not keeper:
+        keeper = next((f for f in group if not path_has_dot(f)), None)
+
+    # Fallback: first file
+    if not keeper:
+        keeper = group[0]
+
+    # Mark all other files for deletion
+    for f in group:
+        if (f != keeper) and ("Faves" not in f) and ("Doujins" not in f) and (not f.endswith((".html", ".json"))):
+            to_delete.append(f)
+
+print("\n".join(to_delete))

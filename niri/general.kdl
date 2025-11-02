@@ -244,5 +244,5 @@ binds {
     XF86MonBrightnessUp cooldown-ms=30 { spawn "brightnessctl" "s" "5%+"; }
 
     // Lock Screen
-    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/forest_fog_trees_132037_1920x1200.jpg" "--font" "Inter"; }
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/w95.png" "--font" "Inter"; }
 }
