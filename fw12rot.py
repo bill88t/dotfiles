@@ -10,6 +10,7 @@ PERIOD = 0.5
 STABILITY = 3
 THRESHOLD = 0.4
 
+
 def find_iio_device(name, axis_files=None):
     """Find IIO device by name."""
     try:
@@ -21,7 +22,10 @@ def find_iio_device(name, axis_files=None):
                 dev_name = f.read().strip()
             if dev_name == name:
                 if axis_files:
-                    full_paths = {axis: os.path.join(IIO_BASE, dev, f) for axis, f in axis_files.items()}
+                    full_paths = {
+                        axis: os.path.join(IIO_BASE, dev, f)
+                        for axis, f in axis_files.items()
+                    }
                     if all(os.path.exists(p) for p in full_paths.values()):
                         return full_paths
                 else:
@@ -29,6 +33,7 @@ def find_iio_device(name, axis_files=None):
     except Exception as e:
         print(f"[WARN] IIO scan failed: {e}")
     return None
+
 
 def get_scale_factor(dev_dir, axis="x"):
     """Get accelerometer scale factor"""
@@ -41,6 +46,7 @@ def get_scale_factor(dev_dir, axis="x"):
         pass
     return 0.0098
 
+
 def read_average(path_map, samples=SAMPLES, period=PERIOD, scale=1.0):
     interval = period / samples
     values = {k: [] for k in path_map}
@@ -52,14 +58,16 @@ def read_average(path_map, samples=SAMPLES, period=PERIOD, scale=1.0):
         except Exception:
             return None
         time.sleep(interval)
-    return {k: sum(v)/len(v) for k, v in values.items()}
+    return {k: sum(v) / len(v) for k, v in values.items()}
+
 
 def normalize_accel(accel):
     """Normalize acceleration vector"""
-    magnitude = math.sqrt(accel["x"]**2 + accel["y"]**2 + accel["z"]**2)
+    magnitude = math.sqrt(accel["x"] ** 2 + accel["y"] ** 2 + accel["z"] ** 2)
     if magnitude < 0.1:
         return None
-    return {k: v/magnitude for k, v in accel.items()}
+    return {k: v / magnitude for k, v in accel.items()}
+
 
 def get_tablet_mode(lid_angle_path, last_tablet_mode=False):
     """
@@ -85,6 +93,7 @@ def get_tablet_mode(lid_angle_path, last_tablet_mode=False):
 
     return tablet_mode, lid_angle
 
+
 def classify_orientation(accel, tablet_mode):
     """Classify orientation based on accelerometer"""
     x, y, z = accel["x"], accel["y"], accel["z"]
@@ -109,8 +118,13 @@ def classify_orientation(accel, tablet_mode):
 
     return "unknown"
 
+
 def main():
-    base_accel_axes = {"x": "in_accel_x_raw", "y": "in_accel_y_raw", "z": "in_accel_z_raw"}
+    base_accel_axes = {
+        "x": "in_accel_x_raw",
+        "y": "in_accel_y_raw",
+        "z": "in_accel_z_raw",
+    }
     stable_queue = deque(maxlen=STABILITY)
     last_orientation = None
     last_tablet_mode = False
@@ -159,12 +173,17 @@ def main():
         if orient != "unknown":
             stable_queue.append(orient)
 
-            if len(stable_queue) == STABILITY and all(o == orient for o in stable_queue):
+            if len(stable_queue) == STABILITY and all(
+                o == orient for o in stable_queue
+            ):
                 if orient != last_orientation:
                     print(f"[INFO] Orientation changed → {orient}")
                     last_orientation = orient
 
-        print(f"[DEBUG] Lid: {lid_angle:6.1f}° | Tablet: {tablet_mode} | Accel: X={accel['x']:+.3f} Y={accel['y']:+.3f} Z={accel['z']:+.3f} | Orient: {orient}")
+        print(
+            f"[DEBUG] Lid: {lid_angle:6.1f}° | Tablet: {tablet_mode} | Accel: X={accel['x']:+.3f} Y={accel['y']:+.3f} Z={accel['z']:+.3f} | Orient: {orient}"
+        )
+
 
 if __name__ == "__main__":
     try:

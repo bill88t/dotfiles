@@ -13,10 +13,12 @@ out = subprocess.run(["pacman", "-Qi"], capture_output=True, text=True, check=Tr
 for line in out.stdout.splitlines():
     if line.startswith("Depends On"):
         parts = line.split(":", 1)[1].strip().split()
-        if parts == ['None']:
+        if parts == ["None"]:
             continue
         for dep in parts:
-            dep = dep.split("<")[0].split(">")[0].split("=")[0]  # strip version constraints
+            dep = (
+                dep.split("<")[0].split(">")[0].split("=")[0]
+            )  # strip version constraints
             if dep.endswith(".so"):
                 dep = dep[:-3]
             deps.add(dep)
