@@ -169,3 +169,42 @@ pchain() {
         pid=$ppid
     done
 }
+
+disk_compress() {
+    local dev="$1"
+    local outfile="$2"
+
+    if [[ -z "$dev" || -z "$outfile" ]]; then
+        echo "Usage: disk_compress <device> <output.zst>" >&2
+        return 1
+    fi
+
+    if [[ ! -b "$dev" ]]; then
+        echo "Error: '$dev' is not a block device." >&2
+        return 1
+    fi
+
+    echo "Imaging $dev -> $outfile ..."
+    sudo dd if="$dev" bs=16M status=progress | \
+        zstd -T0 -19 -o "$outfile"
+    echo "Done: $outfile"
+}
+
+disk_decompress() {
+    local infile="$1"
+    local dev="$2"
+
+    if [[ -z "$infile" || -z "$dev" ]]; then
+        echo "Usage: disk_decompress <input.zst> <device>" >&2
+        return 1
+    fi
+
+    if [[ ! -b "$dev" ]]; then
+        echo "Error: '$dev' is not a block device." >&2
+        return 1
+    fi
+
+    echo "Restoring $infile -> $dev ..."
+    zstd -dc "$infile" | sudo dd of="$dev" bs=4M status=progress conv=fsync
+    echo "Done writing to $dev"
+}
