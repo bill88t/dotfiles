@@ -41,6 +41,7 @@ color_prompt=yes
 #. ~/git/dotfiles/prion_aliases.bash     # Radxa Orion O6 "Prion"
 #. ~/git/dotfiles/op5u_aliases.bash      # OPi 5 Ultra
 #. ~/git/dotfiles/r5t_aliases.bash       # Rock 5T
+#. ~/git/dotfiles/fw_aliases.bash        # FraemeWoke 12
 
 # Shell extras
 . ~/git/dotfiles/zoxide_loader.bash      # z directory changer
