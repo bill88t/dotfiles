@@ -30,7 +30,66 @@ cpu_freqs() {
 alias jf="journalctl -f"
 alias jb="journalctl -b"
 
-alias mv_subdirfiles_to_pwd='find . -mindepth 2 -type f -exec mv -t . {} +'
+mv_subdirfiles_to_pwd() {
+    local cwd
+    cwd=$(realpath .)
+
+    # Safety filter
+    local depth=$(( $(tr -cd '/' <<< "$cwd" | wc -c) ))
+    if (( depth < 3 )); then
+        echo "ERROR: Directory too shallow ($cwd) — likely unsafe." >&2
+        read -rp "Type 'yes' to continue: " confirm
+        [[ "$confirm" == "yes" ]] || return 1
+    fi
+
+    # Check for files to move
+    if ! find . -mindepth 2 -type f -print -quit | grep -q .; then
+        echo "No files found in subdirectories." >&2
+        return 0
+    fi
+
+    echo "Dry run: would move the following files to $cwd"
+    find . -mindepth 2 -type f -exec printf '  %s\n' {} +
+    echo
+    read -rp "Proceed with actual move? (yes/no) " confirm
+    [[ "$confirm" == "yes" ]] || { echo "Aborted."; return 0; }
+
+    # Move files with collision handling
+    find . -mindepth 2 -type f | while IFS= read -r f; do
+        local base target name ext n
+        base=$(basename "$f")
+
+        if [[ "$base" == *.* && "$base" != .* ]]; then
+            name="${base%.*}"
+            ext="${base##*.}"
+        elif [[ "$base" == .*.* ]]; then
+            # Hidden file with extension (e.g., .git.txt)
+            name="${base%.*}"
+            ext="${base##*.}"
+        else
+            # No extension or just hidden file
+            name="$base"
+            ext=""
+        fi
+
+        target="$cwd/$base"
+        n=1
+        while [[ -e "$target" ]]; do
+            if [[ -n "$ext" ]]; then
+                target="$cwd/${name} (${n}).${ext}"
+            else
+                target="$cwd/${name} (${n})"
+            fi
+            ((n++))
+        done
+
+        mv "$f" "$target"
+    done
+
+    echo "Done: All subdirectory files safely moved into $cwd."
+    find . -type d -empty -delete
+    echo "Cleanup: Removed all subdirs."
+}
 
 alias wifipass='nmcli dev wifi show-password'
 
