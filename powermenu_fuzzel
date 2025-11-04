@@ -3,7 +3,7 @@
 killall fuzzel 2>/dev/null && exit 0
 
 # Entries to show in the power menu
-choices="Suspend\nLogout\nReboot\nPoweroff"
+choices="Suspend\nLogout\nReboot\nPoweroff\nSetup"
 
 # Run fuzzel and capture selection
 selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=11" --log-no-syslog -a top-right --hide-prompt --minimal-lines --selection-radius=6 --width 11)
@@ -13,11 +13,5 @@ case "$selected" in
     *Reboot)   systemctl reboot ;;
     *Poweroff) systemctl poweroff ;;
     *Suspend)  systemctl suspend ;;
+    *Setup)     systemctl reboot --firmware-setup ;;
 esac
-
-# case "$selected" in
-#     *Logout)   echo "Logout" ;;
-#     *Reboot)   echo "Reboot" ;;
-#     *Poweroff) echo "Poweroff" ;;
-#     *Suspend)  echo "suspend" ;;
-# esac
