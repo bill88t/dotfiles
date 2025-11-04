@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=MATLAB R2024b
+Comment=MATLAB R2024b (User Install)
+Exec=sh -c 'screen -dmS "Matlab" sh -c "/home/bill88t/git/dotfiles/matlab-wrapper.sh"'
+Icon=matlab
+Type=Application
+Categories=Development;Science;Engineering;
+Terminal=false
