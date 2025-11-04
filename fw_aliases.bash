@@ -165,3 +165,5 @@ ffch264_480() {
            -vf "scale_vaapi=w=-2:h=480" \
            "$@"
 }
+
+alias matlab="/home/bill88t/Matlab/R2024b/bin/matlab -webui -nosoftwareopengl"
