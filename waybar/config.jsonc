@@ -15,6 +15,7 @@
         "custom/niri_close",
         "custom/niri_resize",
         "custom/niri_overview",
+        "custom/niri_fullscreen",
         "custom/niri_left",
         "custom/niri_up",
         "niri/workspaces",
@@ -71,6 +72,13 @@
         "format": "❏",
         "interval": 0,
         "on-click": "niri msg action toggle-overview",
+        "tooltip": false
+    },
+
+    "custom/niri_fullscreen": {
+        "format": "🗖",
+        "interval": 0,
+        "on-click": "niri msg action fullscreen-window",
         "tooltip": false
     },
 

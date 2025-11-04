@@ -61,6 +61,7 @@ tooltip {
 #custom-niri_close,
 #custom-niri_resize,
 #custom-niri_overview,
+#custom-niri_fullscreen,
 #custom-niri_left,
 #custom-niri_up,
 #custom-niri_down,
@@ -96,10 +97,10 @@ tooltip {
 #custom-powermenu {
     margin-left: 2px;
     padding-left: 2px;
-    padding-right: 2px
+    padding-right: 2px;
 }
 #custom-niri_close {
-    margin-left: 6px;
+    margin-left: 4px;
     padding: 0px 6px;
     padding-top: 1px;
 }
@@ -111,8 +112,15 @@ tooltip {
 
 #custom-niri_overview {
     margin-left: 1px;
-    padding: 0px 6px;
+    padding: 2px 6px;
     padding-top: 2px;
+}
+
+#custom-niri_fullscreen {
+    padding-top: 2px;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-left: 2px;
     margin-right: 4px;
 }
 
