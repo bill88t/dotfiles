@@ -39,17 +39,17 @@ layout {
 
     preset-column-widths {
         proportion 0.3333
-        proportion 0.5
-        proportion 0.6666
+        proportion 0.4998
+        proportion 0.6665
         proportion 1.0
     }
 
-    default-column-width { proportion 0.5; }
+    default-column-width { proportion 0.4998; }
 
     // preset-window-height {
     //     proportion 0.3333
-    //     proportion 0.5
-    //     proportion 0.6666
+    //     proportion 0.4998
+    //     proportion 0.6665
     //     proportion 1.0
     // }
 
@@ -92,13 +92,13 @@ window-rule {
 
 window-rule {
     match app-id=r#"^legcord$"#
-    default-column-width { proportion 0.6666; }
+    default-column-width { proportion 0.6665; }
 }
 
 
 window-rule {
     match app-id=r#"^thunderbird$"#
-    default-column-width { proportion 0.6666; }
+    default-column-width { proportion 0.6665; }
 }
 
 window-rule {
@@ -109,6 +109,11 @@ window-rule {
 window-rule {
     match app-id=r#"^librewolf$"#
     default-column-width { proportion 1.0; }
+}
+
+window-rule {
+    match app-id="org.kde.kate"
+    default-column-width { proportion 0.6665; }
 }
 
 window-rule {
