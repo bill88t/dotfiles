@@ -13,13 +13,72 @@ BASHRC_SOURCE = SCRIPT_DIR / "bashrc"
 BASHRC_TARGET = HOME / ".bashrc"
 ALACRITTY_SOURCE = SCRIPT_DIR / "alacritty.toml"
 ALACRITTY_TARGET = HOME / ".alacritty.toml"
-BASE_PACKAGES = SCRIPT_DIR / "packages1.txt"
 GPG_CONF_SRC = SCRIPT_DIR / "gpg-agent.conf"
 GPG_CONF_DST = HOME / ".gnupg" / "gpg-agent.conf"
 NIRI_SRC = SCRIPT_DIR / "niri"
 NIRI_DST = HOME / ".config" / "niri"
 MAKEPKG_SRC = SCRIPT_DIR / ("makepkg.conf." + os.uname()[-1])
 MAKEPKG_DST = HOME / ".config" / "pacman" / "makepkg.conf"
+MATLAB_DSK_SRC = SCRIPT_DIR / "matlab.desktop"
+MATLAB_DSK_DST = HOME / ".local" / "share" / "applications" / "matlab.desktop"
+
+BASE_PKGS = [
+    "bind",
+    "traceroute",
+    "btop",
+    "downgrade",
+    "git-lfs",
+    "tldr",
+    "tio",
+    "speedtest-cli",
+    "screen",
+    "p7zip",
+    "nmap",
+    "unrar",
+    "unzip",
+    "uncrustify",
+    "nohang",
+    "pre-commit",
+    "inetutils",
+    "ethtool",
+    "timeshift",
+    "python-virtualenv",
+    "python-black",
+    "python-pip",
+    "iw",
+    "dnsmasq",
+    "iperf3",
+    "yt-dlp",
+    "usbutils",
+    "firewalld",
+    "fakeroot",
+    "gcc",
+    "patch",
+    "stress",
+    "cmake",
+    "which",
+    "ninja",
+    "zip",
+    "wget",
+    "curl",
+    "fastfetch",
+    "ccache",
+    "xorg-xhost",
+    "bat",
+    "socat",
+    "iotop",
+    "tinyxxd",
+]
+
+DOCKER_PKGS = [
+    "docker",
+    "docker-buildx",
+    "docker-compose",
+    "docker-compose",
+    "pigz",
+    "criu",
+]
+
 NIRI_PKGS = [
     "niri",
     "cliphist",
@@ -43,10 +102,11 @@ NIRI_PKGS = [
     "xdg-desktop-portal-gtk",
     "polkit-kde-agent",
     "adw-gtk-theme",
-    "papirus-icon-theme"
+    "papirus-icon-theme",
 ]
 
 args = None
+
 
 def install_packages(package_list: list) -> bool:
     if args.nopacman:
@@ -168,6 +228,7 @@ def install_gitconf(force=False):
         shell=True,
     )
 
+
 def install_gpgconf(force=False):
     gnupg_home = GPG_CONF_DST.parent
     gnupg_home.mkdir(mode=0o700, exist_ok=True)
@@ -223,7 +284,6 @@ def main():
         interactive_mode(force=args.replace)
 
 
-
 # --- KDL merge helpers (brace-aware, immediate-child merge) ---
 def _find_matching_brace(s: str, start: int) -> int:
     """Given index of '{' in s, return index of matching '}' (inclusive)."""
@@ -248,9 +308,9 @@ def _find_matching_brace(s: str, start: int) -> int:
             i += 1
             continue
         # skip // comments
-        if c == "/" and i + 1 < len(s) and s[i+1] == "/":
+        if c == "/" and i + 1 < len(s) and s[i + 1] == "/":
             # skip to end of line
-            j = s.find("\n", i+2)
+            j = s.find("\n", i + 2)
             if j == -1:
                 return len(s) - 1
             i = j + 1
@@ -263,6 +323,7 @@ def _find_matching_brace(s: str, start: int) -> int:
                 return i
         i += 1
     raise ValueError("Unbalanced braces")
+
 
 def _iter_top_blocks(s: str):
     """Yield (key, start_line_start, block_start_brace, end_brace_idx, header, inner_start, inner_end)."""
@@ -302,8 +363,8 @@ def _iter_top_blocks(s: str):
                 in_str = True
                 j += 1
                 continue
-            if c == "/" and j + 1 < len(s) and s[j+1] == "/":
-                nl = s.find("\n", j+2)
+            if c == "/" and j + 1 < len(s) and s[j + 1] == "/":
+                nl = s.find("\n", j + 2)
                 if nl == -1:
                     break
                 j = nl + 1
@@ -322,6 +383,7 @@ def _iter_top_blocks(s: str):
         key = " ".join(header.split())  # normalize whitespace in key
         yield (key, line_start, brace, end_brace, header, inner_start, inner_end)
         i = end_brace + 1
+
 
 def _split_immediate_children(block_inner: str):
     """Return (ordered_lines, ordered_blocks)
@@ -352,8 +414,8 @@ def _split_immediate_children(block_inner: str):
             i += 1
             continue
         # line comments
-        if c == "/" and i + 1 < len(block_inner) and block_inner[i+1] == "/":
-            nl = block_inner.find("\n", i+2)
+        if c == "/" and i + 1 < len(block_inner) and block_inner[i + 1] == "/":
+            nl = block_inner.find("\n", i + 2)
             if nl == -1:
                 nl = len(block_inner)
             if depth == 0:
@@ -370,7 +432,7 @@ def _split_immediate_children(block_inner: str):
                     header_line_start += 1
                 header = block_inner[header_line_start:i].strip()
                 endb = _find_matching_brace(block_inner, i)
-                full = block_inner[header_line_start:endb+1]
+                full = block_inner[header_line_start : endb + 1]
                 key = " ".join(header.split())
                 blocks.append((key, full))
                 i = endb + 1
@@ -407,6 +469,7 @@ def _split_immediate_children(block_inner: str):
             lines.append((name, tail))
     return lines, blocks
 
+
 def _merge_block_inner(base_inner: str, override_inner: str, indent: str) -> str:
     base_lines, base_blocks = _split_immediate_children(base_inner)
     o_lines, o_blocks = _split_immediate_children(override_inner)
@@ -437,6 +500,7 @@ def _merge_block_inner(base_inner: str, override_inner: str, indent: str) -> str
         out.append("")
     for _, block in merged_blocks:
         import textwrap
+
         blk = textwrap.dedent(block.strip("\n"))
         blk = "\n".join(indent + ln for ln in blk.splitlines()) + "\n"
         out.append(blk)
@@ -444,18 +508,31 @@ def _merge_block_inner(base_inner: str, override_inner: str, indent: str) -> str
         out.append("")
     return "\n".join(out)
 
+
 def merge_kdl_documents(base: str, override: str) -> str:
     base_blocks = list(_iter_top_blocks(base))
-    base_index = {key: (start, end, brace, header, inner_start, inner_end)
-                  for key, start, brace, end, header, inner_start, inner_end in base_blocks}
+    base_index = {
+        key: (start, end, brace, header, inner_start, inner_end)
+        for key, start, brace, end, header, inner_start, inner_end in base_blocks
+    }
 
     replacements = []
     appended = []
 
-    for key, o_start, o_brace, o_end, o_header, o_inner_start, o_inner_end in _iter_top_blocks(override):
+    for (
+        key,
+        o_start,
+        o_brace,
+        o_end,
+        o_header,
+        o_inner_start,
+        o_inner_end,
+    ) in _iter_top_blocks(override):
         o_inner = override[o_inner_start:o_inner_end]
         if key in base_index:
-            b_start, b_end, b_brace, b_header, b_inner_start, b_inner_end = base_index[key]
+            b_start, b_end, b_brace, b_header, b_inner_start, b_inner_end = base_index[
+                key
+            ]
             b_inner = base[b_inner_start:b_inner_end]
             # detect child indent from base
             child_indent = " " * 4
@@ -463,10 +540,10 @@ def merge_kdl_documents(base: str, override: str) -> str:
             if m:
                 child_indent = m.group(1)
             merged_inner = _merge_block_inner(b_inner, o_inner, child_indent)
-            new_block = base[b_start:b_brace+1] + "\n" + merged_inner + "}\n"
-            replacements.append((b_start, b_end+1, new_block))
+            new_block = base[b_start : b_brace + 1] + "\n" + merged_inner + "}\n"
+            replacements.append((b_start, b_end + 1, new_block))
         else:
-            block_text = override[o_start:o_end+1]
+            block_text = override[o_start : o_end + 1]
             appended.append(block_text)
 
     if replacements:
@@ -484,26 +561,37 @@ def merge_kdl_documents(base: str, override: str) -> str:
 
     # Extract top-level non-block lines from override and append them
     override_top_lines = []
-    for line in override.split('\n'):
+    for line in override.split("\n"):
         stripped = line.strip()
-        if stripped and not stripped.startswith("//") and '{' not in stripped and '}' not in stripped:
+        if (
+            stripped
+            and not stripped.startswith("//")
+            and "{" not in stripped
+            and "}" not in stripped
+        ):
             # Check if this line is before any blocks
             # (simple heuristic: if line appears before first '{', it's top-level)
-            if override.find(line) < override.find('{'):
+            if override.find(line) < override.find("{"):
                 override_top_lines.append(line)
 
     if override_top_lines:
         merged = merged.rstrip() + "\n" + "\n".join(override_top_lines) + "\n"
 
     if appended:
-        merged = merged.rstrip() + "\n\n" + "\n\n".join(b.strip("\n") for b in appended) + "\n"
+        merged = (
+            merged.rstrip()
+            + "\n\n"
+            + "\n\n".join(b.strip("\n") for b in appended)
+            + "\n"
+        )
 
     return merged
+
 
 def _finalize_kdl_text(text: str) -> str:
     """Filter out comment lines and normalize newlines in final text."""
     final_lines = []
-    for line in text.split('\n'):
+    for line in text.split("\n"):
         unspaced = line
         while unspaced.startswith(" "):
             unspaced = unspaced[1:]
@@ -516,7 +604,10 @@ def _finalize_kdl_text(text: str) -> str:
         result = result.replace("\n\n", "\n")
 
     return result
+
+
 # --- end helpers ---
+
 
 def install_niri(force=False) -> None:
     hostname = socket.gethostname()
@@ -536,7 +627,9 @@ def install_niri(force=False) -> None:
         if force:
             target_dir.unlink()
         else:
-            print(f"{target_dir} exists and is not a directory. Use --replace to overwrite.")
+            print(
+                f"{target_dir} exists and is not a directory. Use --replace to overwrite."
+            )
             return
     target_dir.mkdir(parents=True, exist_ok=True)
 
@@ -556,12 +649,33 @@ def install_niri(force=False) -> None:
     if target_file.exists() and not force:
         if not confirm_overwrite(target_file, force):
             return
-    target_file.write_text(final_text if final_text.endswith("\n") else final_text + "\n")
+    target_file.write_text(
+        final_text if final_text.endswith("\n") else final_text + "\n"
+    )
 
     print("Applying GTK theming.. ", end="")
-    subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", "adw-gtk3-dark"], check=True)
-    subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "icon-theme", "Papirus-Dark"], check=True)
+    subprocess.run(
+        [
+            "gsettings",
+            "set",
+            "org.gnome.desktop.interface",
+            "gtk-theme",
+            "adw-gtk3-dark",
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "gsettings",
+            "set",
+            "org.gnome.desktop.interface",
+            "icon-theme",
+            "Papirus-Dark",
+        ],
+        check=True,
+    )
     print(f"OK\nInstalled Niri config -> `{target_file}`")
+
 
 def install_makepkg(force=False) -> None:
     makepkg_home = MAKEPKG_DST.parent
@@ -569,14 +683,37 @@ def install_makepkg(force=False) -> None:
 
     symlink_file(MAKEPKG_SRC, MAKEPKG_DST, force=force)
 
+
+def install_base(force=False) -> None:
+    # Disable coredumps
+    subprocess.run(
+        [
+            "sudo",
+            "bash",
+            "-c",
+            'mkdir -p /etc/systemd && if ! grep -q "Storage=none" /etc/systemd/coredump.conf 2>/dev/null; then echo -e "[Coredump]\nStorage=none\nProcessSizeMax=0" > /etc/systemd/coredump.conf; fi && systemctl daemon-reexec && systemctl daemon-reload && systemctl restart systemd-coredump.socket 2>/dev/null || true && rm -rf /var/lib/systemd/coredump/* 2>/dev/null || true'
+        ],
+        check=True,
+    )
+
+    # Install core packages
+    if not install_packages(BASE_PKGS):
+        return
+
+
+def install_matlab(force=False) -> None:
+    symlink_file(MATLAB_DSK_SRC, MATLAB_DSK_DST, force=force)
+    print("Install matlab R2024b to `/home/bill88t/Matlab/R2024b`")
+
 INSTALLERS = {
+    "base": install_base,
     "bashrc": install_bashrc,
     "alacritty": install_alacritty,
-    "packages": install_packages,
     "gitconf": install_gitconf,
     "gpgconf": install_gpgconf,
     "niri": install_niri,
     "makepkg": install_makepkg,
+    "matlab": install_matlab,
 }
 
 
