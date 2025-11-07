@@ -1,4 +1,6 @@
 #!/hint/bash
+# shellcheck disable=2034
+
 #
 # /etc/makepkg.conf
 #
@@ -23,7 +25,7 @@ DLAGENTS=('file::/usr/bin/curl -qgC - -o %o %u'
 
 #-- The package required by makepkg to download VCS sources
 #  Format: 'protocol::package'
-VCSCLIENTS=('bzr::bzr'
+VCSCLIENTS=('bzr::breezy'
             'fossil::fossil'
             'git::git'
             'hg::mercurial'
@@ -39,18 +41,18 @@ CHOST="x86_64-pc-linux-gnu"
 #-- Compiler and Linker Flags
 #CPPFLAGS=""
 CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe -fno-plt -fexceptions \
-        -Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security \
-        -fstack-clash-protection -fcf-protection"
+        -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \
+        -fstack-clash-protection -fcf-protection \
+        -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"
 CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"
-LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+LDFLAGS="-Wl,-O1 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now \
+         -Wl,-z,pack-relative-relocs"
 LTOFLAGS="-flto=auto"
-#RUSTFLAGS="-C opt-level=2"
 #-- Make Flags: change this for DistCC/SMP systems
-MAKEFLAGS="-j12"
+MAKEFLAGS="-j9"
 #-- Debugging flags
 DEBUG_CFLAGS="-g"
 DEBUG_CXXFLAGS="$DEBUG_CFLAGS"
-#DEBUG_RUSTFLAGS="-C debuginfo=2"
 
 #########################################################################
 # BUILD ENVIRONMENT
@@ -65,70 +67,24 @@ DEBUG_CXXFLAGS="$DEBUG_CFLAGS"
 #-- check:    Run the check() function if present in the PKGBUILD
 #-- sign:     Generate PGP signature file
 #
-BUILDENV=(!distcc color ccache check !sign)
-#
-#-- If using DistCC, your MAKEFLAGS will also need modification. In addition,
-#-- specify a space-delimited list of hosts running in the DistCC cluster.
-#DISTCC_HOSTS=""
-#
-#-- Specify a directory for package building.
-#BUILDDIR=/tmp/makepkg
 
-#########################################################################
-# GLOBAL PACKAGE OPTIONS
-#   These are default values for the options=() settings
-#########################################################################
-#
-# Makepkg defaults: OPTIONS=(!strip docs libtool staticlibs emptydirs !zipman !purge !debug !lto)
-#  A negated option will do the opposite of the comments below.
-#
-#-- strip:      Strip symbols from binaries/libraries
-#-- docs:       Save doc directories specified by DOC_DIRS
-#-- libtool:    Leave libtool (.la) files in packages
-#-- staticlibs: Leave static library (.a) files in packages
-#-- emptydirs:  Leave empty directories in packages
-#-- zipman:     Compress manual (man and info) pages in MAN_DIRS with gzip
-#-- purge:      Remove files specified by PURGE_TARGETS
-#-- debug:      Add debugging flags as specified in DEBUG_* variables
-#-- lto:        Add compile flags for building with link time optimization
-#
+BUILDENV=(!distcc color ccache check sign)
+
 OPTIONS=(strip docs !libtool !staticlibs emptydirs zipman purge !debug !lto)
 
-#-- File integrity checks to use. Valid: md5, sha1, sha224, sha256, sha384, sha512, b2
 INTEGRITY_CHECK=(sha256)
-#-- Options to be used when stripping binaries. See `man strip' for details.
 STRIP_BINARIES="--strip-all"
-#-- Options to be used when stripping shared libraries. See `man strip' for details.
 STRIP_SHARED="--strip-unneeded"
-#-- Options to be used when stripping static libraries. See `man strip' for details.
 STRIP_STATIC="--strip-debug"
-#-- Manual (man and info) directories to compress (if zipman is specified)
 MAN_DIRS=({usr{,/local}{,/share},opt/*}/{man,info})
-#-- Doc directories to remove (if !docs is specified)
 DOC_DIRS=(usr/{,local/}{,share/}{doc,gtk-doc} opt/*/{doc,gtk-doc})
-#-- Files to be removed from all packages (if purge is specified)
 PURGE_TARGETS=(usr/{,share}/info/dir .packlist *.pod)
-#-- Directory to store source code in for debug packages
 DBGSRCDIR="/usr/src/debug"
+LIB_DIRS=('lib:usr/lib' 'lib32:usr/lib32')
 
-#########################################################################
-# PACKAGE OUTPUT
-#########################################################################
-#
-# Default: put built package and cached source in build directory
-#
-#-- Destination: specify a fixed directory where all packages will be placed
-#PKGDEST=/home/packages
-#-- Source cache: specify a fixed directory where source files will be cached
-#SRCDEST=/home/sources
-#-- Source packages: specify a fixed directory where all src packages will be placed
-#SRCPKGDEST=/home/srcpackages
-#-- Log files: specify a fixed directory where all log files will be placed
-#LOGDEST=/home/makepkglogs
-#-- Packager: name/email of the person or organization building packages
+PKGDEST="$HOME/Built"
 PACKAGER="Bill Sideris <bill88t@feline.gr>"
-#-- Specify a key to use for package signing
-#GPGKEY=""
+GPGKEY="ECB6CC2EB44CEF708F41AF191BEF1BCEBA58EA33"
 
 #########################################################################
 # COMPRESSION DEFAULTS
@@ -137,7 +93,7 @@ PACKAGER="Bill Sideris <bill88t@feline.gr>"
 COMPRESSGZ=(gzip -c -f -n)
 COMPRESSBZ2=(bzip2 -c -f)
 COMPRESSXZ=(xz -c -z -)
-COMPRESSZST=(zstd -c -z -q -)
+COMPRESSZST=(zstd -c -T0 -)
 COMPRESSLRZ=(lrzip -q)
 COMPRESSLZO=(lzop -q)
 COMPRESSZ=(compress -c -f)
@@ -157,3 +113,4 @@ SRCEXT='.src.tar.gz'
 #
 #-- Command used to run pacman as root, instead of trying sudo and su
 #PACMAN_AUTH=()
+# vim: set ft=sh ts=2 sw=2 et:
