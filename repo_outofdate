@@ -8,11 +8,10 @@ import requests
 import pyalpm
 
 PACMAN_CONF = "/etc/pacman.conf"
-BREDOS_REPOS = ["BredOS-any", "BredOS-multilib", "BredOS"]
+BREDOS_REPOS = ["BredOS-multilib", "BredOS"]
+BREDOS_ANY = ["BredOS-any"]
 UPSTREAM_REPOS = ["core", "extra"]
 EXCLUDE = ["aic8800-dkms", "iwd", "box86-git", "grub", "mkinitcpio", "pkgconf", "r8126-dkms"]
-
-ARCH = os.uname().machine
 
 def parse_pacman_conf():
     repos = {}
@@ -35,9 +34,9 @@ def parse_pacman_conf():
                                 repos[current_repo].append(url)
     return repos
 
-def fetch_db(url_template, repo):
+def fetch_db(url_template, repo, arch):
     url_base = (
-        url_template.replace("$arch", ARCH)
+        url_template.replace("$arch", arch)
                     .replace("$repo", repo)
                     .rstrip("/")
     )
@@ -81,41 +80,43 @@ def aur_version(pkgname):
 
 def main():
     repos = parse_pacman_conf()
-    bredos_pkgs = {}
-    upstream_pkgs = {repo: {} for repo in UPSTREAM_REPOS}
+    for arch in ["x86_64", "aarch64", "any"]:
+        print(f"{arch}:")
+        bredos_pkgs = {}
+        upstream_pkgs = {repo: {} for repo in UPSTREAM_REPOS}
 
-    # Fetch and parse upstream repos
-    for repo in UPSTREAM_REPOS:
-        for url in repos.get(repo, []):
-            db = fetch_db(url, repo)
-            if db:
-                upstream_pkgs[repo].update(parse_db(db))
-                os.unlink(db)
-                break
-
-    # Fetch and parse BredOS repos
-    for repo in BREDOS_REPOS:
-        for url in repos.get(repo, []):
-            db = fetch_db(url, repo)
-            if db:
-                bredos_pkgs.update(parse_db(db))
-                os.unlink(db)
-                break
-
-    # Compare versions
-    for pkg, bredos_ver in bredos_pkgs.items():
-        if pkg not in EXCLUDE:
-            upstream_ver = None
-            for repo in UPSTREAM_REPOS:
-                if pkg in upstream_pkgs[repo]:
-                    upstream_ver = upstream_pkgs[repo][pkg]
+        # Fetch and parse upstream repos
+        for repo in UPSTREAM_REPOS:
+            for url in repos.get(repo, []):
+                db = fetch_db(url, repo, arch)
+                if db:
+                    upstream_pkgs[repo].update(parse_db(db))
+                    os.unlink(db)
                     break
-            if not upstream_ver:
-                upstream_ver = aur_version(pkg)
-            if upstream_ver:
-                cmp_result = pyalpm.vercmp(upstream_ver, bredos_ver)
-                if cmp_result > 0:
-                    print(f"{pkg}: {bredos_ver} -> {upstream_ver}")
+
+        # Fetch and parse BredOS repos
+        for repo in BREDOS_REPOS if arch != "any" else BREDOS_ANY:
+            for url in repos.get(repo, []):
+                db = fetch_db(url, repo, arch)
+                if db:
+                    bredos_pkgs.update(parse_db(db))
+                    os.unlink(db)
+                    break
+
+        # Compare versions
+        for pkg, bredos_ver in bredos_pkgs.items():
+            if pkg not in EXCLUDE:
+                upstream_ver = None
+                for repo in UPSTREAM_REPOS:
+                    if pkg in upstream_pkgs[repo]:
+                        upstream_ver = upstream_pkgs[repo][pkg]
+                        break
+                if not upstream_ver:
+                    upstream_ver = aur_version(pkg)
+                if upstream_ver:
+                    cmp_result = pyalpm.vercmp(upstream_ver, bredos_ver)
+                    if cmp_result > 0:
+                        print(f"  - {pkg}: {bredos_ver} -> {upstream_ver}")
 
 if __name__ == "__main__":
     main()
