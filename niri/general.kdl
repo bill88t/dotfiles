@@ -99,7 +99,7 @@ window-rule {
 
 
 window-rule {
-    match app-id=r#"^thunderbird$"#
+    match app-id="org.mozilla.Thunderbird"
     default-column-width { proportion 0.6665; }
 }
 
