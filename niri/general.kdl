@@ -88,6 +88,8 @@ screenshot-path "~/Pictures/Screenshots/Screenshot %Y-%m-%d %H-%M-%S.png"
 window-rule {
     match app-id=r#"librewolf$"# title="^Picture-in-Picture$"
     open-floating true
+    baba-is-float true
+    open-focused false
 }
 
 window-rule {
