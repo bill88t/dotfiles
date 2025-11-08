@@ -714,6 +714,10 @@ def install_base(force=False) -> None:
         subprocess.run(["makepkg", "-si"], check=True)
 
 
+def bredify(force=False) -> None:
+    pass
+
+
 def install_matlab(force=False) -> None:
     symlink_file(MATLAB_DSK_SRC, MATLAB_DSK_DST, force=force)
     print("Install matlab R2024b to `/home/bill88t/Matlab/R2024b`")
@@ -721,6 +725,7 @@ def install_matlab(force=False) -> None:
 
 INSTALLERS = {
     "base": install_base,
+    "bredify": bredify,
     "bashrc": install_bashrc,
     "alacritty": install_alacritty,
     "gitconf": install_gitconf,
