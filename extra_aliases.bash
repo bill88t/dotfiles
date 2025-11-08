@@ -195,8 +195,8 @@ zextract() {
   fi
 }
 
-alias tiny_rsync='rsync --whole-file --info=progress2 -zaHAX'
-alias best_rsync='rsync --info=progress2 -zaHAX'
+alias tiny_rsync='rsync --whole-file --info=progress2 -zaHAX --safe-links --delete-delay --delay-updates --timeout=600'
+alias best_rsync='rsync --info=progress2 -zaHAX --safe-links --delete-delay --delay-updates --timeout=600'
 
 pchain() {
     local pid="$1"
