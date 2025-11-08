@@ -107,6 +107,10 @@ NIRI_PKGS = [
 args = None
 
 
+def command_exists(cmd: str) -> bool:
+    return shutil.which(cmd) is not None
+
+
 def install_packages(package_list: list, yay: bool = False) -> bool:
     if args.nopacman:
         return True
@@ -700,7 +704,7 @@ def install_base(force=False) -> None:
         return
 
     # Yay if needed
-    if not install_packages(["yay"]):
+    if (not command_exists("yay")) and not install_packages(["yay"]):
         print("yay not in repos, installing off of aur")
 
         subprocess.run(["mkdir", f"{HOME}/git"], check=False, shell=True)
