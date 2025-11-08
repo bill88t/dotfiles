@@ -691,7 +691,7 @@ def install_base(force=False) -> None:
             "sudo",
             "bash",
             "-c",
-            'mkdir -p /etc/systemd && if ! grep -q "Storage=none" /etc/systemd/coredump.conf 2>/dev/null; then echo -e "[Coredump]\nStorage=none\nProcessSizeMax=0" > /etc/systemd/coredump.conf; fi && systemctl daemon-reexec && systemctl daemon-reload && systemctl restart systemd-coredump.socket 2>/dev/null || true && rm -rf /var/lib/systemd/coredump/* 2>/dev/null || true'
+            'mkdir -p /etc/systemd && if ! grep -q "Storage=none" /etc/systemd/coredump.conf 2>/dev/null; then echo -e "[Coredump]\nStorage=none\nProcessSizeMax=0" > /etc/systemd/coredump.conf; fi && systemctl daemon-reexec && systemctl daemon-reload && systemctl restart systemd-coredump.socket 2>/dev/null || true && rm -rf /var/lib/systemd/coredump/* 2>/dev/null || true',
         ],
         check=True,
     )
@@ -704,6 +704,7 @@ def install_base(force=False) -> None:
 def install_matlab(force=False) -> None:
     symlink_file(MATLAB_DSK_SRC, MATLAB_DSK_DST, force=force)
     print("Install matlab R2024b to `/home/bill88t/Matlab/R2024b`")
+
 
 INSTALLERS = {
     "base": install_base,
