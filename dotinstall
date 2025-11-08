@@ -28,10 +28,8 @@ BASE_PKGS = [
     "bind",
     "traceroute",
     "btop",
-    "downgrade",
     "git-lfs",
     "tldr",
-    "tio",
     "speedtest-cli",
     "screen",
     "p7zip",
@@ -39,7 +37,6 @@ BASE_PKGS = [
     "unrar",
     "unzip",
     "uncrustify",
-    "nohang",
     "pre-commit",
     "inetutils",
     "ethtool",
@@ -110,7 +107,7 @@ NIRI_PKGS = [
 args = None
 
 
-def install_packages(package_list: list) -> bool:
+def install_packages(package_list: list, yay: bool = False) -> bool:
     if args.nopacman:
         return True
 
@@ -120,7 +117,7 @@ def install_packages(package_list: list) -> bool:
 
         if package_list:
             print(f"Installing packages: {', '.join(package_list)}")
-            cmd = ["sudo", "pacman", "-S", "--needed", "--noconfirm"] + package_list
+            cmd = ["sudo", "pacman" if not yay else "yay", "-S", "--needed", "--noconfirm"] + package_list
             subprocess.run(cmd, check=True)
         return True
 
