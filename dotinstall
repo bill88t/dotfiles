@@ -705,7 +705,7 @@ def install_base(force=False) -> None:
 
         subprocess.run(["mkdir", f"{HOME}/git"], check=False, shell=True)
         os.chdir(HOME)
-        subprocess.run(["git", "clone", "https://aur.archlinux.org/yay-bin"], check=True)
+        subprocess.run(["git", "clone", "https://aur.archlinux.org/yay-bin"], check=False)
         os.chdir("yay-bin")
         subprocess.run(["makepkg", "-si"], check=True)
 
