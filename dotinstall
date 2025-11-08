@@ -23,6 +23,8 @@ MATLAB_DSK_SRC = SCRIPT_DIR / "matlab.desktop"
 MATLAB_DSK_DST = HOME / ".local" / "share" / "applications" / "matlab.desktop"
 
 BASE_PKGS = [
+    "git",
+    "git-lfs",
     "bind",
     "traceroute",
     "btop",
@@ -699,6 +701,16 @@ def install_base(force=False) -> None:
     # Install core packages
     if not install_packages(BASE_PKGS):
         return
+
+    # Yay if needed
+    if not install_packages(["yay"]):
+        print("yay not in repos, installing off of aur")
+
+        subprocess.run(["mkdir", f"{HOME}/git"], check=False, shell=True)
+        os.chdir(HOME)
+        subprocess.run(["git", "clone", "https://aur.archlinux.org/yay-bin"], check=True)
+        os.chdir("yay-bin")
+        subprocess.run(["makepkg", "-si"], check=True)
 
 
 def install_matlab(force=False) -> None:
