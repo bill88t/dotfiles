@@ -68,7 +68,7 @@ DEBUG_CXXFLAGS="$DEBUG_CFLAGS"
 #-- sign:     Generate PGP signature file
 #
 
-BUILDENV=(!distcc color ccache check sign)
+BUILDENV=(!distcc color ccache check !sign)
 
 OPTIONS=(strip docs !libtool !staticlibs emptydirs zipman purge !debug !lto)
 
