@@ -1,7 +1,6 @@
 #!/usr/bin/env sh
 
-gov=$(cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor \
-    | sort | uniq -c | sort -nr | head -n1 | awk '{print $2}')
+gov=$(govctl -G)
 
 # Capitalize
 gov=$(echo "$gov" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
@@ -11,3 +10,4 @@ if [ -n "$gov" ]; then
 else
     echo "{\"text\":\"?\",\"tooltip\":\"failed\"}"
 fi
+
