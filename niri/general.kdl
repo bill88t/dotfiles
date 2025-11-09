@@ -133,6 +133,10 @@ gestures {
     }
 }
 
+overview {
+    zoom 0.75
+}
+
 binds {
     Mod+T { spawn "alacritty"; }
     Mod+E { spawn "thunar"; }
