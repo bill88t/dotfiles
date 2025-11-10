@@ -43,4 +43,8 @@ input {
         // disabled-on-external-mouse
         click-method "button-areas"
     }
+
+    tablet {
+        map-to-output "eDP-1"
+    }
 }
