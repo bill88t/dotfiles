@@ -2,6 +2,23 @@ spawn-at-startup "/home/bill88t/git/dotfiles/waymount.sh"
 
 output "eDP-1" {
     scale 1.25
+    position x=0 y=1080
+}
+
+output "DP-1" {
+    position x=0 y=0
+}
+
+output "DP-2" {
+    position x=0 y=0
+}
+
+output "DP-3" {
+    position x=0 y=0
+}
+
+output "DP-4" {
+    position x=0 y=0
 }
 
 overview {
