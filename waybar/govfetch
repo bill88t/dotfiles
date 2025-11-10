@@ -1,13 +1,9 @@
-#!/usr/bin/env sh
+#!/bin/bash
+log=$(journalctl -n 1 -u govctl --no-pager 2>/dev/null)
 
-gov=$(govctl -G)
-
-# Capitalize
-gov=$(echo "$gov" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
-
-if [ -n "$gov" ]; then
-    echo "{\"text\":\"$gov\",\"tooltip\":\"Governor: $gov\",\"class\":\"$gov\"}"
+if [[ $log =~ Applied\ governor\ \"([^\"]+)\" ]]; then
+    gov="${BASH_REMATCH[1]}"
+    echo "${gov^}"
 else
-    echo "{\"text\":\"?\",\"tooltip\":\"failed\"}"
+    echo "Unknown"
 fi
-
