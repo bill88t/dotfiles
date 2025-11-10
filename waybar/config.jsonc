@@ -190,7 +190,7 @@
     },
 
     "tray": {
-        "spacing": 8,
+        "spacing": 4,
         "tooltip": false
     },
 
