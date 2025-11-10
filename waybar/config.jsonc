@@ -163,11 +163,18 @@
     },
 
     "battery": {
-        "format": "BAT {capacity}%",
+        "format": "-{power:.1f}W {capacity}%",
+        "format-charging": "+{power:.1f}W {capacity}%",
+        "format-plugged": "={power:.1f}W {capacity}%",
+        "format-alt": "{time}",
         "interval": 5,
         "states": {
             "warning": 20,
             "critical": 10
+        },
+        "events": {
+            "on-discharging-warning": "notify-send -u normal 'Low Battery'",
+            "on-discharging-critical": "notify-send -u critical 'Very Low Battery'",
         },
         "tooltip": false
     },
