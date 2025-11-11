@@ -102,6 +102,10 @@ window-rule {
     open-fullscreen true
 }
 
+window-rule {
+    match app-id="com.github.xournalpp.xournalpp"
+    open-fullscreen true
+}
 
 window-rule {
     match app-id="org.mozilla.Thunderbird"
