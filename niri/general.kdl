@@ -34,7 +34,7 @@ input {
 }
 
 layout {
-    gaps 4
+    gaps 3
     center-focused-column "never"
 
     preset-column-widths {
@@ -56,7 +56,7 @@ layout {
     focus-ring {
         // off
 
-        width 4
+        width 3
 
         active-color "#7fc8ff"
         inactive-color "#505050"
@@ -128,7 +128,7 @@ window-rule {
 }
 
 window-rule {
-    geometry-corner-radius 10
+    geometry-corner-radius 6
     clip-to-geometry true
 }
 
