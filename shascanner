@@ -1,0 +1,138 @@
+#!/usr/bin/python3
+
+import argparse
+import hashlib
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
+
+IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
+VIDEO_EXTENSIONS = {'.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv', '.webm'}
+SUPPORTED_EXTENSIONS = IMAGE_EXTENSIONS.union(VIDEO_EXTENSIONS)
+
+def get_file_sha1(file_path):
+    sha1 = hashlib.sha1()
+    try:
+        with open(file_path, 'rb') as f:
+            while chunk := f.read(8192):
+                sha1.update(chunk)
+        return sha1.hexdigest()
+    except (IOError, OSError):
+        return None
+
+def find_files_to_process(root_folder):
+    filepaths = []
+    for root, _, files in os.walk(root_folder):
+        for name in files:
+            if os.path.splitext(name)[1].lower() in SUPPORTED_EXTENSIONS:
+                filepaths.append(os.path.join(root, name))
+    return filepaths
+
+def hash_mode(folder, output_file, max_workers):
+    print(f"Scanning for files in '{folder}'...")
+    filepaths = find_files_to_process(folder)
+    print(f"Found {len(filepaths)} image/video files to process.")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor, open(output_file, 'w') as out_f:
+        futures = {executor.submit(get_file_sha1, path): path for path in filepaths}
+
+        progress = tqdm(as_completed(futures), total=len(filepaths), desc="Hashing files", unit="file")
+
+        for future in progress:
+            path = futures[future]
+            try:
+                sha1_hash = future.result()
+                if sha1_hash:
+                    out_f.write(f"{sha1_hash}  {path}\n")
+            except Exception as e:
+                tqdm.write(f"Error processing {path}: {e}")
+
+    print(f"\nProcessing complete. Hashes saved to '{output_file}'.")
+
+
+def reverse_mode(hashes_file, folder, max_workers):
+    print(f"Loading hashes from '{hashes_file}'...")
+    try:
+        with open(hashes_file, 'r') as f:
+            target_hashes = {line.split('  ', 1)[0] for line in f}
+        print(f"Loaded {len(target_hashes)} unique hashes.")
+    except FileNotFoundError:
+        print(f"Error: Hashes file not found at '{hashes_file}'")
+        return
+
+    print(f"Scanning for files in '{folder}' to find matches...")
+    # In reverse mode, we check all files regardless of extension, as file extensions
+    # can be misleading. A file might not have a standard extension but could still match a hash.
+    filepaths = []
+    for root, _, files in os.walk(folder):
+        for name in files:
+            filepaths.append(os.path.join(root, name))
+
+    print(f"Found {len(filepaths)} total files to scan.")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(get_file_sha1, path): path for path in filepaths}
+
+        progress = tqdm(as_completed(futures), total=len(filepaths), desc="Scanning files", unit="file")
+
+        found_matches = []
+        for future in progress:
+            path = futures[future]
+            try:
+                sha1_hash = future.result()
+                if sha1_hash and sha1_hash in target_hashes:
+                    found_matches.append(path)
+                    tqdm.write(path) # Print immediately for piping
+            except Exception as e:
+                tqdm.write(f"Error scanning {path}: {e}")
+
+    print(f"\nScan complete. Found {len(found_matches)} matching files.")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Find and hash media files or find duplicates based on a hash list.",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+
+    cpu_count = os.cpu_count() or 1
+    default_workers = min(32, cpu_count + 4)
+
+    parser.add_argument(
+        '-t', '--threads',
+        type=int,
+        default=default_workers,
+        help=f'Number of worker threads to use (default: {default_workers}).'
+    )
+
+    subparsers = parser.add_subparsers(dest='mode', required=True, help='Available modes')
+
+    # Hash mode
+    parser_hash = subparsers.add_parser(
+        'hash',
+        help='Recursively find media files, compute SHA1 hashes, and save to a file.'
+    )
+    parser_hash.add_argument('folder', help='The root folder to scan for media files.')
+    parser_hash.add_argument(
+        '-o', '--output',
+        default='hashes.txt',
+        help='The output file to save hashes and file paths (default: hashes.txt).'
+    )
+
+    # Reverse mode
+    parser_reverse = subparsers.add_parser(
+        'reverse',
+        help='Scan a folder for files that match hashes in the provided text file.'
+    )
+    parser_reverse.add_argument('hashes_file', help='The text file containing the hashes (one per line).')
+    parser_reverse.add_argument('folder', help='The folder to scan for matching files.')
+
+    args = parser.parse_args()
+
+    if args.mode == 'hash':
+        hash_mode(args.folder, args.output, args.threads)
+    elif args.mode == 'reverse':
+        reverse_mode(args.hashes_file, args.folder, args.threads)
+
+if __name__ == '__main__':
+    main()
