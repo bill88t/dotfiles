@@ -6,16 +6,14 @@ import re
 import os
 from urllib.parse import urlparse
 import getpass
-
-seq = 0
+import time
 
 def find_urls(text):
+    """Finds URLs in a given string of text."""
     return re.findall(r'https?://[^\s/$.?#].[^\s]*', text)
 
-def download_url(url):
-    global seq
-    mid = seq
-    seq += 1
+def download_url(url, processes):
+    """Starts a download for a given URL and adds the process to the tracking list."""
     try:
         path = urlparse(url).path
         filename = os.path.basename(path)
@@ -24,19 +22,24 @@ def download_url(url):
             print(f"Could not determine filename for URL: {url}. Skipping.", file=sys.stderr)
             return
 
-        print(f"Starting download #{mid} for: {url}")
+        print(f"Starting download for: {url}")
 
         command = ['wget', url, '-qO', filename]
-        subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Start the process and add it to our list
+        process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        processes.append({"process": process, "url": url})
     except Exception as e:
         print(f"An error occurred while processing {url}: {e}", file=sys.stderr)
 
 def main():
+    """Main function to handle user input and manage download processes."""
+    processes = []
     print("Crude downloader started. Paste links and press Enter.")
     print("Press Ctrl+C or Ctrl+D to exit.")
 
-    while True:
-        try:
+    # Main input loop
+    try:
+        while True:
             pasted_text = getpass.getpass(prompt='')
             urls = find_urls(pasted_text)
 
@@ -44,18 +47,43 @@ def main():
                 continue
 
             for url in urls:
-                download_url(url)
-        except EOFError:
-            print("\nCtrl+D detected. Exiting.")
-            break
-        except KeyboardInterrupt:
-            print("\nCtrl+C detected. Exiting.")
-            break
+                download_url(url, processes)
+    except (EOFError, KeyboardInterrupt):
+        print("\nInput finished. Proceeding to wait for downloads.")
+
+    if not processes:
+        print("No downloads were started. Exiting.")
+        return
+
+    # Waiting loop for child processes
+    try:
+        print(f"Waiting for {len(processes)} downloads to complete...")
+        while any(p["process"].poll() is None for p in processes):
+            # Keep only the running processes
+            running_processes = [p for p in processes if p["process"].poll() is None]
+            print(f"\rRemaining downloads: {len(running_processes)}... (Press Ctrl+C again to kill all)", end="")
+            time.sleep(0.5)
+
+        # Final status check to clear the line
+        running_processes = [p for p in processes if p["process"].poll() is None]
+        if not running_processes:
+            print("\rAll downloads completed successfully.          ")
+        else:
+            print(f"\rFinished with {len(running_processes)} downloads still pending or failed.")
+
+    except KeyboardInterrupt:
+        print("\n\nInterruption detected! Terminating all remaining downloads...")
+        # Kill remaining processes
+        killed_count = 0
+        for p_info in processes:
+            if p_info["process"].poll() is None:
+                p_info["process"].kill()
+                killed_count += 1
+        print(f"{killed_count} downloads have been terminated.")
 
 if __name__ == "__main__":
-    if subprocess.run(['which', 'wget'], capture_output=True).returncode != 0:
+    if subprocess.run(['which', 'wget'], capture_output=True, text=True).returncode != 0:
         print("Error: 'wget' is not installed or not in your PATH. Please install it to use this script.", file=sys.stderr)
         sys.exit(1)
 
     main()
-
