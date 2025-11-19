@@ -102,6 +102,7 @@ NIRI_PKGS = [
     "polkit-kde-agent",
     "adw-gtk-theme",
     "papirus-icon-theme",
+    "brightnessctl",
 ]
 
 args = None
@@ -723,6 +724,10 @@ def install_matlab(force=False) -> None:
     print("Install matlab R2024b to `/home/bill88t/Matlab/R2024b`")
 
 
+def install_newsrc(force=False) -> None:
+    pass
+
+
 INSTALLERS = {
     "base": install_base,
     "bredify": bredify,
@@ -733,6 +738,7 @@ INSTALLERS = {
     "niri": install_niri,
     "makepkg": install_makepkg,
     "matlab": install_matlab,
+    "newsrc": install_newsrc,
 }
 
 
