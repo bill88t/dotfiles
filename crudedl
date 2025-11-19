@@ -61,15 +61,14 @@ def main():
         while any(p["process"].poll() is None for p in processes):
             # Keep only the running processes
             running_processes = [p for p in processes if p["process"].poll() is None]
-            print(f"\rRemaining downloads: {len(running_processes)}... (Press Ctrl+C again to kill all)", end="")
+            print(f"\r\033[KRemaining downloads: {len(running_processes)}... (Press Ctrl+C again to kill all)", end="")
             time.sleep(0.5)
 
-        # Final status check to clear the line
         running_processes = [p for p in processes if p["process"].poll() is None]
         if not running_processes:
-            print("\rAll downloads completed successfully.          ")
+            print("\r\033[KAll downloads completed successfully.")
         else:
-            print(f"\rFinished with {len(running_processes)} downloads still pending or failed.")
+            print(f"\r\033[KFinished with {len(running_processes)} downloads still pending or failed.")
 
     except KeyboardInterrupt:
         print("\n\nInterruption detected! Terminating all remaining downloads...")
