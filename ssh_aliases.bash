@@ -310,9 +310,11 @@ alias pandavps="sshc && ssh panda@152.53.0.224 -p 25564"
 alias cm5="sshc && ssh bill88t@192.168.1.235"
 
 alias prion="sshc && ssh bill88t@100.100.208.19"
+alias nprion="sshc && ssh bill88t@0.feline.gr -p 25563"
 alias duo="sshc && ssh bill88t@100.84.90.37"
 alias op5u="sshc && ssh bill88t@100.84.223.61"
 alias r5t="sshc && ssh bill88t@100.97.48.59"
+alias nr5t="sshc && ssh bill88t@0.feline.gr -p 25562"
 alias r5bp="sshc && ssh bill88t@100.84.223.61"
 alias fw="sshc && ssh bill88t@100.124.30.113"
 
