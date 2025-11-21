@@ -21,6 +21,8 @@ MAKEPKG_SRC = SCRIPT_DIR / ("makepkg.conf." + os.uname()[-1])
 MAKEPKG_DST = HOME / ".config" / "pacman" / "makepkg.conf"
 MATLAB_DSK_SRC = SCRIPT_DIR / "matlab.desktop"
 MATLAB_DSK_DST = HOME / ".local" / "share" / "applications" / "matlab.desktop"
+KEYD_SRC = SCRIPT_DIR / "keyd"
+KEYD_DST = Path("/etc/keyd")
 
 BASE_PKGS = [
     "git",
@@ -728,6 +730,27 @@ def install_newsrc(force=False) -> None:
     pass
 
 
+def install_keyd(force=False) -> None:
+    if not install_packages(["keyd"]):
+        return
+
+    print("Configuring keyd...")
+
+    subprocess.run(["sudo", "systemctl", "stop", "keyd"])
+    subprocess.run(["sudo", "mkdir", "-p", str(KEYD_DST)])
+
+    print(f"Clearing {KEYD_DST}...")
+    subprocess.run(f"sudo rm -v {KEYD_DST}/*", shell=True)
+
+    print(f"Copying configs from {KEYD_SRC}...")
+    subprocess.run(f"sudo cp -v {KEYD_SRC}/* {KEYD_DST}/", shell=True)
+
+    print("Enabling and starting keyd service...")
+    subprocess.run(["sudo", "systemctl", "enable", "--now", "keyd"])
+
+
+
+
 INSTALLERS = {
     "base": install_base,
     "bredify": bredify,
@@ -739,6 +762,7 @@ INSTALLERS = {
     "makepkg": install_makepkg,
     "matlab": install_matlab,
     "newsrc": install_newsrc,
+    "keyd": install_keyd,
 }
 
 
