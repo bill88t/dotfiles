@@ -196,9 +196,12 @@ tooltip {
 }
 
 #cpu,
-#memory,
-#battery {
+#memory {
     min-width: 60px;
+}
+
+#battery {
+    min-width: 37px;
 }
 
 #cpu.critical,

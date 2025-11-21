@@ -163,8 +163,8 @@
     },
 
     "battery": {
-        "format-charging": "+{power:.1f}W {capacity}%",
-        "format": "-{power:.1f}W {capacity}%",
+        "format": "{capacity}%",
+        "format-charging": "{capacity}%+",
         "format-alt": "{time}",
         "interval": 2,
         "states": {
