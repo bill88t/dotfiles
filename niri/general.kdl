@@ -98,6 +98,11 @@ window-rule {
 }
 
 window-rule {
+    match app-id="com.obsproject.Studio"
+    default-column-width { proportion 0.6665; }
+}
+
+window-rule {
     match app-id="mpv"
     open-fullscreen true
 }
