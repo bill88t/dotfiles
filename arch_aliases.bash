@@ -66,16 +66,13 @@ upkg() {
     local built_dir="$HOME/Built"
     local cache_dir="$HOME/.cache/yay/$pkg"
     local newpkg=""
+    local search_pattern="${pkg}-*-[0-9]*-*.pkg.tar.zst"
 
-    # Check ~/Built first - using more precise matching pattern
     if [[ -d "$built_dir" ]]; then
-        # Add a dash after pkg name and ensure we're not matching other packages
-        newpkg=$(find "$built_dir" -type f -name "${pkg}-[0-9]*-[0-9]*.pkg.tar.zst" | sort -V | tail -n1)
+        newpkg=$(find "$built_dir" -type f -name "$search_pattern" | sort -V | tail -n1)
     fi
-
-    # Fallback to yay cache - using more precise matching pattern
     if [[ -z "$newpkg" && -d "$cache_dir" ]]; then
-        newpkg=$(find "$cache_dir" -type f -name "${pkg}-[0-9]*-[0-9]*.pkg.tar.zst" | sort -V | tail -n1)
+        newpkg=$(find "$cache_dir" -type f -name "$search_pattern" | sort -V | tail -n1)
     fi
 
     if [[ -z "$newpkg" ]]; then
@@ -83,11 +80,11 @@ upkg() {
         return 1
     fi
 
-    # Extract architecture from filename
-    local arch="${newpkg##*-}"
-    arch="${arch%.pkg.tar.zst}"
+    local fname
+    fname=$(basename "$newpkg")
+    local arch="${fname%.pkg.tar.zst}"
+    arch="${arch##*-}"
 
-    # Repo path based on arch
     local repo_dir
     if [[ "$arch" == "any" ]]; then
         repo_dir="$HOME/Repo/repo/BredOS-any/any"
@@ -97,19 +94,16 @@ upkg() {
 
     cd "$repo_dir" || return 1
 
-    # Find and remove old package if it exists - also using more precise matching
     local oldpkg
-    oldpkg=$(find . -type f -name "${pkg}-[0-9]*-[0-9]*.pkg.tar.zst" | sort -V | tail -n1)
+    oldpkg=$(find . -type f -name "$search_pattern" | sort -V | tail -n1)
     if [[ -n "$oldpkg" ]]; then
         ./db.sh remove "$pkg"
         rm -f "$oldpkg" "$oldpkg.sig"
     fi
 
-    # Copy new package in place
     cp "$newpkg" ./
     gpsign "$(basename "$newpkg")"
 
-    # Add to db
     ./db.sh add "$(basename "$newpkg")"
 
     cd - >/dev/null || true
