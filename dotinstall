@@ -23,6 +23,8 @@ MATLAB_DSK_SRC = SCRIPT_DIR / "matlab.desktop"
 MATLAB_DSK_DST = HOME / ".local" / "share" / "applications" / "matlab.desktop"
 KEYD_SRC = SCRIPT_DIR / "keyd"
 KEYD_DST = Path("/etc/keyd")
+CLAM_SRC = SCRIPT_DIR / "clamav"
+CLAM_DST = Path("/etc/clamav")
 
 BASE_PKGS = [
     "git",
@@ -749,6 +751,32 @@ def install_keyd(force=False) -> None:
     subprocess.run(["sudo", "systemctl", "enable", "--now", "keyd"])
 
 
+def install_clamav(force=False) -> None:
+    if not install_packages(["clamav"]):
+        return
+
+    print("Running initial database definition downloads..")
+    subprocess.run(["sudo", "freshclam"])
+
+    print("Enabling database definition downloads..")
+    subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-freshclam-once.timer")
+
+    print("Setting up daemon..")
+    subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/clamd.conf", f"{CLAM_DST}/clamd.conf"])
+    subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/virus-event.bash", f"{CLAM_DST}/virus-event.bash"])
+    subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/sudoers", "/etc/sudoers.d/clamav"])
+
+    print("Enabling daemon..")
+    subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-daemon"])
+
+    print("Setting up real-time monitoring..")
+    subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/clamav-clamonacc.service", "/etc/systemd/system/clamav-clamonacc.service"])
+
+    print("Enabling real-time monitoring..")
+    subprocess.run(["sudo", "systemctl", "daemon-reload"])
+    subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-clamonacc"])
+
+    print("All good.")
 
 
 INSTALLERS = {
