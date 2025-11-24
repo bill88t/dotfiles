@@ -91,8 +91,11 @@ NIRI_PKGS = [
     "archlinux-xdg-menu",
     "fuzzel",
     "alacritty",
-    "thunar-media-tags-plugin",
-    "tumbler",
+    "nemo",
+    "nemo-terminal",
+    "nemo-fileroller",
+    "nemo-image-converter",
+    "nemo-preview",
     "catfish",
     "waybar",
     "thunar-volman",
@@ -759,7 +762,7 @@ def install_clamav(force=False) -> None:
     subprocess.run(["sudo", "freshclam"])
 
     print("Enabling database definition downloads..")
-    subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-freshclam-once.timer")
+    subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-freshclam-once.timer"])
 
     print("Setting up daemon..")
     subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/clamd.conf", f"{CLAM_DST}/clamd.conf"])
@@ -779,6 +782,12 @@ def install_clamav(force=False) -> None:
     print("All good.")
 
 
+def disable_tumblerd(force=False) -> None:
+    print("Stopping and masking tumblerd")
+    subprocess.run(["systemctl", "user", "stop", "tumblerd"])
+    subprocess.run(["systemctl", "user", "mask", "tumblerd"])
+
+
 INSTALLERS = {
     "base": install_base,
     "bredify": bredify,
@@ -791,6 +800,7 @@ INSTALLERS = {
     "matlab": install_matlab,
     "newsrc": install_newsrc,
     "keyd": install_keyd,
+    "tumblerd": disable_tumblerd,
 }
 
 

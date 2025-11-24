@@ -163,7 +163,7 @@ overview {
 
 binds {
     Mod+T { spawn "alacritty"; }
-    Mod+E { spawn "thunar"; }
+    Mod+E { spawn "nemo"; }
     Mod+B { spawn "librewolf"; }
     Mod+D { spawn "/home/bill88t/git/dotfiles/toggle_fuzzel"; }
     Mod+M { spawn "thunderbird"; }
