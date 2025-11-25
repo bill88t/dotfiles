@@ -22,7 +22,7 @@ output "DP-4" {
 }
 
 overview {
-    backdrop-color "#777777"
+    backdrop-color "#667599"
 }
 
 environment {
