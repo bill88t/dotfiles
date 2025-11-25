@@ -1,0 +1,156 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import argparse
+import datetime
+import re
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+COMPLIANCE_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-(.+?)(\.[a-z0-9]+)?$")
+
+def inspect_file(path: Path):
+    if not path.is_file():
+        raise ValueError(f"Not a file: {path}")
+
+    if not os.access(path, os.R_OK | os.W_OK):
+        raise PermissionError(f"Not accessible: {path}")
+
+    try:
+        stats = path.stat()
+        mtime = datetime.datetime.fromtimestamp(stats.st_mtime)
+        return {
+            "path": path,
+            "name": path.name,
+            "stem": path.stem,
+            "suffix": path.suffix,
+            "mtime": mtime
+        }
+    except Exception as e:
+        raise RuntimeError(f"Failed to stat {path}: {e}")
+
+def calculate_initial_target(file_info):
+    current_name = file_info["name"]
+    current_suffix = file_info["suffix"]
+
+    match = COMPLIANCE_REGEX.match(current_name)
+    if match:
+        stem_part = match.group(1)
+        ext_part = match.group(2) or ""
+        if len(stem_part) <= 45 and ext_part == ext_part.lower():
+            return None
+
+    mtime = file_info["mtime"]
+    date_prefix = mtime.strftime("%Y-%m-%d-%H-%M-%S")
+
+    original_stem = file_info["stem"]
+    cleaned_stem = original_stem[:45]
+    new_suffix = current_suffix.lower()
+
+    new_name = f"{date_prefix}-{cleaned_stem}{new_suffix}"
+
+    if new_name == current_name:
+        return None
+
+    return file_info["path"].parent / new_name
+
+def rename_file(src, dst):
+    try:
+        os.rename(src, dst)
+        return f"Renamed: {src.name} -> {dst.name}"
+    except Exception as e:
+        raise RuntimeError(f"Failed to rename {src.name}: {e}")
+
+def main():
+    parser = argparse.ArgumentParser(description="Batch rename files.")
+    parser.add_argument("folder", help="Target folder path")
+    parser.add_argument("-n", "--no-confirm", action="store_true", help="Skip confirmation prompt")
+    parser.add_argument("-d", "--dry-run", action="store_true", help="Preview changes only")
+    args = parser.parse_args()
+
+    folder_path = Path(args.folder)
+
+    if not folder_path.exists() or not folder_path.is_dir():
+        print(f"Error: Invalid folder path '{folder_path}'")
+        sys.exit(1)
+
+    try:
+        entries = list(folder_path.iterdir())
+    except Exception as e:
+        print(f"Error reading directory: {e}")
+        sys.exit(1)
+
+    files_metadata = []
+
+    with ThreadPoolExecutor() as executor:
+        future_to_path = {executor.submit(inspect_file, p): p for p in entries}
+        for future in as_completed(future_to_path):
+            try:
+                files_metadata.append(future.result())
+            except Exception as e:
+                print(f"Abort: {e}")
+                sys.exit(1)
+
+    # Init used_names with all current files to prevent overwrites and handle collisions safely
+    used_names = {f["name"] for f in files_metadata}
+
+    # Sort for deterministic renaming order
+    files_metadata.sort(key=lambda x: x["name"])
+
+    rename_ops = []
+
+    for f in files_metadata:
+        target_path = calculate_initial_target(f)
+
+        # If target_path is None, file is already compliant
+        if target_path is None:
+            continue
+
+        base_target_name = target_path.name
+        target_stem = target_path.stem
+        target_suffix = target_path.suffix
+
+        # Collision Resolution
+        candidate_name = base_target_name
+        counter = 1
+
+        # While the candidate name is taken by an existing file OR a file we just assigned
+        while candidate_name in used_names:
+            candidate_name = f"{target_stem}{counter}{target_suffix}"
+            counter += 1
+
+        used_names.add(candidate_name)
+        rename_ops.append((f["path"], f["path"].parent / candidate_name))
+
+    if not rename_ops:
+        print("All files comply. No changes needed.")
+        return
+
+    print(f"Proposed changes ({len(rename_ops)} files):")
+    for src, dst in rename_ops:
+        print(f"  {src.name} -> {dst.name}")
+
+    if args.dry_run:
+        print("\nDry run completed. No changes made.")
+        sys.exit(0)
+
+    if not args.no_confirm:
+        response = input("\nProceed with renaming? [y/N]: ").lower()
+        if response != 'y':
+            print("Operation cancelled.")
+            sys.exit(0)
+
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(rename_file, src, dst) for src, dst in rename_ops]
+        for future in as_completed(futures):
+            try:
+                print(future.result())
+            except Exception as e:
+                print(f"Error during rename: {e}")
+                sys.exit(1)
+
+    print("Done.")
+
+if __name__ == "__main__":
+    main()
