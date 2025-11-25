@@ -61,7 +61,6 @@ tooltip {
 #custom-niri_close,
 #custom-niri_resize,
 #custom-niri_overview,
-#custom-niri_fullscreen,
 #custom-niri_left,
 #custom-niri_up,
 #custom-niri_down,
@@ -81,6 +80,10 @@ tooltip {
     margin-right: 2px;
     padding-left: 4px;
     padding-right: 4px;
+}
+
+#pulseaudio.source {
+    min-width: 0px;
 }
 
 #custom-vol_down,
@@ -107,21 +110,15 @@ tooltip {
 
 #custom-niri_resize {
     margin-left: 1px;
+    margin-right: 0px;
     padding: 0px 6px;
 }
 
 #custom-niri_overview {
     margin-left: 1px;
+    margin-right: 4px;
     padding: 2px 6px;
     padding-top: 2px;
-}
-
-#custom-niri_fullscreen {
-    padding-top: 2px;
-    padding-left: 4px;
-    padding-right: 4px;
-    margin-left: 2px;
-    margin-right: 4px;
 }
 
 #custom-niri_left,
@@ -170,6 +167,7 @@ tooltip {
 
 #clock {
     padding: 0px 6px;
+    margin-left: 4px;
     background-color: @base;
     border: 2px solid @text;
     color: @text;
@@ -195,9 +193,8 @@ tooltip {
     min-width: 175px;
 }
 
-#cpu,
-#memory {
-    min-width: 60px;
+#cpu {
+    min-width: 42px;
 }
 
 #battery {

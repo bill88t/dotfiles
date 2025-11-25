@@ -15,7 +15,6 @@
         "custom/niri_close",
         "custom/niri_resize",
         "custom/niri_overview",
-        "custom/niri_fullscreen",
         "custom/niri_left",
         "custom/niri_up",
         "niri/workspaces",
@@ -74,13 +73,6 @@
         "tooltip": false
     },
 
-    "custom/niri_fullscreen": {
-        "format": "🗖",
-        "interval": 0,
-        "on-click": "niri msg action fullscreen-window",
-        "tooltip": false
-    },
-
     "custom/niri_left": {
         "format": "◀",
         "interval": 0,
@@ -117,12 +109,12 @@
     },
 
     "cpu": {
-        "format": "CPU {usage}%",
+        "format": "C {usage}%",
         "interval": 2
     },
 
     "memory": {
-        "format": "RAM {percentage}%",
+        "format": "R {percentage}%",
         "on-click": "~/git/dotfiles/ramkill",
         "interval": 2,
         "states": {
@@ -154,8 +146,9 @@
     },
 
     "pulseaudio#source": {
-        "format": "MIC {format_source}",
-        "format-source-muted": "MUTE",
+        "format": "{format_source}",
+        "format-source": "M {volume}%",
+        "format-source-muted": "M",
         "on-click": "pactl set-source-mute @DEFAULT_SOURCE@ toggle",
         "on-click-right": "/usr/bin/pavucontrol",
         "on-scroll-down": "pactl set-source-volume @DEFAULT_SOURCE@ -5%",
@@ -189,7 +182,8 @@
     },
 
     "clock": {
-        "format": "{:%a %d %b | %H:%M:%S}",
+        "format": "{:%H:%M:%S}",
+        "format-alt": "{:%a %d %b}",
         "tooltip": false,
         "interval": 1
     },
