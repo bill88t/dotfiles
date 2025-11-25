@@ -194,11 +194,12 @@
     },
 
     "network": {
-        "format-wifi": "W d{bandwidthDownBytes} | u{bandwidthUpBytes}",
-        "format-ethernet": "E d{bandwidthDownBytes} | u{bandwidthUpBytes}",
-        "format-disconnected": "DISCONNECTED",
+        "format": "? {bandwidthTotalBytes}",
+        "tooltip-format": "{ifname} {ipaddr}",
+        "format-wifi": "W {bandwidthTotalBytes}",
+        "format-ethernet": "E d{bandwidthTotalBytes}",
+        "format-disconnected": "OFFLINE",
         "on-click": "nm-connection-editor",
-        "interval": 3,
-        "tooltip": false
+        "interval": 3
     }
 }
