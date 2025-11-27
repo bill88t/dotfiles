@@ -15,6 +15,7 @@
         "custom/niri_close",
         "custom/niri_resize",
         "custom/niri_overview",
+        "custom/osk",
         "custom/niri_left",
         "custom/niri_up",
         "niri/workspaces",
@@ -70,6 +71,13 @@
         "format": "❏",
         "interval": 0,
         "on-click": "niri msg action toggle-overview",
+        "tooltip": false
+    },
+
+    "custom/osk": {
+        "format": "🖮",
+        "interval": 0,
+        "on-click": "pkill -SIGRTMIN wvkbd-mobintl",
         "tooltip": false
     },
 
@@ -195,11 +203,11 @@
 
     "network": {
         "format": "? {bandwidthTotalBytes}",
-        "tooltip-format": "{ifname} {ipaddr}",
+        "tooltip-format": "{ifname} {ipaddr} {bandwidthTotalBits}",
         "format-wifi": "W {bandwidthTotalBytes}",
         "format-ethernet": "E d{bandwidthTotalBytes}",
         "format-disconnected": "OFFLINE",
-        "on-click": "nm-connection-editor",
+        "on-click-right": "nm-connection-editor",
         "interval": 3
     }
 }
