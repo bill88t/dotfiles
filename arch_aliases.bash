@@ -66,13 +66,28 @@ upkg() {
     local built_dir="$HOME/Built"
     local cache_dir="$HOME/.cache/yay/$pkg"
     local newpkg=""
+    local strict_pattern="${pkg}-[0-9]*-[0-9]*-*.pkg.tar.zst"
     local search_pattern="${pkg}-*-[0-9]*-*.pkg.tar.zst"
 
-    if [[ -d "$built_dir" ]]; then
-        newpkg=$(find "$built_dir" -type f -name "$search_pattern" | sort -V | tail -n1)
-    fi
-    if [[ -z "$newpkg" && -d "$cache_dir" ]]; then
-        newpkg=$(find "$cache_dir" -type f -name "$search_pattern" | sort -V | tail -n1)
+    find_pkg() {
+        local dir="$1"
+        local found=""
+        if [[ -d "$dir" ]]; then
+            # Try strict match first
+            found=$(find "$dir" -type f -name "$strict_pattern" | sort -V | tail -n1)
+
+            # If no strict match, fall back to loose match
+            if [[ -z "$found" ]]; then
+                found=$(find "$dir" -type f -name "$search_pattern" | sort -V | tail -n1)
+            fi
+        fi
+        echo "$found"
+    }
+
+    newpkg=$(find_pkg "$built_dir")
+
+    if [[ -z "$newpkg" ]]; then
+        newpkg=$(find_pkg "$cache_dir")
     fi
 
     if [[ -z "$newpkg" ]]; then
