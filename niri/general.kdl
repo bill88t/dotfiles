@@ -115,7 +115,7 @@ window-rule {
 
 window-rule {
     match app-id="com.github.xournalpp.xournalpp"
-    open-fullscreen true
+    default-column-width { proportion 1.0; }
 }
 
 window-rule {
