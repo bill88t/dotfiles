@@ -300,36 +300,6 @@ sshc() {
     fi
 }
 
-alias keyfalse="sshc && ssh -x -p25564 bill88t@0.feline.gr"
-alias keyshut="sshc && ssh -p25564 bill88t@0.feline.gr sudo shutdown now"
-alias wake="sshc && ssh -p25562 bill88t@0.feline.gr wake"
-alias leto="sshc && ssh -o HostKeyAlgorithms=ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa root@leto-delphi.gr"
-alias letosftp="sshc && sftp -o HostKeyAlgorithms=ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa root@leto-delphi.gr"
-alias r5l="sshc && ssh -p25562 bill88t@0.feline.gr"
-alias pandavps="sshc && ssh panda@152.53.0.224 -p 25564"
-alias cm5="sshc && ssh bill88t@192.168.1.235"
-
-alias prion="sshc && ssh bill88t@100.100.208.19"
-alias nprion="sshc && ssh bill88t@0.feline.gr -p 25563"
-alias duo="sshc && ssh bill88t@100.84.90.37"
-alias op5u="sshc && ssh bill88t@100.84.223.61"
-alias r5t="sshc && ssh bill88t@100.97.48.59"
-alias nr5t="sshc && ssh bill88t@0.feline.gr -p 25562"
-alias r5bp="sshc && ssh bill88t@100.84.223.61"
-alias fw="sshc && ssh bill88t@100.124.30.113"
-
-# Tailscale as vpn
-alias tsprion="sudo tailscale set --exit-node=prion"
-alias tsnone="sudo tailscale set --exit-node="
-
 # Insecure
 alias cssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR'
 alias csftp="sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
-
-alias fsprionarray="sshfsattach bill88t@prion.ling-draconis.ts.net:/mnt/Array -n prionarray"
-alias fsprion="sshfsattach bill88t@prion.ling-draconis.ts.net:/home/bill88t -n prion"
-
-alias nfsprionarray="nsshfsattach bill88t@prion.ling-draconis.ts.net:/mnt/Array -n prionarray"
-alias nfsprion="nsshfsattach bill88t@prion.ling-draconis.ts.net:/home/bill88t -n prion"
-
-alias sthnote="sshc && ssh bill88t@prion.ling-draconis.ts.net /home/bill88t/git/dotfiles/thnote"
