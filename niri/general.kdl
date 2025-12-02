@@ -173,7 +173,7 @@ binds {
     Mod+B { spawn "librewolf"; }
     Mod+D { spawn "/home/bill88t/git/dotfiles/toggle_fuzzel"; }
     Mod+M { spawn "thunderbird"; }
-    Mod+C { spawn "gnome-calculator"; }
+    Mod+C { spawn "mate-calc"; }
 
     // Clipboard
     Mod+Shift+Z { spawn "/home/bill88t/git/dotfiles/cliphist-wipe"; }
