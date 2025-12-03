@@ -1,7 +1,13 @@
 scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 encfile="$scriptdir/dotsecrets.bash.gpg"
 plainfile="$scriptdir/dotsecrets.bash"
-decfile="/tmp/dotsecrets.bash"
+
+TMP="${TMPDIR:-/tmp}"
+
+# Fallback if TMPDIR is set but unusable
+[ -d "$TMP" ] && [ -w "$TMP" ] || TMP="/tmp"
+
+decfile="$TMP/dotsecrets.bash"
 
 GPGKEY="ECB6CC2EB44CEF708F41AF191BEF1BCEBA58EA33"
 
