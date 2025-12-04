@@ -94,6 +94,10 @@ window-rule {
 }
 
 window-rule {
+    match app-id="nm-applet"
+    open-floating true
+}
+window-rule {
     match app-id=r#"^legcord$"#
     default-column-width { proportion 0.6665; }
 }
