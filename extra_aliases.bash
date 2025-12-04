@@ -243,9 +243,26 @@ disk_compress() {
         return 1
     fi
 
-    echo "Imaging $dev -> $outfile ..."
-    sudo dd if="$dev" bs=16M status=progress | \
-        zstd -T0 -19 -o "$outfile"
+    echo "Imaging $dev -> $outfile.."
+    sudo dd if="$dev" bs=16M status=none | \
+        pv -s $(sudo blockdev --getsize64 "$dev") | \
+        zstd -T0 -19 -q -o "$outfile"
+
+    echo "Validating.."
+    local md5_zst
+    md5_zst=$(zstdcat "$outfile" | md5sum | awk '{print $1}')
+
+    local md5_dev
+    md5_dev=$(sudo dd if="$dev" bs=16M status=none | \
+        pv -s $(sudo blockdev --getsize64 "$dev") | \
+        md5sum | awk '{print $1}')
+
+    if [[ "$md5_zst" != "$md5_dev" ]]; then
+        echo "Warning: Checksums do NOT match!"
+        echo "MD5 of zst: $md5_zst"
+        echo "MD5 of dev: $md5_dev"
+    fi
+
     echo "Done: $outfile"
 }
 
@@ -264,6 +281,23 @@ disk_decompress() {
     fi
 
     echo "Restoring $infile -> $dev ..."
-    zstd -dc "$infile" | sudo dd of="$dev" bs=4M status=progress conv=fsync
+    zstd -dc -q "$infile" |\
+    sudo dd of="$dev" bs=16M status=progress conv=fsync
+
+    echo "Validating.."
+    local md5_zst
+    md5_zst=$(zstdcat "$infile" | md5sum | awk '{print $1}')
+
+    local md5_dev
+    md5_dev=$(sudo dd if="$dev" bs=16M status=none | \
+        pv -s $(sudo blockdev --getsize64 "$dev") | \
+        md5sum | awk '{print $1}')
+
+    if [[ "$md5_zst" != "$md5_dev" ]]; then
+        echo "Warning: Checksums do NOT match!"
+        echo "MD5 of zst: $md5_zst"
+        echo "MD5 of dev: $md5_dev"
+    fi
+
     echo "Done writing to $dev"
 }
