@@ -184,3 +184,8 @@ bake() {
     cd -
     return $status
 }
+
+
+alias hotspot-up="nmcli connection modify Hotspot 802-11-wireless-security.pairwise ccmp && nmcli connection modify Hotspot 802-11-wireless-security.group ccmp && nmcli connection up Hotspot"
+
+alias hotspot-down="nmcli connection down Hotspot"
