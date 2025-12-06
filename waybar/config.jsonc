@@ -27,7 +27,7 @@
     ],
 
     "modules-right": [
-        "cpu",
+        "custom/cpu_sum",
         "memory",
         "custom/governor",
         "network",
@@ -41,7 +41,7 @@
     ],
 
     "custom/governor": {
-        "exec": "~/git/dotfiles/waybar/govfetch",
+        "exec": "~/git/dotfiles/waybar/govfetch.sh",
         "interval": 2,
         "tooltip": false
     },
@@ -49,7 +49,7 @@
     "custom/start": {
         "format": "🍞",
         "interval": 0,
-        "on-click": "~/git/dotfiles/toggle_fuzzel",
+        "on-click": "~/git/dotfiles/appmenu_fuzzel",
         "tooltip": false
     },
 
@@ -116,9 +116,10 @@
         "tooltip": false
     },
 
-    "cpu": {
-        "format": "C {usage}%",
-        "interval": 2
+    "custom/cpu_sum": {
+      "exec": "~/git/dotfiles/waybar/cpu_sum.sh",
+      "interval": 1,
+      "format": "{}"
     },
 
     "memory": {
