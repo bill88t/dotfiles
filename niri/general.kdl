@@ -46,12 +46,12 @@ layout {
 
     default-column-width { proportion 0.4998; }
 
-    // preset-window-height {
-    //     proportion 0.3333
-    //     proportion 0.4998
-    //     proportion 0.6665
-    //     proportion 1.0
-    // }
+    preset-window-heights {
+        proportion 0.3333
+        proportion 0.4998
+        proportion 0.6665
+        proportion 1.0
+    }
 
     focus-ring {
         // off
@@ -67,6 +67,20 @@ layout {
         // right 64
         // top 64
         // bottom 64
+    }
+
+    tab-indicator {
+        on
+        place-within-column
+        gap 5
+        width 4
+        length total-proportion=1.0
+        position "left"
+        gaps-between-tabs 2
+        corner-radius 8
+        active-color "#7fc8ff"
+        inactive-color "#505050"
+        urgent-color "red"
     }
 }
 
@@ -202,8 +216,8 @@ binds {
     Alt+F4 { close-window; }
 
     Mod+Left  { focus-column-left; }
-    Mod+Down  { focus-workspace-down; }
-    Mod+Up    { focus-workspace-up; }
+    Mod+Down  { focus-window-down; }
+    Mod+Up    { focus-window-up; }
     Mod+Right { focus-column-right; }
 
     Mod+Shift+Left  { move-column-left; }
@@ -303,4 +317,7 @@ binds {
 
     // Lock Screen
     Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/w95.png" "--font" "Inter" "-e"; }
+
+    // Tabs
+    Mod+W { toggle-column-tabbed-display; }
 }
