@@ -31,7 +31,7 @@ environment {
 
 binds {
     Mod+P { spawn "/home/bill88t/git/dotfiles/fw12cycle.sh"; }
-    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/8ff29d592ce601b777bae99da9f0a928992c6c9c.png" "--font" "Inter"; }
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/Danger-dont-touch.jpg" "--font" "Inter" "-e"; }
 }
 
 input {
