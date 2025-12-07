@@ -128,6 +128,11 @@ window-rule {
 }
 
 window-rule {
+    match app-id="krita"
+    default-column-width { proportion 1.0; }
+}
+
+window-rule {
     match app-id="nemo"
     default-column-width { proportion 1.0; }
 }
