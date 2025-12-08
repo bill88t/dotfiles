@@ -215,10 +215,13 @@ binds {
     Mod+Q { close-window; }
     Alt+F4 { close-window; }
 
-    Mod+Left  { focus-column-left; }
-    Mod+Down  { focus-window-down; }
-    Mod+Up    { focus-window-up; }
-    Mod+Right { focus-column-right; }
+    Mod+Left   { focus-column-left; }
+    Mod+Down   { focus-window-down; }
+    Mod+Up     { focus-window-up; }
+    Mod+Right  { focus-column-right; }
+    Mod+Period { focus-workspace-down; }
+    Mod+Comma  { focus-workspace-up; }
+
 
     Mod+Shift+Left  { move-column-left; }
     Mod+Shift+Down  { move-window-down; }
@@ -263,9 +266,6 @@ binds {
 
     Mod+BracketLeft  { consume-or-expel-window-left; }
     Mod+BracketRight { consume-or-expel-window-right; }
-
-    Mod+Comma  { consume-window-into-column; }
-    Mod+Period { expel-window-from-column; }
 
     Mod+R { switch-preset-column-width; }
     Mod+Shift+R { switch-preset-window-height; }
