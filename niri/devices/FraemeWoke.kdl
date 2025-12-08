@@ -45,3 +45,26 @@ input {
         map-to-output "eDP-1"
     }
 }
+
+
+layout {
+    focus-ring {
+        width 3
+        active-color "#E67919"
+        inactive-color "#505050"
+    }
+
+    tab-indicator {
+        on
+        place-within-column
+        gap 1
+        width 6
+        length total-proportion=0.5
+        position "bottom"
+        gaps-between-tabs 2
+        corner-radius 8
+        active-color "#E67919"
+        inactive-color "#000000"
+        urgent-color "red"
+    }
+}

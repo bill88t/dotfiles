@@ -72,13 +72,13 @@ layout {
     tab-indicator {
         on
         place-within-column
-        gap 5
-        width 4
-        length total-proportion=1.0
-        position "left"
+        gap 1
+        width 6
+        length total-proportion=0.5
+        position "bottom"
         gaps-between-tabs 2
         corner-radius 8
-        active-color "#7fc8ff"
+        active-color "#1986e6"
         inactive-color "#505050"
         urgent-color "red"
     }
