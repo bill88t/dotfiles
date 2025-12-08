@@ -2,17 +2,33 @@
 
 killall fuzzel 2>/dev/null && exit 0
 
-# Entries to show in the power menu
 choices="Dismiss\nSuspend\nLogout\nReboot\nPoweroff\nSetup"
 
-# Run fuzzel and capture selection
-selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=20 --log-no-syslog -a top-right --hide-prompt --minimal-lines --selection-radius=6 --width 11)
+ask_confirm() {
+    printf "No\nYes" |
+        fuzzel -d -b 000000cc -t ffffffff -l 2 -B 4 -C 7fc8ffff \
+            -f "Inter:size=14" --line-height=20 --log-no-syslog \
+            -a top-right --minimal-lines \
+            --selection-radius=6 --width 11 \
+            --prompt "$1"
+}
+
+selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-right --hide-prompt --minimal-lines --selection-radius=6 --width 11)
+
+confirm_and_run() {
+    action="$1"
+    message="$2"
+
+    confirm=$(ask_confirm "$message")
+    [ "$confirm" = "Yes" ] || return 1
+    eval "$action"
+}
 
 case "$selected" in
-    *Dismiss)  makoctl dismiss &&  makoctl reload ;;
-    *Logout)   niri msg action quit ;;
-    *Reboot)   systemctl reboot ;;
-    *Poweroff) systemctl poweroff ;;
+    *Dismiss)  makoctl dismiss && makoctl reload ;;
     *Suspend)  systemctl suspend ;;
-    *Setup)     systemctl reboot --firmware-setup ;;
+    *Logout)   confirm_and_run "niri msg action quit" "Logout?" ;;
+    *Reboot)   confirm_and_run "systemctl reboot" "Reboot?" ;;
+    *Poweroff) confirm_and_run "systemctl poweroff" "Power off?" ;;
+    *Setup)    confirm_and_run "systemctl reboot --firmware-setup" "Enter setup?" ;;
 esac
