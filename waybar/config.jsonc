@@ -49,7 +49,7 @@
     "custom/start": {
         "format": "🍞",
         "interval": 0,
-        "on-click": "~/git/dotfiles/appmenu_fuzzel",
+        "on-click": "~/git/dotfiles/special_fuzzel",
         "tooltip": false
     },
 
@@ -71,13 +71,6 @@
         "format": "❏",
         "interval": 0,
         "on-click": "niri msg action toggle-overview",
-        "tooltip": false
-    },
-
-    "custom/osk": {
-        "format": "🖮",
-        "interval": 0,
-        "on-click": "pkill -SIGRTMIN wvkbd-mobintl",
         "tooltip": false
     },
 

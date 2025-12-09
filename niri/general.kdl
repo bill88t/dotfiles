@@ -195,6 +195,7 @@ binds {
     Mod+E { spawn "nemo"; }
     Mod+B { spawn "librewolf"; }
     Mod+D { spawn "/home/bill88t/git/dotfiles/appmenu_fuzzel"; }
+    Mod+S { spawn "/home/bill88t/git/dotfiles/special_fuzzel"; }
     Mod+M { spawn "thunderbird"; }
     Mod+C { spawn "mate-calc"; }
 
