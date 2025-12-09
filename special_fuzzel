@@ -6,7 +6,7 @@ reopen_menu() {
     exec "$0"
 }
 
-choices="Applications\nKeyboard\nRotate\nBrightness Up\nBrightness Down\nStack Up\nStack Down\nToggle Stack"
+choices="Applications\nKeyboard\nRotate\nBrightness Up\nBrightness Down\nStack Up\nStack Down\nToggle Stack\nScreenshot"
 
 selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 16)
 
@@ -49,5 +49,8 @@ case "$selected" in
     *Toggle\ Stack)
         niri msg action toggle-column-tabbed-display
         reopen_menu
+        ;;
+    *Screenshot)
+        niri msg action screenshot-screen
         ;;
 esac
