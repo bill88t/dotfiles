@@ -6,7 +6,7 @@ reopen_menu() {
     exec "$0"
 }
 
-choices="Applications\nKeyboard\nRotate\nBrightness Up\nBrightness Down\nStack Up\nStack Down\nToggle Stack\nScreenshot"
+choices="Applications\nKeyboard\nRotate\nBrightness Up\nBrightness Down\nWorkspace Up\nWorkspace Down\nToggle Stack\nScreenshot"
 
 selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 16)
 
@@ -38,12 +38,12 @@ case "$selected" in
         ~/git/dotfiles/br_down.sh
         reopen_menu
         ;;
-    *Stack\ Up)
-        niri msg action focus-window-up
+    *Workspace\ Up)
+        niri msg action focus-workspace-up
         reopen_menu
         ;;
-    *Stack\ Down)
-        niri msg action focus-window-down
+    *Workspace\ Down)
+        niri msg action focus-workspace-down
         reopen_menu
         ;;
     *Toggle\ Stack)

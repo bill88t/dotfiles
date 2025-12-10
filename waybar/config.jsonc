@@ -84,14 +84,14 @@
     "custom/niri_up": {
         "format": "▲",
         "interval": 0,
-        "on-click": "niri msg action focus-workspace-up",
+        "on-click": "niri msg action focus-window-up",
         "tooltip": false
     },
 
     "custom/niri_down": {
         "format": "▼",
         "interval": 0,
-        "on-click": "niri msg action focus-workspace-down",
+        "on-click": "niri msg action focus-window-down",
         "tooltip": false
     },
 
