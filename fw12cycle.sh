@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ALLOW_UPSIDE_DOWN=0
+
 OUTPUT="${1:-eDP-1}"
-TRANSFORMS=(normal 90 180)
+TRANSFORMS=(normal 90)
+if [[ ${ALLOW_UPSIDE_DOWN} == 1 ]]; then
+    TRANSFORMS[2]=180
+fi
+
 RAW_TRANSFORM=$(niri msg outputs 2>/dev/null | awk -v out="(${OUTPUT})" '
   /^Output[[:space:]]/ { in_block = (index($0, out) > 0) }
   in_block && /^[[:space:]]*Transform:/ {
