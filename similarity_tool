@@ -1,0 +1,321 @@
+#!/usr/bin/env python3
+
+try:
+    import argparse, os, sys, cv2, tqdm, math, traceback, tempfile
+    from PIL import Image, UnidentifiedImageError
+    import numpy as np
+    from collections import defaultdict
+    from multiprocessing import Pool, cpu_count
+    from functools import partial
+except ImportError:
+    print("Install 'python-pillow python-tqdm python-opencv'")
+
+# -------- Constants ----------
+DEFAULT_THRESHOLD = 10
+DEFAULT_PREFIX = 16
+DEFAULT_TABLES = 3
+DEFAULT_HASH = 8
+DEFAULT_MAX_BUCKET = 5_000_000
+
+
+# ---------- Helpers ----------
+def is_image_ext(name):
+    name = name.lower()
+    for ext in (".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".webp"):
+        if name.endswith(ext):
+            return True
+    return False
+
+
+def find_all_files(root):
+    for dirpath, _, filenames in os.walk(root):
+        for fn in filenames:
+            if is_image_ext(fn):
+                yield os.path.join(dirpath, fn)
+
+
+def compute_phash(path, hash_size=8) -> int | None:
+    try:
+        img = Image.open(path).convert("RGB")
+        # default hash_size=8 gives 64-bit phash
+        ph = imagehash.phash(img, hash_size=hash_size)
+        # imagehash returns ImageHash object, which can be converted to int
+        return int(str(ph), 16) if isinstance(ph.hash, np.ndarray) else int(ph)
+    except (OSError, UnidentifiedImageError):
+        return None
+
+
+def safe_compute_tuple(i_path):
+    i, path = i_path
+    try:
+        h = compute_phash(path)
+        return (i, h)
+    except Exception:
+        return (i, None)
+
+
+def hamming(a, b):
+    return (a ^ b).bit_count()
+
+
+class UnionFind:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+
+    def find(self, a):
+        while self.parent[a] != a:
+            self.parent[a] = self.parent[self.parent[a]]
+            a = self.parent[a]
+        return a
+
+    def union(self, a, b):
+        ra = self.find(a)
+        rb = self.find(b)
+        if ra == rb:
+            return False
+        if self.rank[ra] < self.rank[rb]:
+            self.parent[ra] = rb
+        else:
+            self.parent[rb] = ra
+            if self.rank[ra] == self.rank[rb]:
+                self.rank[ra] += 1
+        return True
+
+
+def compare_bucket(args: tuple):
+    """
+    Input: (indices_list, hashes_array, threshold, bucket_id, max_pairs_warn)
+    Returns: list of (i,j) pairs (indices) that are within threshold
+    """
+    indices, hashes, threshold, bucket_id, max_pairs_warn = args
+    res = []
+    n = len(indices)
+    # simple pairwise; n expected small after bucketing
+    if n <= 1:
+        return res
+    # guard for worst-case buckets
+    pair_count = n * (n - 1) // 2
+    if pair_count > max_pairs_warn:
+        # If bucket is huge, do a fallback: sort by hash and compare neighbors
+        # This reduces compute at the cost of some false negatives
+        order = sorted(indices, key=lambda i: hashes[i])
+        # compare window of k neighbors
+        window = 200  # arbitrary; adjust if you want more thorough processing
+        for idx, ii in enumerate(order):
+            hi = hashes[ii]
+            for j in range(idx + 1, min(idx + 1 + window, len(order))):
+                jj = order[j]
+                hj = hashes[jj]
+                if hamming(hi, hj) <= threshold:
+                    res.append((ii, jj))
+        return res
+
+    for a_ix in range(n):
+        ia = indices[a_ix]
+        ha = hashes[ia]
+        for b_ix in range(a_ix + 1, n):
+            ib = indices[b_ix]
+            hb = hashes[ib]
+            if hamming(ha, hb) <= threshold:
+                res.append((ia, ib))
+    return res
+
+
+def compute_phash(path, hash_size=8) -> int | None:
+    try:
+        # read with opencv
+        img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        if img is None:
+            return None
+
+        # step 1: resize to 32x32
+        img = cv2.resize(img, (32, 32), interpolation=cv2.INTER_AREA)
+
+        # step 2: convert to float32 for DCT
+        img = np.float32(img)
+
+        # step 3: compute 2D DCT
+        dct = cv2.dct(img)
+
+        # step 4: take top-left 8x8 block (low frequencies)
+        dct_low = dct[:hash_size, :hash_size]
+
+        # step 5: build binary hash comparing to median
+        med = np.median(dct_low)
+        bits = dct_low > med
+
+        # step 6: pack bits to 64-bit integer
+        h = 0
+        for bit in bits.flatten():
+            h = (h << 1) | int(bit)
+
+        return h
+
+    except Exception:
+        return None
+
+
+# ---------- Main ----------
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Find visually similar images in a large folder"
+    )
+    parser.add_argument("root", help="root folder containing images")
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=max(1, cpu_count() - 1),
+        help="CPU workers for hashing (default all - 1)",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=int,
+        default=DEFAULT_THRESHOLD,
+        help=f"Hamming threshold for 64-bit phash (default {DEFAULT_THRESHOLD})",
+    )
+    parser.add_argument(
+        "--prefix-bits",
+        type=int,
+        default=DEFAULT_PREFIX,
+        help=f"Number of bits for bucket prefix (default {DEFAULT_PREFIX})",
+    )
+    parser.add_argument(
+        "--tables",
+        type=int,
+        default=DEFAULT_TABLES,
+        help=f"Number of independent prefix tables (default {DEFAULT_TABLES})",
+    )
+    parser.add_argument(
+        "--hash-size",
+        type=int,
+        default=DEFAULT_HASH,
+        help=f"imagehash phash hash_size (8 => 64-bit). Use 8 unless you know what you're doing.",
+    )
+    parser.add_argument(
+        "--max-bucket-pairs",
+        type=int,
+        default=DEFAULT_MAX_BUCKET,
+        help="If bucket pair count > this, use neighbor fallback (default 5e6)",
+    )
+    args = parser.parse_args()
+
+    root = args.root
+    workers = args.workers
+    threshold = args.threshold
+    prefix_bits = args.prefix_bits
+    num_tables = args.tables
+    hash_size = args.hash_size
+    max_bucket_pairs = args.max_bucket_pairs
+
+    # 1) enumerate
+    print("Scanning files...")
+    paths = list(find_all_files(root))
+    n = len(paths)
+    if n == 0:
+        print("No images found.")
+        return
+    print(f"Found {n} image files.")
+
+    # prepare storage: memmap for hashes, text file for paths
+    tmpdir = tempfile.mkdtemp(prefix="imgsim_")
+    hashes_path = os.path.join(tmpdir, "hashes.npy")
+    paths_path = os.path.join(tmpdir, "paths.txt")
+    print(f"Temporary working dir: {tmpdir}")
+
+    # save paths to file
+    with open(paths_path, "w", encoding="utf-8") as f:
+        for p in paths:
+            f.write(p.replace("\n", "") + "\n")
+
+    # memmap
+    hashes = np.memmap(hashes_path, dtype=np.uint64, mode="w+", shape=(n,))
+
+    # 2) compute hashes in parallel
+    print("Computing pHashes in parallel...")
+    with Pool(processes=workers) as pool:
+        # feed (index, path)
+        it = pool.imap_unordered(safe_compute_tuple, enumerate(paths), chunksize=256)
+        failures = 0
+        for _ in tqdm.tqdm(range(n)):
+            try:
+                i, h = next(it)
+            except StopIteration:
+                break
+            if h is None:
+                hashes[i] = 0  # sentinel for unreadable
+                failures += 1
+            else:
+                # ensure 64-bit
+                hashes[i] = np.uint64(h & ((1 << 64) - 1))
+    if failures:
+        print(f"Warning: {failures} images failed to hash (set to 0).")
+
+    # 3) Build buckets across multiple tables (LSH-like)
+    print("Building buckets...")
+    masks = []
+    shift = 64 - prefix_bits
+    # use simple seeds for XOR to create multiple tables
+    seeds = [0x9E3779B97F4A7C15 ^ (i * 0xBF58476D1CE4E5B9) for i in range(num_tables)]
+    tables = [defaultdict(list) for _ in range(num_tables)]
+    for idx in range(n):
+        h = int(hashes[idx])
+        if h == 0:
+            continue
+        for t, seed in enumerate(seeds):
+            key = ((h ^ seed) >> shift) & ((1 << prefix_bits) - 1)
+            tables[t][key].append(idx)
+
+    # 4) For each bucket across tables, compare candidates (parallel)
+    print("Preparing bucket tasks...")
+    tasks = []
+    for t, table in enumerate(tables):
+        for key, idx_list in table.items():
+            if len(idx_list) <= 1:
+                continue
+            tasks.append(
+                (idx_list, hashes, threshold, f"t{t}_k{key}", max_bucket_pairs)
+            )
+
+    print(f"Total candidate buckets to check: {len(tasks)}")
+    # process buckets in parallel and collect pairs
+    pairs = []
+    with Pool(processes=workers) as pool:
+        for bucket_pairs in tqdm.tqdm(
+            pool.imap_unordered(compare_bucket, tasks, chunksize=8), total=len(tasks)
+        ):
+            if bucket_pairs:
+                pairs.extend(bucket_pairs)
+
+    print(f"Total similar pairs found (raw): {len(pairs)}")
+
+    # 5) union-find to create clusters
+    print("Clustering...")
+    uf = UnionFind(n)
+    for a, b in pairs:
+        uf.union(a, b)
+
+    # collect clusters
+    clusters = defaultdict(list)
+    for i in range(n):
+        if hashes[i] == 0:
+            continue
+        rooti = uf.find(i)
+        clusters[rooti].append(i)
+
+    # filter clusters >1
+    out_clusters = [sorted(v) for v in clusters.values() if len(v) > 1]
+    print(f"Clusters (size>1): {len(out_clusters)}")
+
+    print("\nSimilar image groups:\n")
+
+    for group in out_clusters:
+        for idx in group:
+            print(paths[idx])
+        print()
+
+    print("-----\nDone!\n-----")
+
+
+if __name__ == "__main__":
+    main()
