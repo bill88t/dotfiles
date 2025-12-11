@@ -28,7 +28,6 @@ case "$selected" in
         ;;
     *Rotate)
         ~/git/dotfiles/fw12cycle.sh
-        reopen_menu
         ;;
     *Brightness\ Up)
         ~/git/dotfiles/br_up.sh
