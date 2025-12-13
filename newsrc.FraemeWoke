@@ -1,6 +1,7 @@
 Accent = "\033[38;5;221m"
 Accent_Secondary = "\033[38;5;184m"
 
+
 def shortcuts_help() -> None:
     clear()
     print(f"{colors.accent}{colors.bold}Configured shortcuts:{colors.endc}")
@@ -14,11 +15,16 @@ def shortcuts_help() -> None:
     stdin.read(1)
     clear()
 
+
 shortcuts["1"] = "bredos-config"
 shortcuts["2"] = "waydroid session stop && echo Waydroid stopped && sleep 0.5"
 shortcuts["3"] = 'echo -n "Syncing.." && sync'
-shortcuts["4"] = "sudo tailscale set --accept-dns=false && echo Tailscale DNS off && sudo tailscale set --accept-dns=true && echo Tailscale DNS on"
-shortcuts["5"] = "echo Killing all WINE processes && sleep 0.5 && ((ps aux | grep '[.]exe' | grep -v grep | awk '{print $2}' | xargs -r kill -9) || true) && echo Done. && sleep 2"
+shortcuts["4"] = (
+    "sudo tailscale set --accept-dns=false && echo Tailscale DNS off && sudo tailscale set --accept-dns=true && echo Tailscale DNS on"
+)
+shortcuts["5"] = (
+    "echo Killing all WINE processes && sleep 0.5 && ((ps aux | grep '[.]exe' | grep -v grep | awk '{print $2}' | xargs -r kill -9) || true) && echo Done. && sleep 2"
+)
 shortcuts["b"] = "btop"
 shortcuts["q"] = quit
 shortcuts["?"] = shortcuts_help
