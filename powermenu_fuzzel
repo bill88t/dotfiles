@@ -27,7 +27,7 @@ confirm_and_run() {
 case "$selected" in
     *Dismiss)  makoctl dismiss && makoctl reload ;;
     *Suspend)  systemctl suspend ;;
-    *Logout)   confirm_and_run "niri msg action quit" "Logout?" ;;
+    *Logout)   confirm_and_run "niri msg action quit -s" "Logout?" ;;
     *Reboot)   confirm_and_run "systemctl reboot" "Reboot?" ;;
     *Poweroff) confirm_and_run "systemctl poweroff" "Power off?" ;;
     *Setup)    confirm_and_run "systemctl reboot --firmware-setup" "Enter setup?" ;;
