@@ -71,6 +71,7 @@ BASE_PKGS = [
     "socat",
     "iotop",
     "tinyxxd",
+    "zoxide",
 ]
 
 DOCKER_PKGS = [
@@ -99,9 +100,6 @@ NIRI_PKGS = [
     "mate-calc",
     "catfish",
     "waybar",
-    "thunar-volman",
-    "thunar-archive-plugin",
-    "thunar",
     "noto-fonts-emoji",
     "inter-font",
     "xwayland-satellite",
