@@ -17,4 +17,4 @@ systemctl --user start --job-mode=replace-irreversibly niri-shutdown.target
 systemctl --user unset-environment WAYLAND_DISPLAY DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP NIRI_SOCKET
 
 clear
-echo "Enjoy your TTY bitch."
+echo "Enjoy your TTY. Bitch."
