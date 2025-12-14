@@ -15,18 +15,18 @@ color_prompt=yes
 . ~/git/dotfiles/extra_aliases.bash      # Extra general aliases
 
 # Compile aliases
-. ~/git/dotfiles/cp_aliases.bash        # Circuitpython building
-. ~/git/dotfiles/w800_aliases.bash      # W800 firmware building
+#. ~/git/dotfiles/cp_aliases.bash        # Circuitpython building
+#. ~/git/dotfiles/w800_aliases.bash      # W800 firmware building
 
 # Common aliases
 . ~/git/dotfiles/ssh_aliases.bash       # SSH into common devices
 . ~/git/dotfiles/serial_aliases.bash    # For using tio
 . ~/git/dotfiles/git_aliases.bash       # General git aliases
 . ~/git/dotfiles/docker_aliases.bash    # A bunch of docker aliases
-. ~/git/dotfiles/th_aliases.bash        # For using my thermal printer
+#. ~/git/dotfiles/th_aliases.bash        # For using my thermal printer
 . ~/git/dotfiles/gpg_aliases.bash       # GPG command aliases
 . ~/git/dotfiles/rkdev_aliases.bash     # rkdeveloptool aliases
-. ~/git/dotfiles/veracrypt_aliases.bash # veracrypt aliases
+#. ~/git/dotfiles/veracrypt_aliases.bash # veracrypt aliases
 
 # Distro command aliases
 . ~/git/dotfiles/arch_aliases.bash      # For use on arch distros.
@@ -42,6 +42,7 @@ color_prompt=yes
 #. ~/git/dotfiles/op5u_aliases.bash      # OPi 5 Ultra
 #. ~/git/dotfiles/r5t_aliases.bash       # Rock 5T
 #. ~/git/dotfiles/fw_aliases.bash        # FraemeWoke 12
+#. ~/git/dotfiles/funsized_aliases.bash  # Fun Sized Prion
 
 # Shell extras
 . ~/git/dotfiles/zoxide_loader.bash      # z directory changer
