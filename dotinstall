@@ -691,8 +691,8 @@ def install_makepkg(force=False) -> None:
     makepkg_home = MAKEPKG_DST.parent
     makepkg_home.mkdir(mode=0o700, exist_ok=True)
 
-    symlink_file(MAKEPKG_SRC, MAKEPKG_DST, force=force)
-
+    subprocess.run(["rm", MAKEPKG_DST])
+    subprocess.run(["cp", "-v", MAKEPKG_SRC, MAKEPKG_DST])
 
 def install_base(force=False) -> None:
     # Disable coredumps
