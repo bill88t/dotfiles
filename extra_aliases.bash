@@ -314,8 +314,9 @@ t() {
     echo "  3) Attach to named session"
     echo "  4) Detach everyone"
     echo "  5) Kill all sessions"
+    echo "  q) Abort"
     echo
-    read -rp "Select option [1-5]: " opt
+    read -rp "Select option [1-5/q]: " opt
 
     case "$opt" in
         1)
@@ -357,6 +358,9 @@ t() {
                     echo "Aborted"
                     ;;
             esac
+            ;;
+        q)
+            return 0
             ;;
         *)
             echo "Invalid option"
