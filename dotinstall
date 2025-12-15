@@ -35,7 +35,7 @@ BASE_PKGS = [
     "git-lfs",
     "tldr",
     "speedtest-cli",
-    "screen",
+    "tmux",
     "p7zip",
     "nmap",
     "unrar",

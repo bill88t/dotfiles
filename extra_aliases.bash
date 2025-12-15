@@ -301,3 +301,66 @@ disk_decompress() {
 
     echo "Done writing to $dev"
 }
+
+t() {
+    command -v tmux >/dev/null 2>&1 || {
+        echo "tmux not installed"
+        return 1
+    }
+
+    echo "tmux:"
+    echo "  1) Create session"
+    echo "  2) Attach to newest session"
+    echo "  3) Attach to named session"
+    echo "  4) Detach everyone"
+    echo "  5) Kill all sessions"
+    echo
+    read -rp "Select option [1-5]: " opt
+
+    case "$opt" in
+        1)
+            read -rp "Session name: " name
+            [ -z "$name" ] && { echo "No name given"; return 1; }
+            tmux new -s "$name"
+            ;;
+        2)
+            tmux ls >/dev/null 2>&1 || {
+                echo "No tmux sessions"
+                return 1
+            }
+            # newest = last in list
+            session=$(tmux ls -F '#{session_name}' | tail -n 1)
+            tmux attach -t "$session"
+            ;;
+        3)
+            tmux ls >/dev/null 2>&1 || {
+                echo "No tmux sessions"
+                return 1
+            }
+            echo "Sessions:"
+            tmux ls -F '#{session_name}'
+            echo
+            read -rp "Session name: " name
+            [ -z "$name" ] && { echo "No name given"; return 1; }
+            tmux attach -t "$name"
+            ;;
+        4)
+            tmux detach-client -a
+            ;;
+        5)
+            read -rp "Really kill ALL tmux sessions? [y/N]: " confirm
+            case "$confirm" in
+                y|Y)
+                    tmux kill-server
+                    ;;
+                *)
+                    echo "Aborted"
+                    ;;
+            esac
+            ;;
+        *)
+            echo "Invalid option"
+            return 1
+            ;;
+    esac
+}
