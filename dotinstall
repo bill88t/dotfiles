@@ -72,6 +72,7 @@ BASE_PKGS = [
     "iotop",
     "tinyxxd",
     "zoxide",
+    "s-tui",
 ]
 
 DOCKER_PKGS = [
@@ -763,28 +764,22 @@ def install_clamav(force=False) -> None:
     print("Enabling database definition downloads..")
     subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-freshclam-once.timer"])
 
-    print("Setting up daemon..")
-    subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/clamd.conf", f"{CLAM_DST}/clamd.conf"])
-    subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/virus-event.bash", f"{CLAM_DST}/virus-event.bash"])
-    subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/sudoers", "/etc/sudoers.d/clamav"])
+    # print("Setting up daemon..")
+    # subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/clamd.conf", f"{CLAM_DST}/clamd.conf"])
+    # subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/virus-event.bash", f"{CLAM_DST}/virus-event.bash"])
+    # subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/sudoers", "/etc/sudoers.d/clamav"])
 
-    print("Enabling daemon..")
-    subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-daemon"])
+    # print("Enabling daemon..")
+    # subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-daemon"])
 
-    print("Setting up real-time monitoring..")
-    subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/clamav-clamonacc.service", "/etc/systemd/system/clamav-clamonacc.service"])
+    # print("Setting up real-time monitoring..")
+    # subprocess.run(["sudo", "cp", "-v", f"{CLAM_SRC}/clamav-clamonacc.service", "/etc/systemd/system/clamav-clamonacc.service"])
 
-    print("Enabling real-time monitoring..")
-    subprocess.run(["sudo", "systemctl", "daemon-reload"])
-    subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-clamonacc"])
+    # print("Enabling real-time monitoring..")
+    # subprocess.run(["sudo", "systemctl", "daemon-reload"])
+    # subprocess.run(["sudo", "systemctl", "enable", "--now", "clamav-clamonacc"])
 
     print("All good.")
-
-
-def disable_tumblerd(force=False) -> None:
-    print("Stopping and masking tumblerd")
-    subprocess.run(["systemctl", "user", "stop", "tumblerd"])
-    subprocess.run(["systemctl", "user", "mask", "tumblerd"])
 
 
 INSTALLERS = {
@@ -799,7 +794,7 @@ INSTALLERS = {
     "matlab": install_matlab,
     "newsrc": install_newsrc,
     "keyd": install_keyd,
-    "tumblerd": disable_tumblerd,
+    "clam": install_clamav,
 }
 
 
