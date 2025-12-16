@@ -3,12 +3,13 @@
 killall fuzzel 2>/dev/null && exit 0
 
 reopen_menu() {
-    exec "$0"
+    exec "$0" "$@"
 }
 
+option="${1:-Applications}"
 choices="Applications\nKeyboard\nRotate\nBrightness Up\nBrightness Down\nWorkspace Up\nWorkspace Down\nToggle Stack\nScreenshot"
 
-selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 16)
+selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 16 --select="$option")
 
 confirm_and_run() {
     action="$1"
@@ -31,23 +32,23 @@ case "$selected" in
         ;;
     *Brightness\ Up)
         ~/git/dotfiles/br_up.sh
-        reopen_menu
+        reopen_menu "Brightness Up"
         ;;
     *Brightness\ Down)
         ~/git/dotfiles/br_down.sh
-        reopen_menu
+        reopen_menu "Brightness Down"
         ;;
     *Workspace\ Up)
         niri msg action focus-workspace-up
-        reopen_menu
+        reopen_menu "Workspace Up"
         ;;
     *Workspace\ Down)
         niri msg action focus-workspace-down
-        reopen_menu
+        reopen_menu "Workspace Down"
         ;;
     *Toggle\ Stack)
         niri msg action toggle-column-tabbed-display
-        reopen_menu
+        reopen_menu "Toggle Stack"
         ;;
     *Screenshot)
         niri msg action screenshot-screen
