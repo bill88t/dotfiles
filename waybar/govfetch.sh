@@ -20,5 +20,5 @@ if [[ $log =~ Applied\ governor\ \"([^\"]+)\" ]]; then
             ;;
     esac
 else
-    echo "Unknown"
+    echo "U"
 fi
