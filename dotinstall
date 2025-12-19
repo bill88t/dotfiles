@@ -112,6 +112,35 @@ NIRI_PKGS = [
     "brightnessctl",
 ]
 
+COSMIC_PKGS = [
+    "xdg-desktop-portal-cosmic",
+    "noto-fonts-emoji",
+    "inter-font",
+    "cosmic-notifications",
+    "cosmic-text-editor",
+    "cosmic-wallpapers",
+    "gnome-wallpapers",
+    "cosmic-screenshot",
+    "cosmic-settings-daemon",
+    "cosmic-launcher",
+    "cosmic-settings",
+    "cosmic-initial-setup",
+    "cosmic-applets",
+    "cosmic-session",
+    "cosmic-app-library",
+    "cosmic-icon-theme",
+    "cosmic-workspaces",
+    "cosmic-panel",
+    "cosmic-files",
+    "cosmic-randr",
+    "cosmic-terminal",
+    "cosmic-greeter",
+    "cosmic-comp",
+    "cosmic-idle",
+    "cosmic-osd",
+    "cosmic-bg",
+]
+
 args = None
 
 
@@ -686,6 +715,14 @@ def install_niri(force=False) -> None:
         check=True,
     )
     print(f"OK\nInstalled Niri config -> `{target_file}`")
+    
+
+def install_cosmic(force=False) -> None:
+    hostname = socket.gethostname()
+
+    # Install cosmic packages
+    if not install_packages(COSMIC_PKGS):
+        return
 
 
 def install_makepkg(force=False) -> None:
