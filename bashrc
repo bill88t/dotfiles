@@ -26,7 +26,7 @@ color_prompt=yes
 #. ~/git/dotfiles/th_aliases.bash        # For using my thermal printer
 . ~/git/dotfiles/gpg_aliases.bash       # GPG command aliases
 . ~/git/dotfiles/rkdev_aliases.bash     # rkdeveloptool aliases
-#. ~/git/dotfiles/veracrypt_aliases.bash # veracrypt aliases
+. ~/git/dotfiles/veracrypt_aliases.bash # veracrypt aliases
 
 # Distro command aliases
 . ~/git/dotfiles/arch_aliases.bash      # For use on arch distros.
