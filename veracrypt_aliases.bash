@@ -55,7 +55,7 @@ verprivattach() {
     cd -
 
     while true; do
-        if veracrypt -t -u "$mountpoint"; then
+        if veracrypt -t -u "$device"; then
             sudo eject $(lsblk -no pkname "$device" | sed 's|^|/dev/|')
             return 0
         fi
@@ -89,7 +89,7 @@ verpubattach() {
     done
 
     if [[ -z "$device" || -z "$password" ]]; then
-        echo "Usage: verpubvattach -p password <device-or-container>"
+        echo "Usage: verpubvattach -p password [-P hidden-password] <device-or-container>"
         return 1
     fi
 
@@ -105,8 +105,16 @@ verpubattach() {
 
     echo "Mounting $device to $mountpoint.."
 
-    if veracrypt -t --pim=0 --password="$password" --protection-password="$hiddenpw" --protection-pim=0 --protection-keyfiles="" --protect-hidden=yes -k="" "$device" "$mountpoint"; then
-        echo "Mounted outer volume at $mountpoint."
+    local cmd=(veracrypt -t --pim=0 --password="$password" -k="" "$device" "$mountpoint")
+
+    if [[ -n "$hiddenpw" ]]; then
+        cmd+=(--protection-password="$hiddenpw" --protection-pim=0 --protection-keyfiles="" --protect-hidden=yes)
+    else
+        cmd+=(--protect-hidden=no)
+    fi
+
+    if "${cmd[@]}"; then
+        echo "Mounted volume at $mountpoint."
     else
         echo "Failed to mount $device"
         return 1
@@ -116,10 +124,11 @@ verpubattach() {
     read -r _
 
     while true; do
-        if veracrypt -t -u "$mountpoint"; then
+        if veracrypt -t -u "$device"; then
             return 0
         else
             echo "Failed, retrying.."
+            sleep 1
         fi
     done
 }
