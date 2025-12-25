@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [[ -n "$DISPLAY" ]]; then
+    exec /usr/bin/pinentry-gnome3 "$@"
+else
+    exec /usr/bin/pinentry-curses "$@"
+fi
