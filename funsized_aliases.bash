@@ -1,7 +1,7 @@
 bake() {
     cd /home/bill88t/git/BredOS
 
-    local dir="/home/bill88t/BUILD"
+    local dir="/mnt/data/BUILD"
     echo "Cleaning $dir"
     [ -d "$dir" ] && sudo rm -rf "$dir"
 
