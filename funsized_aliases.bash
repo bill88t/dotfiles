@@ -15,7 +15,7 @@ bake() {
     return $status
 }
 
-alias ledmod="stty -F /dev/ttyACM0 115200 && echo -ne 'mod\n' > /dev/ttyACM0"
-alias ledoff="stty -F /dev/ttyACM0 115200 && echo -ne 'off\n' > /dev/ttyACM0"
-alias ledrst="stty -F /dev/ttyACM0 115200 && echo -ne 'rst\n' > /dev/ttyACM0"
-alias ledprog="stty -F /dev/ttyACM0 115200 && echo -ne 'pro\n' > /dev/ttyACM0"
+alias ledmod="(stty 115200 && echo -ne 'mod\n' >> /dev/ttyACM0)"
+alias ledoff="(stty 115200 && echo -ne 'off\n' >> /dev/ttyACM0)"
+alias ledrst="(stty 115200 && echo -ne 'rst\n' >> /dev/ttyACM0)"
+alias ledprog="(stty 115200 && echo -ne 'pro\n' >> /dev/ttyACM0)"
