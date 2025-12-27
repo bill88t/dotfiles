@@ -1,7 +1,6 @@
 Accent = "\033[38;5;221m"
 Accent_Secondary = "\033[38;5;184m"
 
-
 def shortcuts_help() -> None:
     clear()
     print(f"{colors.accent}{colors.bold}Configured shortcuts:{colors.endc}")
@@ -30,8 +29,6 @@ shortcuts["q"] = quit
 shortcuts["?"] = shortcuts_help
 
 shortcuts_reload = ["1", "2", "3", "4", "5", "b", "?"]
-
-# Old ones
 
 # shortcuts["4"] = "sleepctl -m \"always\" && echo Sleepctl now blocks everything && sleep 0.5"
 # shortcuts["5"] = "sleepctl -m \"button\" && echo Sleepctl now blocks power button && sleep 0.5"
