@@ -172,6 +172,11 @@ window-rule {
 }
 
 window-rule {
+    match app-id="helium"
+    default-column-width { proportion 1.0; }
+}
+
+window-rule {
     match app-id="org.kde.kate"
     default-column-width { proportion 0.6665; }
 }
@@ -198,7 +203,7 @@ overview {
 binds {
     Mod+T { spawn "alacritty"; }
     Mod+E { spawn "nemo"; }
-    Mod+B { spawn "librewolf"; }
+    Mod+B { spawn "helium-browser"; }
     Mod+D { spawn "/home/bill88t/git/dotfiles/appmenu_fuzzel"; }
     Mod+S { spawn "/home/bill88t/git/dotfiles/special_fuzzel"; }
     Mod+M { spawn "thunderbird"; }
