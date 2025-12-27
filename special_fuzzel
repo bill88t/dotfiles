@@ -7,7 +7,7 @@ reopen_menu() {
 }
 
 option="${1:-Applications}"
-choices="Applications\nKeyboard\nRotate\nBrightness Up\nBrightness Down\nWorkspace Up\nWorkspace Down\nToggle Stack\nScreenshot"
+choices="Applications\nFiles\nBrowser\nRotate\nKeyboard\nBrightness Up\nBrightness Down\nWorkspace Up\nWorkspace Down\nToggle Stack\nScreenshot"
 
 selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 16 --select="$option")
 
@@ -24,12 +24,18 @@ case "$selected" in
     *Applications)
         ~/git/dotfiles/appmenu_fuzzel
         ;;
-    *Keyboard)
-        pkill -SIGRTMIN wvkbd-mobintl
+    *Files)
+        nemo
+        ;;
+    *Browser)
+        helium-browser
         ;;
     *Rotate)
         ~/git/dotfiles/fw12cycle.sh
         ;;
+    *Keyboard)
+            pkill -SIGRTMIN wvkbd-mobintl
+            ;;
     *Brightness\ Up)
         ~/git/dotfiles/br_up.sh
         reopen_menu "Brightness Up"
