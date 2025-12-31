@@ -16,5 +16,7 @@ systemctl --user --wait start niri.service
 systemctl --user start --job-mode=replace-irreversibly niri-shutdown.target
 systemctl --user unset-environment WAYLAND_DISPLAY DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP NIRI_SOCKET
 
+#Cleanup
+killall -s 2 waybar.sh || true
+
 clear
-echo "Enjoy your TTY. Bitch."
