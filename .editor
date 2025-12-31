@@ -1,12 +1,23 @@
 #!/bin/sh
 
-# Determine GUI or TTY
-if [ -e "/usr/bin/kate" ]; then
-    if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
-        exec kate -b "$@" >/dev/null 2>&1
+is_git_parent() {
+    parent_name=$(ps -o comm= -p $PPID 2>/dev/null)
+    case "$parent_name" in
+        *git*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+if command -v codium >/dev/null 2>&1 && { [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; }; then
+    if is_git_parent; then
+        exec codium -w "$@"
     else
-        exec micro "$@"
+        exec codium "$@"
     fi
-else
+elif command -v kate >/dev/null 2>&1 && { [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; }; then
+    exec kate -b "$@" >/dev/null 2>&1
+elif command -v micro >/dev/null 2>&1; then
     exec micro "$@"
+elif command -v nano >/dev/null 2>&1; then
+    exec nano "$@"
 fi

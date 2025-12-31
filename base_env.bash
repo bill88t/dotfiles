@@ -60,11 +60,7 @@ export PATH="$HOME/git/dotfiles:$HOME/.local/bin:$PATH"
 export EDITOR="$HOME/git/dotfiles/.editor"
 
 e() {
-    if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
-        kate "$@"
-    else
-        micro "$@"
-    fi
+    $HOME/git/dotfiles/.editor "$@"
 }
 
 export SECRETS_LOADED=0
