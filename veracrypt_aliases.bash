@@ -55,6 +55,7 @@ verprivattach() {
     cd -
 
     while true; do
+        sync "$mountpoint" || true
         if veracrypt -t -u "$device"; then
             sudo eject $(lsblk -no pkname "$device" | sed 's|^|/dev/|')
             return 0
@@ -124,11 +125,10 @@ verpubattach() {
     read -r _
 
     while true; do
+        sync "$mountpoint" || true
         if veracrypt -t -u "$device"; then
+            sudo eject $(lsblk -no pkname "$device" | sed 's|^|/dev/|')
             return 0
-        else
-            echo "Failed, retrying.."
-            sleep 1
         fi
     done
 }
