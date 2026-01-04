@@ -73,6 +73,7 @@ BASE_PKGS = [
     "tinyxxd",
     "zoxide",
     "s-tui",
+    "unp",
 ]
 
 DOCKER_PKGS = [
@@ -715,7 +716,7 @@ def install_niri(force=False) -> None:
         check=True,
     )
     print(f"OK\nInstalled Niri config -> `{target_file}`")
-    
+
 
 def install_cosmic(force=False) -> None:
     hostname = socket.gethostname()
