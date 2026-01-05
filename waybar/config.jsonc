@@ -29,6 +29,7 @@
     "modules-right": [
         "custom/cpu_sum",
         "memory",
+        "custom/iowait",
         "custom/governor",
         "network",
         "pulseaudio#source",
@@ -122,6 +123,13 @@
         "states": {
             "critical": 85
         }
+    },
+
+    "custom/iowait": {
+        "exec": "~/git/dotfiles/iowait.py",
+        "interval": 1,
+        "format": "I {}%",
+        "tooltip": false
     },
 
     "custom/vol_down": {
