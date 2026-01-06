@@ -207,7 +207,7 @@
         "format": "? {bandwidthTotalBytes}",
         "tooltip-format": "{ifname} {ipaddr} {bandwidthTotalBits}",
         "format-wifi": "W {bandwidthTotalBytes}",
-        "format-ethernet": "E d{bandwidthTotalBytes}",
+        "format-ethernet": "E {bandwidthTotalBytes}",
         "format-disconnected": "OFFLINE",
         "on-click-right": "nm-connection-editor",
         "interval": 3
