@@ -63,4 +63,13 @@ e() {
     $HOME/git/dotfiles/.editor "$@"
 }
 
+# Add Go bin dir to PATH if Go is installed
+if command -v go >/dev/null 2>&1; then
+    GOBIN_PATH="$(go env GOPATH)/bin"
+    case ":$PATH:" in
+        *":$GOBIN_PATH:"*) ;;
+        *) export PATH="$PATH:$GOBIN_PATH" ;;
+    esac
+fi
+
 export SECRETS_LOADED=0
