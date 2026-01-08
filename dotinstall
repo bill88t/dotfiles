@@ -15,6 +15,8 @@ ALACRITTY_SOURCE = SCRIPT_DIR / "alacritty.toml"
 ALACRITTY_TARGET = HOME / ".alacritty.toml"
 GPG_CONF_SRC = SCRIPT_DIR / "gpg-agent.conf"
 GPG_CONF_DST = HOME / ".gnupg" / "gpg-agent.conf"
+GPG_SC_SRC = SCRIPT_DIR / "scdaemon.conf"
+GPG_SC_DST = HOME / ".gnupg" / "scdaemon.conf"
 NIRI_SRC = SCRIPT_DIR / "niri"
 NIRI_DST = HOME / ".config" / "niri"
 MAKEPKG_SRC = SCRIPT_DIR / ("makepkg.conf." + os.uname()[-1])
@@ -275,6 +277,7 @@ def install_gpgconf(force=False):
     gnupg_home.mkdir(mode=0o700, exist_ok=True)
 
     symlink_file(GPG_CONF_SRC, GPG_CONF_DST, force=force)
+    symlink_file(GPG_SC_SRC, GPG_SC_DST, force=force)
 
     try:
         subprocess.run(
