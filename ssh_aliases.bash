@@ -1,5 +1,59 @@
 alias ssh="sshc && ssh"
 
+__ssh_pick_endpoint() {
+    local ep port extra
+    local candidate
+
+    for candidate in "$@"; do
+        IFS=':' read -r ep port extra <<< "$candidate"
+        port=${port:-22}
+
+        # Try ICMP first
+        if ping -c1 -W1 "$ep" &>/dev/null; then
+            echo "$ep:$port:$extra"
+            return 0
+        fi
+
+        # Try TCP fallback (some ICMP-blocked hosts)
+        timeout 2 bash -c ":</dev/tcp/$ep/$port" &>/dev/null && {
+            echo "$ep:$port:$extra"
+            return 0
+        }
+    done
+
+    return 1
+}
+
+__ssh_generate_functions() {
+    local entry name user opts endpoints_str
+    local -a endpoints
+    local ep port extra
+
+    for entry in "${SSH_MACHINES[@]}"; do
+        IFS='|' read -r name user opts endpoints_str <<< "$entry"
+        read -ra endpoints <<< "$endpoints_str"
+
+        eval "
+        $name() {
+            local selected ep port extra
+            selected=\$(__ssh_pick_endpoint ${endpoints[*]@Q}) || {
+                echo 'No reachable endpoint for $name' >&2
+                return 1
+            }
+
+            IFS=':' read -r ep port extra <<< \"\$selected\"
+            if [ -S '\$SSH_AUTH_SOCK' ]; then
+                if [ '\$(ssh-add -l)' == 'The agent has no identities.' ]; then
+                    ssh-add
+                    echo 'SSH agent identities added.'
+                fi
+            fi
+            ssh -p \$port $opts ${extra} ${user:+$user@}\$ep \"\$@\"
+        }
+        "
+    done
+}
+
 fusermount_until_success() {
     local mountpoint="$1"
     local timeout="${2:-90}"  # Default timeout: 90 seconds
