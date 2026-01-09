@@ -357,3 +357,7 @@ sshc() {
 # Insecure
 alias cssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR'
 alias csftp="sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+
+if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ];
+    then   export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)";
+fi
