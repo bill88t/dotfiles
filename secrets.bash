@@ -7,7 +7,7 @@ TMP="${TMPDIR:-/tmp}"
 # Fallback if TMPDIR is set but unusable
 [ -d "$TMP" ] && [ -w "$TMP" ] || TMP="/tmp"
 
-decfile="$TMP/dotsecrets.bash"
+decfile="$TMP/dotsecrets.$UID.bash"
 
 GPGKEY="ECB6CC2EB44CEF708F41AF191BEF1BCEBA58EA33"
 
@@ -28,12 +28,12 @@ _load_secrets() {
         . "$decfile"
         return 0
     fi
-    if gpg --quiet --batch --yes --passphrase '' --pinentry-mode=loopback --decrypt --output "$decfile" "$encfile" 2>/dev/null; then
+    if timeout 1 gpg --quiet --batch --yes --passphrase '' --pinentry-mode=loopback --decrypt --output "$decfile" "$encfile" 2>/dev/null; then
         chmod 600 "$decfile"
         . "$decfile"
         return 0
     else
-        echo "WARNING: Could not decrypt $encfile (GPG key locked or unavailable)"
+        echo "WARNING: Secrets could not be loaded. (GPG key locked or unavailable)"
         return 1
     fi
 }
@@ -52,7 +52,7 @@ secrets-reload() {
         . "$decfile"
         return 0
     else
-        echo "WARNING: Could not decrypt $encfile (GPG key locked or unavailable)"
+        echo "WARNING: Failed to reload secrets. (GPG key locked or unavailable)"
         return 1
     fi
 }
