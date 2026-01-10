@@ -36,6 +36,7 @@
         "custom/vol_down",
         "pulseaudio#sink",
         "custom/vol_up",
+        "custom/lang",
         "tray",
         "battery",
         "custom/powermenu"
@@ -143,6 +144,12 @@
         "format": "+",
         "interval": 0,
         "on-click": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+",
+        "tooltip": false
+    },
+
+    "custom/lang": {
+        "exec": "~/git/dotfiles/waybar/lang.sh",
+        "interval": 1,
         "tooltip": false
     },
 

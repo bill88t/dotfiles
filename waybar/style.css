@@ -67,7 +67,8 @@ tooltip {
 #custom-niri_down,
 #custom-niri_right,
 #custom-vol_down,
-#custom-vol_up {
+#custom-vol_up,
+#custom-lang {
     font-size: 14px;
     color: @text;
     background-color: @base;
@@ -85,6 +86,13 @@ tooltip {
 
 #pulseaudio.source {
     min-width: 0px;
+}
+
+#custom-lang {
+    font-size: 11px;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-left: 6px;
 }
 
 #custom-vol_down,
@@ -185,10 +193,6 @@ tooltip {
     background-color: @base;
     border: 2px solid @text;
     color: @text;
-}
-
-#tray {
-    margin-left: 6px;
 }
 
 #network {
