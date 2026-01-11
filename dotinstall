@@ -31,6 +31,8 @@ KEYD_SRC = SCRIPT_DIR / "keyd"
 KEYD_DST = Path("/etc/keyd")
 CLAM_SRC = SCRIPT_DIR / "clamav"
 CLAM_DST = Path("/etc/clamav")
+AUTH_KEYS_SRC = SCRIPT_DIR / "authorized_keys"
+AUTH_KEYS_DST = HOME / ".ssh"
 
 BASE_PKGS = [
     "git",
@@ -832,6 +834,11 @@ def install_clamav(force=False) -> None:
 
     print("All good.")
 
+def install_sshkeys(force=False) -> None:
+    AUTH_KEYS_DST.mkdir(parents=True, exist_ok=True)
+    print('Overwritting ' + str(AUTH_KEYS_DST / "authorized_keys"))
+    subprocess.run(f"cp -v {AUTH_KEYS_SRC} {AUTH_KEYS_DST}/authorized_keys", shell=True)
+
 
 INSTALLERS = {
     "base": install_base,
@@ -846,6 +853,7 @@ INSTALLERS = {
     "newsrc": install_newsrc,
     "keyd": install_keyd,
     "clam": install_clamav,
+    "sshkeys": install_sshkeys,
 }
 
 
