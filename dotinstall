@@ -17,8 +17,10 @@ GPG_CONF_SRC = SCRIPT_DIR / "gpg-agent.conf"
 GPG_CONF_DST = HOME / ".gnupg" / "gpg-agent.conf"
 GPG_SC_SRC = SCRIPT_DIR / "scdaemon.conf"
 GPG_SC_DST = HOME / ".gnupg" / "scdaemon.conf"
-GPG_CON_SRC = SCRIPT_DIR / "sshcontrol"
-GPG_CON_DST = HOME / ".gnupg" / "sshcontrol"
+GPG_SSH_SRC = SCRIPT_DIR / "sshcontrol"
+GPG_SSH_DST = HOME / ".gnupg" / "sshcontrol"
+GPG_CON_SRC = SCRIPT_DIR / "gpg.conf"
+GPG_CON_DST = HOME / ".gnupg" / "gpg.conf"
 NIRI_SRC = SCRIPT_DIR / "niri"
 NIRI_DST = HOME / ".config" / "niri"
 MAKEPKG_SRC = SCRIPT_DIR / ("makepkg.conf." + os.uname()[-1])
@@ -284,6 +286,7 @@ def install_gpgconf(force=False):
 
     symlink_file(GPG_CONF_SRC, GPG_CONF_DST, force=force)
     symlink_file(GPG_SC_SRC, GPG_SC_DST, force=force)
+    symlink_file(GPG_SSH_SRC, GPG_SSH_DST, force=force)
     symlink_file(GPG_CON_SRC, GPG_CON_DST, force=force)
 
     try:
