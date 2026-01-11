@@ -24,18 +24,31 @@ _load_secrets() {
         . "$plainfile"
         return 0
     fi
+
     if [ -f "$decfile" ]; then
         . "$decfile"
         return 0
     fi
-    if timeout 1 gpg --quiet --batch --yes --passphrase '' --pinentry-mode=loopback --decrypt --output "$decfile" "$encfile" 2>/dev/null; then
-        chmod 600 "$decfile"
-        . "$decfile"
-        return 0
+
+    if command -v okc-gpg >/dev/null 2>&1; then
+        if okc-gpg --decrypt --output "$decfile" "$encfile" 2>/dev/null; then
+            chmod 600 "$decfile"
+            . "$decfile"
+            return 0
+        fi
     else
-        echo "WARNING: Secrets could not be loaded. (GPG key locked or unavailable)"
-        return 1
+        if timeout 1 gpg --quiet --batch --yes \
+            --passphrase '' \
+            --pinentry-mode=loopback \
+            --decrypt --output "$decfile" "$encfile" 2>/dev/null; then
+                chmod 600 "$decfile"
+                . "$decfile"
+                return 0
+            fi
     fi
+
+    echo "WARNING: Secrets could not be loaded. (GPG key locked or unavailable)"
+    return 1
 }
 
 secrets-reload() {
@@ -43,52 +56,29 @@ secrets-reload() {
         . "$plainfile"
         return 0
     fi
+
     if [ -f "$decfile" ]; then
         . "$decfile"
         return 0
     fi
-    if gpg --use-agent --try-secret-key $GPGKEY --decrypt --output "$decfile" "$encfile"; then
-        chmod 600 "$decfile"
-        . "$decfile"
-        return 0
-    else
-        echo "WARNING: Failed to reload secrets. (GPG key locked or unavailable)"
-        return 1
-    fi
-}
 
-secrets-decrypt() {
-    if [ -f "$plainfile" ]; then
-        echo "ERROR: $plainfile already exists, refusing to overwrite"
-        return 1
-    fi
-    if gpg --quiet --decrypt --output "$plainfile" "$encfile"; then
-        chmod 600 "$plainfile"
-        rm -f "$encfile"
-        echo "NOTICE: Decrypted to $plainfile and removed $encfile"
-        if [ -f "$decfile" ]; then
-            rm "$decfile"
+    if command -v okc-gpg >/dev/null 2>&1; then
+        if okc-gpg --decrypt --output "$decfile" "$encfile"; then
+            chmod 600 "$decfile"
+            . "$decfile"
+            return 0
         fi
     else
-        echo "ERROR: Failed to decrypt $encfile"
-        return 1
+        if gpg --use-agent --try-secret-key "$GPGKEY" \
+               --decrypt --output "$decfile" "$encfile"; then
+            chmod 600 "$decfile"
+            . "$decfile"
+            return 0
+        fi
     fi
-}
 
-secrets-encrypt() {
-    if [ ! -f "$plainfile" ]; then
-        echo "ERROR: $plainfile not found."
-        return 1
-    fi
-    # Replace <KEYID> with your GPG recipient (can be email or key fingerprint)
-    if gpg --yes --output "$encfile" --encrypt --recipient $GPGKEY "$plainfile"; then
-        chmod 600 "$encfile"
-        rm -f "$plainfile"
-        echo "NOTICE: Encrypted to $encfile and removed $plainfile"
-    else
-        echo "ERROR: Failed to encrypt $plainfile"
-        return 1
-    fi
+    echo "WARNING: Failed to reload secrets. (GPG key locked or unavailable)"
+    return 1
 }
 
 # Auto-load at shell startup
