@@ -277,6 +277,12 @@ def install_gitconf(force=False):
         shell=True,
     )
 
+def install_gitconftermux(force=False):
+    subprocess.run(
+        'bash -c "source ~/git/dotfiles/secrets.bash && git config --global gpg.program okc-gpg && git-secrets-install"',
+        shell=True,
+    )
+
 
 def install_gpgconf(force=False):
     install_packages(["pcsclite", "ccid", "openpgp-card-tools", "opensc"])
@@ -846,6 +852,7 @@ INSTALLERS = {
     "bashrc": install_bashrc,
     "alacritty": install_alacritty,
     "gitconf": install_gitconf,
+    "gitconftermux": install_gitconftermux,
     "gpgconf": install_gpgconf,
     "niri": install_niri,
     "makepkg": install_makepkg,
