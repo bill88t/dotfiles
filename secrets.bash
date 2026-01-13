@@ -119,7 +119,7 @@ secrets-encrypt() {
         return 1
     fi
     if command -v okc-gpg >/dev/null 2>&1; then
-        if okc-gpg --output "$encfile" --encrypt "$plainfile"; then
+        if okc-gpg --output "$encfile" --encrypt --recipient "$GPGKEY" "$plainfile"; then
             chmod 600 "$decfile"
             rm -f "$plainfile"
             echo "NOTICE: Encrypted to $encfile and removed $plainfile"
