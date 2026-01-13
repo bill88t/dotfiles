@@ -120,7 +120,7 @@ secrets-encrypt() {
     fi
     if command -v okc-gpg >/dev/null 2>&1; then
         if okc-gpg --output "$encfile" --encrypt --recipient "$GPGKEY" "$plainfile"; then
-            chmod 600 "$decfile"
+            chmod 600 "$encfile"
             rm -f "$plainfile"
             echo "NOTICE: Encrypted to $encfile and removed $plainfile"
         else
@@ -215,5 +215,9 @@ git-secrets-encrypt() {
 }
 
 l(){
+    if [ -f "$decfile" ]; then
+        rm "$decfile"
+        return 0
+    fi
     secrets-reload
 }
