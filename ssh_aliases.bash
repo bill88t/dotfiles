@@ -363,5 +363,5 @@ if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ];
 fi
 
 if command -v okc-gpg >/dev/null 2>&1; then
-    eval $(okc-ssh-agent)
+    eval $(okc-ssh-agent) >/dev/null 2>&1
 fi
