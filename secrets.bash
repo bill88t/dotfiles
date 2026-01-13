@@ -136,6 +136,7 @@ secrets-encrypt() {
             echo "ERROR: Failed to encrypt $plainfile"
             return 1
         fi
+    fi
 }
 
 # Auto-load at shell startup
