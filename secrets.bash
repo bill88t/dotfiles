@@ -81,6 +81,40 @@ secrets-reload() {
     return 1
 }
 
+secrets-decrypt() {
+    if [ -f "$plainfile" ]; then
+        echo "ERROR: $plainfile already exists, refusing to overwrite"
+        return 1
+    fi
+    if gpg --quiet --decrypt --output "$plainfile" "$encfile"; then
+        chmod 600 "$plainfile"
+        rm -f "$encfile"
+        echo "NOTICE: Decrypted to $plainfile and removed $encfile"
+        if [ -f "$decfile" ]; then
+            rm "$decfile"
+        fi
+    else
+        echo "ERROR: Failed to decrypt $encfile"
+        return 1
+    fi
+}
+
+secrets-encrypt() {
+    if [ ! -f "$plainfile" ]; then
+        echo "ERROR: $plainfile not found."
+        return 1
+    fi
+    # Replace <KEYID> with your GPG recipient (can be email or key fingerprint)
+    if gpg --yes --output "$encfile" --encrypt --recipient $GPGKEY "$plainfile"; then
+        chmod 600 "$encfile"
+        rm -f "$plainfile"
+        echo "NOTICE: Encrypted to $encfile and removed $plainfile"
+    else
+        echo "ERROR: Failed to encrypt $plainfile"
+        return 1
+    fi
+}
+
 # Auto-load at shell startup
 if [ -f "$plainfile" ] || [ -f "$encfile" ]; then
     _load_secrets || true
