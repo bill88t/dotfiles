@@ -1,0 +1,38 @@
+#!/bin/bash
+
+FORCE_FILE="/tmp/force_pinentry.$UID.curses"
+
+toggle() {
+    if [[ -f "$FORCE_FILE" ]]; then
+        rm -f "$FORCE_FILE"
+        echo "Pinentry allowed to use GUI (Qt) mode."
+    else
+        touch "$FORCE_FILE"
+        echo "Pinentry forced to curses mode."
+    fi
+}
+
+case "$1" in
+    enable|on|curses)
+        touch "$FORCE_FILE"
+        echo "Pinentry forced to curses mode."
+        ;;
+    disable|off|qt)
+        rm -f "$FORCE_FILE"
+        echo "Pinentry allowed to use GUI (Qt) mode."
+        ;;
+    status)
+        if [[ -f "$FORCE_FILE" ]]; then
+            echo "Pinentry is forced to curses."
+        else
+            echo "Pinentry will use GUI if available."
+        fi
+        ;;
+    ""|toggle)
+        toggle
+        ;;
+    *)
+        echo "Usage: $0 {enable|disable|status|toggle}"
+        exit 1
+        ;;
+esac
