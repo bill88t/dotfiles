@@ -50,7 +50,7 @@ input {
 layout {
     focus-ring {
         width 3
-        active-color "#E67919"
+        active-color "#3B5375"
         inactive-color "#505050"
     }
 
@@ -63,7 +63,7 @@ layout {
         position "bottom"
         gaps-between-tabs 2
         corner-radius 8
-        active-color "#E67919"
+        active-color "#3B5375"
         inactive-color "#000000"
         urgent-color "red"
     }
