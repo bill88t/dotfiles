@@ -8,14 +8,7 @@ __ssh_pick_endpoint() {
         IFS=':' read -r ep port extra <<< "$candidate"
         port=${port:-22}
 
-        # Try ICMP first
-        if ping -c1 -W1 "$ep" &>/dev/null; then
-            echo "$ep:$port:$extra"
-            return 0
-        fi
-
-        # Try TCP fallback (some ICMP-blocked hosts)
-        timeout 2 bash -c ":</dev/tcp/$ep/$port" &>/dev/null && {
+        timeout 1 bash -c ":</dev/tcp/$ep/$port" &>/dev/null && {
             echo "$ep:$port:$extra"
             return 0
         }
