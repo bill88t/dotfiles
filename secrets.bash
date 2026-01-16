@@ -118,6 +118,8 @@ secrets-encrypt() {
         echo "ERROR: $plainfile not found."
         return 1
     fi
+
+    cp -v "$plainfile" "$decfile"
     if command -v okc-gpg >/dev/null 2>&1; then
         if okc-gpg --output "$encfile" --encrypt --recipient "$GPGKEY" "$plainfile"; then
             chmod 600 "$encfile"
