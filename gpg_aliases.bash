@@ -6,4 +6,6 @@ gpsign() {
 
 alias gpgreload="gpgconf --reload gpg-agent"
 alias gpgrestart="systemctl --user restart gpg-agent"
-alias gpgpasswd="gpg --edit-key $GPGKEY passwd save quit"
+gpgpasswd() {
+    gpg --edit-key $1 passwd save quit
+}
