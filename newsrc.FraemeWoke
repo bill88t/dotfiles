@@ -1,5 +1,5 @@
-Accent = "\033[38;5;221m"
-Accent_Secondary = "\033[38;5;184m"
+Accent = "\033[38;5;111m"
+Accent_Secondary = "\033[38;5;51m"
 
 def shortcuts_help() -> None:
     clear()
