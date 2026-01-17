@@ -848,11 +848,25 @@ def install_sshkeys(force=False) -> None:
     subprocess.run(f"cp -v {AUTH_KEYS_SRC} {AUTH_KEYS_DST}/authorized_keys", shell=True)
 
 def install_superfile(force=False) -> None:
-    if not install_packages(["superfile", "zoxide"]):
+    if not install_packages(["superfile", "zoxide", "bat"]):
         return
 
     print("Linking config..")
     symlink_file(SPF_SRC, SPF_DST, force=force)
+
+    print("Blocking logging..")
+    state_dir = HOME / ".local" / "state" / "superfile"
+    log_file = state_dir / "superfile.log"
+
+    state_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        if log_file.exists() or log_file.is_symlink():
+            log_file.unlink()
+        log_file.symlink_to("/dev/null")
+        print(f"Linked {log_file} → /dev/null")
+    except Exception as e:
+        print(f"Failed to block superfile logging: {e}")
 
 
 INSTALLERS = {

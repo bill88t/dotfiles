@@ -45,7 +45,7 @@ shell_close_on_success = false
 debug = false
 #
 # Whether to ignore warnings about missing fields in the config file.
-ignore_missing_fields = false
+ignore_missing_fields = true
 #
 # Number of lines to scroll for PgUp/PgDown keys (0: full page, default behavior).
 page_scroll_size = 0
@@ -74,7 +74,7 @@ file_preview_width = 0
 enable_file_preview_border = false
 #
 # Whether to use the builtin syntax highlighting with chroma or use bat. Values: "" for builtin chroma, "bat" for bat
-code_previewer = ''
+code_previewer = 'bat'
 #
 # The length of the sidebar(excluding borders). If you don't want to display the sidebar, you can input 0 directly. If you want to display the value, please place it in the range of 5-20.
 sidebar_width = 20
