@@ -57,7 +57,11 @@ verprivattach() {
     while true; do
         sync "$mountpoint" || true
         if veracrypt -t -u "$device"; then
-            sudo eject $(lsblk -no pkname "$device" | sed 's|^|/dev/|')
+            parent="/dev/$(lsblk -no pkname "$device")"
+
+            udisksctl power-off -b "$parent" >/dev/null 2>&1 || true
+            eject "$parent" >/dev/null 2>&1 || true
+
             return 0
         fi
     done
@@ -127,7 +131,11 @@ verpubattach() {
     while true; do
         sync "$mountpoint" || true
         if veracrypt -t -u "$device"; then
-            sudo eject $(lsblk -no pkname "$device" | sed 's|^|/dev/|')
+            parent="/dev/$(lsblk -no pkname "$device")"
+
+            udisksctl power-off -b "$parent" >/dev/null 2>&1 || true
+            eject "$parent" >/dev/null 2>&1 || true
+
             return 0
         fi
     done
