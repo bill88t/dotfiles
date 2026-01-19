@@ -91,6 +91,7 @@ spawn-at-startup "/home/bill88t/git/dotfiles/stcliphist"
 spawn-at-startup "swww-daemon"
 spawn-at-startup "/usr/lib/polkit-kde-authentication-agent-1"
 spawn-at-startup "kbuildsycoca6"
+spawn-at-startup "systemctl" "--user" "restart" "gpg-agent"
 
 hotkey-overlay {
     skip-at-startup

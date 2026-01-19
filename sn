@@ -6,6 +6,14 @@ if systemctl --user -q is-active niri.service; then
   exit 1
 fi
 
+killall waybar 2>/dev/null || true
+killall -s 2 waybar.sh 2>/dev/null || true
+killall -s 2 waybar.sh 2>/dev/null || true
+killall -s 2 waybar.sh 2>/dev/null || true
+killall -s 9 waybar.sh 2>/dev/null || true
+killall -s 9 waybar.sh 2>/dev/null || true
+killall -s 9 waybar.sh 2>/dev/null || true
+
 systemctl --user reset-failed
 systemctl --user import-environment
 if hash dbus-update-activation-environment 2>/dev/null; then
@@ -17,6 +25,14 @@ systemctl --user start --job-mode=replace-irreversibly niri-shutdown.target
 systemctl --user unset-environment WAYLAND_DISPLAY DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP NIRI_SOCKET
 
 #Cleanup
-killall -s 2 waybar.sh || true
+killall waybar 2>/dev/null || true
+killall -s 2 waybar.sh 2>/dev/null || true
+killall -s 2 waybar.sh 2>/dev/null || true
+killall -s 2 waybar.sh 2>/dev/null || true
+killall -s 9 waybar.sh 2>/dev/null || true
+killall -s 9 waybar.sh 2>/dev/null || true
+killall -s 9 waybar.sh 2>/dev/null || true
+
+systemctl --user restart gpg-agent
 
 clear
