@@ -1,2 +1,2 @@
 #!/usr/bin/sh
-killall fuzzel || (fuzzel -T "alacritty -e" --log-no-syslog -a top-left --tabs=4 -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=11")
+killall fuzzel || (fuzzel -T "alacritty -e" --log-no-syslog -a top-left --selection-radius=6 --tabs=4 -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=11")

@@ -58,7 +58,6 @@ tooltip {
     border-radius: 6px;
 }
 
-#custom-powermenu,
 #custom-niri_close,
 #custom-niri_resize,
 #custom-niri_overview,
@@ -106,11 +105,6 @@ tooltip {
     margin-left: 4px;
 }
 
-#custom-powermenu {
-    margin-left: 2px;
-    padding-left: 2px;
-    padding-right: 2px;
-}
 #custom-niri_close {
     margin-left: 4px;
     padding: 0px 6px;

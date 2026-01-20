@@ -7,9 +7,9 @@ reopen_menu() {
 }
 
 option="${1:-Applications}"
-choices="Applications\nFiles\nBrowser\nRotate\nKeyboard\nBrightness Up\nBrightness Down\nWorkspace Up\nWorkspace Down\nToggle Stack\nScreenshot"
+choices="Power\nApplications\nFiles\nTerminal\nBrowser\nRotate\nKeyboard\nBrightness Up\nBrightness Down\nWorkspace Up\nWorkspace Down\nToggle Stack\nScreenshot\nDismiss notifications"
 
-selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 16 --select="$option")
+selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 18 --select="$option")
 
 confirm_and_run() {
     action="$1"
@@ -21,11 +21,17 @@ confirm_and_run() {
 }
 
 case "$selected" in
+    *Power)
+        ~/git/dotfiles/powermenu_fuzzel
+        ;;
     *Applications)
         ~/git/dotfiles/appmenu_fuzzel
         ;;
     *Files)
         nemo
+        ;;
+    *Terminal)
+        alacritty
         ;;
     *Browser)
         helium-browser
@@ -58,5 +64,8 @@ case "$selected" in
         ;;
     *Screenshot)
         niri msg action screenshot-screen
+        ;;
+    *Dismiss\ notifications)
+        makoctl dismiss && makoctl reload
         ;;
 esac

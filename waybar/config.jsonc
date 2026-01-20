@@ -39,7 +39,6 @@
         "custom/lang",
         "tray",
         "battery",
-        "custom/powermenu"
     ],
 
     "custom/governor": {
@@ -101,13 +100,6 @@
         "format": "▶",
         "interval": 0,
         "on-click": "niri msg action focus-column-right",
-        "tooltip": false
-    },
-
-    "custom/powermenu": {
-        "format": "⏻",
-        "interval": 0,
-        "on-click": "~/git/dotfiles/powermenu_fuzzel",
         "tooltip": false
     },
 

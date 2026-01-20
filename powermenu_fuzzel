@@ -2,18 +2,18 @@
 
 killall fuzzel 2>/dev/null && exit 0
 
-choices="Dismiss\nSuspend\nLogout\nReboot\nPoweroff\nSetup"
+choices="Suspend\nLogout\nReboot\nPoweroff\nSetup"
 
 ask_confirm() {
     printf "No\nYes" |
         fuzzel -d -b 000000cc -t ffffffff -l 2 -B 4 -C 7fc8ffff \
             -f "Inter:size=14" --line-height=20 --log-no-syslog \
-            -a top-right --minimal-lines \
+            -a top-left --minimal-lines \
             --selection-radius=6 --width 11 \
             --prompt "$1"
 }
 
-selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-right --hide-prompt --minimal-lines --selection-radius=6 --width 11)
+selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 11)
 
 confirm_and_run() {
     action="$1"
@@ -25,7 +25,6 @@ confirm_and_run() {
 }
 
 case "$selected" in
-    *Dismiss)  makoctl dismiss && makoctl reload ;;
     *Suspend)  systemctl suspend ;;
     *Logout)   confirm_and_run "niri msg action quit -s" "Logout?" ;;
     *Reboot)   confirm_and_run "systemctl reboot" "Reboot?" ;;
