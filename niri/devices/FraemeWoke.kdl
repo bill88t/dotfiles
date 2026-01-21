@@ -30,7 +30,7 @@ environment {
 }
 
 binds {
-    Mod+P { spawn "/home/bill88t/git/dotfiles/fw12cycle.sh"; }
+    Mod+P { spawn "/home/bill88t/git/dotfiles/rotate.sh"; }
     Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/mountain-landscape-3840x2160-24317.jpg" "--font" "Inter" "-e"; }
 }
 

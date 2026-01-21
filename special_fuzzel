@@ -37,7 +37,7 @@ case "$selected" in
         helium-browser
         ;;
     *Rotate)
-        ~/git/dotfiles/fw12cycle.sh
+        ~/git/dotfiles/rotate.sh
         ;;
     *Keyboard)
             pkill -SIGRTMIN wvkbd-mobintl

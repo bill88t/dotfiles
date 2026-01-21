@@ -3,10 +3,26 @@ set -euo pipefail
 
 ALLOW_UPSIDE_DOWN=0
 
-OUTPUT="${1:-eDP-1}"
+# If user passed an output as first argument, use it; otherwise try to auto-detect
+if [[ "${1:-}" ]]; then
+  OUTPUT="$1"
+else
+  OUTPUT=$(niri msg outputs 2>/dev/null | awk '
+    /^[^[:space:]]/ {
+      if (match($0, /\(([^)]*)\)/, m)) {
+        if (m[1] ~ /^(eDP|DSI)/) { print m[1]; exit }
+      }
+    }
+  ')
+  if [[ -z "${OUTPUT:-}" ]]; then
+    echo "Warning: no eDP/DSI output found; defaulting to eDP-1." >&2
+    OUTPUT="eDP-1"
+  fi
+fi
+
 TRANSFORMS=(normal 90)
-if [[ ${ALLOW_UPSIDE_DOWN} == 1 ]]; then
-    TRANSFORMS[2]=180
+if [[ ${ALLOW_UPSIDE_DOWN} -eq 1 ]]; then
+    TRANSFORMS+=(180)
 fi
 
 RAW_TRANSFORM=$(niri msg outputs 2>/dev/null | awk -v out="(${OUTPUT})" '
@@ -20,7 +36,7 @@ RAW_TRANSFORM=$(niri msg outputs 2>/dev/null | awk -v out="(${OUTPUT})" '
 
 if [[ -z "${RAW_TRANSFORM:-}" ]]; then
   echo "Warning: could not parse Transform for $OUTPUT; assuming 'normal'." >&2
-  CURRENT="180"
+  CURRENT="normal"
 else
   if awk 'BEGIN{IGNORECASE=1} /normal/ {exit 0} {exit 1}' <<<"$RAW_TRANSFORM"; then
     CURRENT="normal"
