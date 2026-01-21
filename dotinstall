@@ -743,6 +743,16 @@ def install_niri(force=False) -> None:
         ],
         check=True,
     )
+    subprocess.run(
+        [
+            "gsettings",
+            "set",
+            "org.gnome.desktop.interface",
+            "color-scheme",
+            "prefer-dark",
+        ],
+        check=True,
+    )
     print(f"OK\nInstalled Niri config -> `{target_file}`")
 
 
