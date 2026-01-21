@@ -109,6 +109,13 @@ window-rule {
 }
 
 window-rule {
+    match app-id="" title="^Picture in picture$"
+    open-floating true
+    baba-is-float true
+    open-focused false
+}
+
+window-rule {
     match app-id="nm-applet"
     open-floating true
 }
