@@ -2,7 +2,7 @@
 
 killall fuzzel 2>/dev/null && exit 0
 
-choices="Suspend\nLogout\nReboot\nPoweroff\nSetup"
+choices="Monitor Off\nSuspend\nLogout\nReboot\nPoweroff\nSetup"
 
 ask_confirm() {
     printf "No\nYes" |
@@ -25,6 +25,7 @@ confirm_and_run() {
 }
 
 case "$selected" in
+    *Monitor\ Off) niri msg action power-off-monitors ;;
     *Suspend)  systemctl suspend ;;
     *Logout)   confirm_and_run "niri msg action quit -s" "Logout?" ;;
     *Reboot)   confirm_and_run "systemctl reboot" "Reboot?" ;;
