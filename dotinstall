@@ -108,7 +108,6 @@ NIRI_PKGS = [
     "nemo-terminal",
     "nemo-fileroller",
     "nemo-image-converter",
-    "nemo-preview",
     "mate-calc",
     "catfish",
     "waybar",
