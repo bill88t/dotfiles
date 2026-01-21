@@ -217,9 +217,5 @@ git-secrets-encrypt() {
 }
 
 l(){
-    if [ -f "$decfile" ]; then
-        rm "$decfile"
-        return 0
-    fi
     secrets-reload
 }
