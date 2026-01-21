@@ -37,6 +37,8 @@ SPF_SRC = SCRIPT_DIR / "superfile"
 SPF_DST = HOME / ".config" / "superfile"
 
 BASE_PKGS = [
+    "bash-completion",
+    "pkgconf",
     "git",
     "git-lfs",
     "bind",
