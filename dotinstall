@@ -123,6 +123,9 @@ NIRI_PKGS = [
     "adw-gtk-theme",
     "papirus-icon-theme",
     "brightnessctl",
+    "noto-fonts",
+    "ttf-hanazono",
+    "ttf-dejavu",
 ]
 
 COSMIC_PKGS = [
