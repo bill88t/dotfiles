@@ -38,6 +38,7 @@ SPF_DST = HOME / ".config" / "superfile"
 
 BASE_PKGS = [
     "bash-completion",
+    "pacman-contrib",
     "pkgconf",
     "git",
     "git-lfs",
