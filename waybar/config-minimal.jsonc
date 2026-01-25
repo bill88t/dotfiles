@@ -1,0 +1,204 @@
+{
+    "layer": "top",
+    "position": "top",
+    "spacing": 0,
+
+    "margin-top": 0,
+    "margin-right": 0,
+    "margin-bottom": 0,
+    "margin-left": 0,
+
+    "modules-left": [
+        "custom/start",
+        "clock",
+        "custom/niri_close",
+        "custom/niri_resize",
+        "custom/niri_overview",
+        "custom/osk",
+        "custom/niri_left",
+        "custom/niri_up",
+        "niri/workspaces",
+        "custom/niri_down",
+        "custom/niri_right"
+    ],
+
+    "modules-center": [
+    ],
+
+    "modules-right": [
+        "pulseaudio#sink",
+        "tray",
+        "battery",
+    ],
+
+    "custom/governor": {
+        "exec": "~/git/dotfiles/waybar/govfetch.sh",
+        "interval": 2,
+        "tooltip": false
+    },
+
+    "custom/start": {
+        "format": "🍞",
+        "interval": 0,
+        "on-click": "~/git/dotfiles/special_fuzzel",
+        "tooltip": false
+    },
+
+    "custom/niri_close": {
+        "format": "🗙",
+        "interval": 0,
+        "on-click": "niri msg action close-window",
+        "tooltip": false
+    },
+
+    "custom/niri_resize": {
+        "format": "⥂",
+        "interval": 0,
+        "on-click": "niri msg action switch-preset-column-width",
+        "tooltip": false
+    },
+
+    "custom/niri_overview": {
+        "format": "❏",
+        "interval": 0,
+        "on-click": "niri msg action toggle-overview",
+        "tooltip": false
+    },
+
+    "custom/niri_left": {
+        "format": "◀",
+        "interval": 0,
+        "on-click": "niri msg action focus-column-left",
+        "tooltip": false
+    },
+
+    "custom/niri_up": {
+        "format": "▲",
+        "interval": 0,
+        "on-click": "niri msg action focus-window-up",
+        "tooltip": false
+    },
+
+    "custom/niri_down": {
+        "format": "▼",
+        "interval": 0,
+        "on-click": "niri msg action focus-window-down",
+        "tooltip": false
+    },
+
+    "custom/niri_right": {
+        "format": "▶",
+        "interval": 0,
+        "on-click": "niri msg action focus-column-right",
+        "tooltip": false
+    },
+
+    "custom/cpu_sum": {
+      "exec": "~/git/dotfiles/waybar/cpu_sum.sh",
+      "interval": 1,
+      "format": "{}"
+    },
+
+    "memory": {
+        "format": "R {percentage}%",
+        "on-click": "~/git/dotfiles/ramkill",
+        "interval": 2,
+        "states": {
+            "critical": 85
+        }
+    },
+
+    "custom/iowait": {
+        "exec": "~/git/dotfiles/iowait.py",
+        "interval": 1,
+        "format": "I {}%",
+        "tooltip": false
+    },
+
+    "custom/vol_down": {
+        "format": "–",
+        "interval": 0,
+        "on-click": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05-",
+        "tooltip": false
+    },
+
+    "custom/vol_up": {
+        "format": "+",
+        "interval": 0,
+        "on-click": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+",
+        "tooltip": false
+    },
+
+    "custom/lang": {
+        "exec": "~/git/dotfiles/waybar/lang.sh",
+        "interval": 1,
+        "tooltip": false
+    },
+
+    "pulseaudio#sink": {
+        "format": "{volume}%",
+        "format-muted": "MUTE",
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+",
+        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05-",
+        "tooltip": false
+    },
+
+    "pulseaudio#source": {
+        "format": "{format_source}",
+        "format-source": "M {volume}%",
+        "format-source-muted": "M",
+        "on-click": "pactl set-source-mute @DEFAULT_SOURCE@ toggle",
+        "on-click-right": "/usr/bin/pavucontrol",
+        "on-scroll-down": "pactl set-source-volume @DEFAULT_SOURCE@ -5%",
+        "on-scroll-up": "pactl set-source-volume @DEFAULT_SOURCE@ +5%"
+    },
+
+    "battery": {
+        "format": "{capacity}%",
+        "format-charging": "{capacity}%+",
+        "format-alt": "{time}",
+        "interval": 2,
+        "states": {
+            "warning": 20,
+            "critical": 10
+        },
+        "events": {
+            "on-discharging-warning": "notify-send -u normal 'Low Battery'",
+            "on-discharging-critical": "notify-send -u critical 'Very Low Battery'",
+        },
+        "tooltip": false
+    },
+
+    "niri/workspaces": {
+        "format": "{icon}",
+        "format-icons": {
+          "empty": "",
+        },
+        "disable-scroll": true,
+        "all-outputs": true,
+        "tooltip": false
+    },
+
+    "clock": {
+        "format": "{:%H:%M:%S}",
+        "format-alt": "{:%a %d %b}",
+        "tooltip": false,
+        "interval": 1
+    },
+
+    "tray": {
+        "spacing": 4,
+        "tooltip": false
+    },
+
+    "network": {
+        "format": "? {bandwidthTotalBytes}",
+        "tooltip-format": "{ifname} {ipaddr} {bandwidthTotalBits}",
+        "format-wifi": "W {bandwidthTotalBytes}",
+        "format-ethernet": "E {bandwidthTotalBytes}",
+        "format-disconnected": "OFFLINE",
+        "on-click-right": "nm-connection-editor",
+        "interval": 3
+    }
+}

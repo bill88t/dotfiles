@@ -59,13 +59,13 @@ def pick_config(mode: str) -> tuple:
     config = os.path.join(BASE_DIR, "config-minimal.jsonc") if minimal else os.path.join(BASE_DIR, "config.jsonc")
     style = os.path.join(BASE_DIR, "style-minimal.css") if minimal else os.path.join(BASE_DIR, "style.css")
 
-    host_cfg = os.path.join(BASE_DIR, f"config-minimal-{HOSTNAME}.jsonc") if minimal else os.path.join(BASE_DIR, f"config-{HOSTNAME}.jsonc")
-    host_css = os.path.join(BASE_DIR, f"style-minimal-{HOSTNAME}.jsonc") if minimal else os.path.join(BASE_DIR, f"style-{HOSTNAME}.css")
+    host_config = os.path.join(BASE_DIR, f"config-minimal-{HOSTNAME}.jsonc") if minimal else os.path.join(BASE_DIR, f"config-{HOSTNAME}.jsonc")
+    host_style = os.path.join(BASE_DIR, f"style-minimal-{HOSTNAME}.css") if minimal else os.path.join(BASE_DIR, f"style-{HOSTNAME}.css")
 
-    if os.path.exists(host_cfg):
-        config = host_cfg
-    if os.path.exists(host_css):
-        style = host_css
+    if os.path.exists(host_config):
+        config = host_config
+    if os.path.exists(host_style):
+        style = host_style
 
     return config, style
 

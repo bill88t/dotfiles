@@ -7,7 +7,7 @@ reopen_menu() {
 }
 
 option="${1:-Applications}"
-choices="Power\nApplications\nFiles\nTerminal\nBrowser\nRotate\nKeyboard\nBrightness Up\nBrightness Down\nWorkspace Up\nWorkspace Down\nToggle Stack\nScreenshot\nDismiss notifications"
+choices="Power\nApplications\nFiles\nTerminal\nBrowser\nRotate\nKeyboard\nMinimize Bar\nBrightness Up\nBrightness Down\nWorkspace Up\nWorkspace Down\nToggle Stack\nScreenshot\nDismiss notifications"
 
 selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 18 --select="$option")
 
@@ -40,8 +40,15 @@ case "$selected" in
         ~/git/dotfiles/rotate.sh
         ;;
     *Keyboard)
-            pkill -SIGRTMIN wvkbd-mobintl
-            ;;
+        pkill -SIGRTMIN wvkbd-mobintl
+        ;;
+    *Minimize\ Bar)
+        if [ -e "$HOME/git/dotfiles/waybar/minimal_mode" ]; then
+            rm "$HOME/git/dotfiles/waybar/minimal_mode"
+        else
+            touch "$HOME/git/dotfiles/waybar/minimal_mode"
+        fi
+        ;;
     *Brightness\ Up)
         ~/git/dotfiles/br_up.sh
         reopen_menu "Brightness Up"
