@@ -84,7 +84,7 @@ layout {
     }
 }
 
-spawn-at-startup "/home/bill88t/git/dotfiles/waybar/waybar.sh"
+spawn-at-startup "/home/bill88t/git/dotfiles/waybar/waybar.py"
 spawn-at-startup "/home/bill88t/git/dotfiles/stkb"
 spawn-at-startup "/home/bill88t/git/dotfiles/stmako"
 spawn-at-startup "/home/bill88t/git/dotfiles/stcliphist"
