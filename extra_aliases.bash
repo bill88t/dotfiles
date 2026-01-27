@@ -28,7 +28,7 @@ cpu_freqs() {
 }
 
 alias jf="journalctl -f"
-alias jb="journalctl -b"
+alias jb="journalctl -b --no-pager | $PAGER"
 
 mv_subdirfiles_to_pwd() {
     local cwd

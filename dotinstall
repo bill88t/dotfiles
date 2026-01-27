@@ -87,6 +87,7 @@ BASE_PKGS = [
     "zoxide",
     "s-tui",
     "unp",
+    "most",
 ]
 
 DOCKER_PKGS = [

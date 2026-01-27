@@ -72,4 +72,17 @@ if command -v go >/dev/null 2>&1; then
     esac
 fi
 
+# Auto-select best available pager for systemd and general use
+if command -v most >/dev/null 2>&1; then
+    export PAGER=most
+elif command -v less >/dev/null 2>&1; then
+    export PAGER=less
+elif command -v more >/dev/null 2>&1; then
+    export PAGER=more
+else
+    export PAGER=cat
+fi
+
+export SYSTEMD_PAGER="$PAGER"
+
 export SECRETS_LOADED=0
