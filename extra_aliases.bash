@@ -29,6 +29,13 @@ cpu_freqs() {
 
 alias jf="journalctl -f"
 alias jb="journalctl -b --no-pager | $PAGER"
+function ju() {
+    if [ $# -eq 0 ]; then
+        echo "No unit specified!"
+        return
+    fi
+    journalctl -u $1 | $PAGER
+}
 
 mv_subdirfiles_to_pwd() {
     local cwd
