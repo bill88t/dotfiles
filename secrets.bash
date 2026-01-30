@@ -219,3 +219,11 @@ git-secrets-encrypt() {
 l(){
     secrets-reload
 }
+
+k(){
+    if [ -f "$decfile" ]; then
+        rm "$decfile"
+        clear
+        exec bash
+    fi
+}
