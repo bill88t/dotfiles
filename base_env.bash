@@ -85,4 +85,10 @@ fi
 
 export SYSTEMD_PAGER="$PAGER"
 
+if [[ -f "$HOME/Documents/lockbox.gpb" ]]; then
+    export GPMASTER_LOCKBOX_PATH="$HOME/Documents/lockbox.gpb"
+elif [[ -f "$HOME/storage/shared/Documents/lockbox.gpb" ]]; then
+    export GPMASTER_LOCKBOX_PATH="$HOME/storage/shared/Documents/lockbox.gpb"
+fi
+
 export SECRETS_LOADED=0
