@@ -1,5 +1,5 @@
 #!/usr/bin/sh
 echo Killing all WINE processes
-ps -eo pid,comm,args | awk 'tolower($2 $3) ~ /\.exe/ {print $1}' | xargs -r kill -KILL
+ps -eo pid,comm,args | awk 'tolower($2 $3) ~ /\.exe/ {print $1}' | xargs -r kill -TERM
 echo Done.
 sleep 2
