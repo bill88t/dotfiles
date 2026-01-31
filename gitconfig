@@ -1,0 +1,47 @@
+[credential]
+	helper = store
+[user]
+	email = bill88t@feline.gr
+	name = Bill Sideris
+	signingkey = 1BEF1BCEBA58EA33
+[pull]
+	ff = only
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[alias]
+	squash-all = "!f(){ git reset $(git commit-tree HEAD^{tree} -m \"${1:-A new start}\");};f"
+	pushall = !git remote | xargs -n1 git push
+[commit]
+	gpgsign = true
+	verbose = true
+[init]
+	defaultBranch = master
+[branch]
+	sort = -committerdate
+[column]
+    ui = auto
+[tag]
+    sort = version:refname
+[diff]
+    algorithm = histogram
+    colorMoved= plain
+    mnemonicPrefix = true
+    renames = true
+[push]
+    autoSetupRemote = true
+    followTags = true
+[fetch]
+    prune = true
+    all = true
+[help]
+    autocorrect = prompt
+[rerere]
+    enabled = true
+    autoupdate = true
+[rebase]
+    autoSquash = true
+    autoStash = true
+    updateRefs = true

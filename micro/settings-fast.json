@@ -1,0 +1,19 @@
+{
+    "autoclose": false,
+    "autosu": true,
+    "colorscheme": "twilighter",
+    "ft:makefile": {
+        "tabstospaces": false
+    },
+    "rmtrailingws": true,
+    "savecursor": true,
+    "saveundo": true,
+    "scrollbar": true,
+    "scrollspeed": 3,
+    "softwrap": true,
+    "tabstospaces": true,
+    "wordwrap": true,
+    "aspell.check": "off",
+    "aspell.sugmode": "normal",
+    "syntax": false,
+}

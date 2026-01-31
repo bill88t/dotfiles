@@ -18,8 +18,8 @@ alias gckb='git checkout -b'
 
 alias gfa='git fetch --all && git fetch --all'
 
-alias gpa='git push --all'                   # Push to all branches
-alias gpf='git push --force-with-lease'      # Safer force push
+alias gpa='git pushall'                      # Push to all remotes
+alias gpf='git push --force'
 
 alias gaa='git add .'                        # Add all files
 alias gau='git add --update'                 # Add only tracked files

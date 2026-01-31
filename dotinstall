@@ -9,10 +9,16 @@ import socket
 
 HOME = Path.home()
 SCRIPT_DIR = Path(__file__).resolve().parent
+
 BASHRC_SOURCE = SCRIPT_DIR / "bashrc"
 BASHRC_TARGET = HOME / ".bashrc"
+
 ALACRITTY_SOURCE = SCRIPT_DIR / "alacritty.toml"
 ALACRITTY_TARGET = HOME / ".alacritty.toml"
+
+GIT_CONF_SRC = SCRIPT_DIR / "gitconfig"
+GIT_CONF_DST = HOME / ".gitconfig"
+
 GPG_CONF_SRC = SCRIPT_DIR / "gpg-agent.conf"
 GPG_CONF_DST = HOME / ".gnupg" / "gpg-agent.conf"
 GPG_SC_SRC = SCRIPT_DIR / "scdaemon.conf"
@@ -21,20 +27,44 @@ GPG_SSH_SRC = SCRIPT_DIR / "sshcontrol"
 GPG_SSH_DST = HOME / ".gnupg" / "sshcontrol"
 GPG_CON_SRC = SCRIPT_DIR / "gpg.conf"
 GPG_CON_DST = HOME / ".gnupg" / "gpg.conf"
+
 NIRI_SRC = SCRIPT_DIR / "niri"
 NIRI_DST = HOME / ".config" / "niri"
+
 MAKEPKG_SRC = SCRIPT_DIR / ("makepkg.conf." + os.uname()[-1])
 MAKEPKG_DST = HOME / ".config" / "pacman" / "makepkg.conf"
+
 MATLAB_DSK_SRC = SCRIPT_DIR / "matlab.desktop"
 MATLAB_DSK_DST = HOME / ".local" / "share" / "applications" / "matlab.desktop"
+
 KEYD_SRC = SCRIPT_DIR / "keyd"
 KEYD_DST = Path("/etc/keyd")
+
 CLAM_SRC = SCRIPT_DIR / "clamav"
 CLAM_DST = Path("/etc/clamav")
+
 AUTH_KEYS_SRC = SCRIPT_DIR / "authorized_keys"
 AUTH_KEYS_DST = HOME / ".ssh"
+
 SPF_SRC = SCRIPT_DIR / "superfile"
 SPF_DST = HOME / ".config" / "superfile"
+
+MICRO_BIND_SRC = SCRIPT_DIR / "micro" / "bindings.json"
+MICRO_BIND = HOME / ".config" / "micro" / "bindings.json"
+MICRO_BIND_FAST = HOME / ".config" / "microfast" / "bindings.json"
+MICRO_CONF_SRC = SCRIPT_DIR / "micro" / "settings.json"
+MICRO_CONF_DST = HOME / ".config" / "micro" / "settings.json"
+MICRO_CONF_FAST_SRC = SCRIPT_DIR / "micro" / "settings-fast.json"
+MICRO_CONF_FAST_DST = HOME / ".config" / "microfast" / "settings.json"
+MICRO_COLOR_SRC = SCRIPT_DIR / "micro" / "colorschemes"
+MICRO_COLOR = HOME / ".config" / "micro" / "colorschemes"
+MICRO_COLOR_FAST = HOME / ".config" / "microfast" / "colorschemes"
+MICRO_BACK = HOME / ".config" / "micro" / "backups"
+MICRO_BACK_FAST = HOME / ".config" / "microfast" / "backups"
+MICRO_BUFF = HOME / ".config" / "micro" / "buffers"
+MICRO_BUFF_FAST = HOME / ".config" / "microfast" / "buffers"
+MICRO_PLUG = HOME / ".config" / "microfast" / "plug"
+MICRO_PLUG_FAST = HOME / ".config" / "microfast" / "plug"
 
 BASE_PKGS = [
     "bash-completion",
@@ -158,8 +188,25 @@ COSMIC_PKGS = [
     "cosmic-bg",
 ]
 
+MICRO_PKGS = [
+    "micro",
+    "aspell",
+    "aspell-en",
+    "aspell-el",
+    "fzf",
+    "ctags",
+    "xclip",
+    "wl-clipboard",
+]
+
 args = None
 
+def setw(files: list, writable: bool) -> None:
+    mode = 0o644 if writable else 0o444
+    for f in files:
+        if f.exists():
+            f.chmod(mode)
+            print(f"Set {'writable' if writable else 'read-only'}: {f}")
 
 def command_exists(cmd: str) -> bool:
     return shutil.which(cmd) is not None
@@ -280,10 +327,9 @@ def list_groups():
 
 
 def install_gitconf(force=False):
-    subprocess.run(
-        'bash -c "source ~/git/dotfiles/secrets.bash && git-secrets-install"',
-        shell=True,
-    )
+    symlink_file(GIT_CONF_SRC, GIT_CONF_DST, force=force)
+    print("Run `git-secrets-install` to install credentials")
+
 
 def install_gitconftermux(force=False):
     subprocess.run(
@@ -888,6 +934,41 @@ def install_superfile(force=False) -> None:
         print(f"Failed to block superfile logging: {e}")
 
 
+def install_micro(force=False) -> None:
+    if not install_packages(MICRO_PKGS):
+        return
+
+    # Ensure config directories exist
+    MICRO_CONF_DST.parent.mkdir(parents=True, exist_ok=True)
+    MICRO_CONF_FAST_DST.parent.mkdir(parents=True, exist_ok=True)
+
+    for path in [MICRO_CONF_DST, MICRO_BIND, MICRO_COLOR, MICRO_CONF_FAST_DST, MICRO_BIND_FAST, MICRO_COLOR_FAST]:
+        if path.exists() or path.is_symlink():
+            path.unlink(missing_ok=True)
+
+    symlink_file(MICRO_CONF_SRC, MICRO_CONF_DST, force=True)
+    symlink_file(MICRO_BIND_SRC, MICRO_BIND, force=True)
+    symlink_file(MICRO_COLOR_SRC, MICRO_COLOR, force=True)
+    symlink_file(MICRO_CONF_FAST_SRC, MICRO_CONF_FAST_DST, force=True)
+    symlink_file(MICRO_BIND_SRC, MICRO_BIND_FAST, force=True)
+    symlink_file(MICRO_COLOR_SRC, MICRO_COLOR_FAST, force=True)
+
+    for orig, target in [
+        (MICRO_BACK, MICRO_BACK_FAST),
+        (MICRO_BUFF, MICRO_BUFF_FAST),
+        (MICRO_PLUG, MICRO_PLUG_FAST),
+    ]:
+        if not target.exists() and not target.is_symlink():
+            target.symlink_to(orig)
+            print(f"Linked {target} -> {orig}")
+
+    config_files = [MICRO_BIND, MICRO_CONF_DST, MICRO_CONF_FAST_DST]
+    setw(config_files, writable=False)
+
+    subprocess.run(["micro", "-plugin", "install", "wc", "filemanager", "jump", "aspell"], check=True)
+    subprocess.run(["micro", "-plugin", "update"], check=True)
+
+
 INSTALLERS = {
     "base": install_base,
     "bredify": bredify,
@@ -896,6 +977,7 @@ INSTALLERS = {
     "gitconf": install_gitconf,
     "gitconftermux": install_gitconftermux,
     "gpgconf": install_gpgconf,
+    "micro": install_micro,
     "niri": install_niri,
     "makepkg": install_makepkg,
     "matlab": install_matlab,
