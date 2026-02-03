@@ -785,6 +785,16 @@ def install_niri(force=False) -> None:
             "gsettings",
             "set",
             "org.gnome.desktop.interface",
+            "font-name",
+            "Inter Display 11",
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "gsettings",
+            "set",
+            "org.gnome.desktop.interface",
             "icon-theme",
             "Papirus-Dark",
         ],
