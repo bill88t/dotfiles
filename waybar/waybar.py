@@ -13,7 +13,34 @@ child = None
 fail_times = []
 start_time = time.time()
 current_mode = None
+last_niri_check = 0
 
+
+def find_niri_pid() -> int:
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        try:
+            with open(f"/proc/{pid}/comm", "r") as f:
+                if f.read().strip() == "niri":
+                    return int(pid)
+        except FileNotFoundError:
+            pass
+    raise RuntimeError("niri not running")
+
+try:
+    NIRIRI = find_niri_pid()
+except RuntimeError:
+    sys.exit(1)
+
+def niri_alive() -> bool:
+    try:
+        os.kill(NIRIRI, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
 
 def is_alive(proc):
     return proc and proc.poll() is None
@@ -121,6 +148,12 @@ while True:
     spawn_waybar()
 
     while is_alive(child):
+        now = time.time()
+        if now - last_niri_check >= 2:
+            last_niri_check = now
+            if not niri_alive():
+                cleanup()
+
         notifier.process_events()
         if notifier.check_events(timeout=500):
             notifier.read_events()
