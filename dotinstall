@@ -159,6 +159,23 @@ NIRI_PKGS = [
     "ttf-dejavu",
 ]
 
+XFCE_PKGS = [
+    "xfce4-taskmanager",
+    "xfce4-mixer",
+    "xfce4-settings",
+    "xfce4-notifyd",
+    "xfce4-screensaver",
+    "xfce4-screenshooter",
+    "xfce4-clipman-plugin",
+    "xfce4-panel",
+    "xfce4-power-manager",
+    "xfce4-battery-plugin",
+    "xfce4-session",
+    "xfdesktop",
+    "xfconf",
+    "xfwm4",
+]
+
 COSMIC_PKGS = [
     "xdg-desktop-portal-cosmic",
     "noto-fonts-emoji",
@@ -813,6 +830,14 @@ def install_niri(force=False) -> None:
     print(f"OK\nInstalled Niri config -> `{target_file}`")
 
 
+def install_xfce(force=False) -> None:
+    hostname = socket.gethostname()
+
+    # Install cosmic packages
+    if not install_packages(XFCE_PKGS):
+        return
+
+
 def install_cosmic(force=False) -> None:
     hostname = socket.gethostname()
 
@@ -989,6 +1014,7 @@ INSTALLERS = {
     "gpgconf": install_gpgconf,
     "micro": install_micro,
     "niri": install_niri,
+    "xfce": install_xfce,
     "makepkg": install_makepkg,
     "matlab": install_matlab,
     "newsrc": install_newsrc,
