@@ -3,6 +3,7 @@ alias gl='git pull'
 
 alias gs='git status'
 alias gd='git diff'
+alias gds='git diff --staged'
 
 alias gc='git clone'
 alias gcr='git clone --recursive'
