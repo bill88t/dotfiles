@@ -1,21 +1,23 @@
 #!/usr/bin/env sh
-cd ~
-
 if systemctl --user -q is-active niri.service; then
   echo 'A niri session is already running.'
   exit 1
 fi
 
-systemctl --user reset-failed
-systemctl --user import-environment
+( # Subshell
+cd ~ && clear && echo -n "Starting niri.."
+
+systemctl --user reset-failed 2>/dev/null
+systemctl --user import-environment 2>/dev/null
 if hash dbus-update-activation-environment 2>/dev/null; then
-    dbus-update-activation-environment --all
+    dbus-update-activation-environment --all 2>/dev/null
 fi
 
 systemctl --user --wait start niri.service
 systemctl --user start --job-mode=replace-irreversibly niri-shutdown.target
-systemctl --user unset-environment WAYLAND_DISPLAY DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP NIRI_SOCKET
+systemctl --user unset-environment DISPLAY WAYLAND_DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP NIRI_SOCKET
+
+reset
 
 systemctl --user restart gpg-agent
-
-clear
+)
