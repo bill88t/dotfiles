@@ -28,6 +28,7 @@
     "modules-right": [
         "custom/cpu_sum",
         "memory",
+        "custom/swap",
         "custom/iowait",
         "custom/governor",
         "network",
@@ -112,6 +113,17 @@
         "format": "R {percentage}%",
         "on-click": "~/git/dotfiles/ramkill",
         "interval": 2,
+        "states": {
+            "critical": 85
+        }
+    },
+
+    "custom/swap": {
+        "format": "S {percentage}%",
+        "interval": 2,
+        "tooltip": true,
+        "tooltip-format": "4.1Gb used",
+        "exec": "free | grep 'Swap' | awk '{t = $2; f = $4; printf(\"%.0f\", (t/t))}'",
         "states": {
             "critical": 85
         }
