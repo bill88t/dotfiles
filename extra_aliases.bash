@@ -375,3 +375,23 @@ t() {
             ;;
     esac
 }
+
+# Replace tabs with four spaces
+# Usage: detab4 <file>
+detab4() {
+  if [ "$#" -ne 1 ]; then
+    echo "Usage: detab4 <file>"
+    return 2
+  fi
+  local file="$1"
+  if [ ! -f "$file" ]; then
+    echo "detab4: '$file' not found" >&2
+    return 1
+  fi
+  if [ ! -w "$file" ]; then
+    echo "detab4: '$file' not writable" >&2
+    return 1
+  fi
+  # Replace literal tab characters with four spaces in-place
+  perl -pi -e 's/\t/    /g' "$file"
+}
