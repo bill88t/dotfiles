@@ -1,6 +1,5 @@
 #!/usr/bin/sh
 echo Killing all WINE processes
-ps -eo pid,comm,args | awk 'tolower($2 $3) ~ /\.exe/ {print $1}' | xargs -r kill -KILL
-ps -eo pid,comm,args | awk 'tolower($2 $3) ~ /wine/ {print $1}' | xargs -r kill -KILL
+pkill -9 -fi '\.exe'
+grep -l '^State:\s*Z' /proc/[0-9]*/status 2>/dev/null | sed 's#/proc/\([0-9]*\)/status#\1#' | xargs -r kill -9
 echo Done.
-sleep 2
