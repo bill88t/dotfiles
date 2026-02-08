@@ -39,56 +39,56 @@
 
     "custom/start": {
         "format": "🍞",
-        "interval": 0,
+        "interval": 255,
         "on-click": "~/git/dotfiles/special_fuzzel",
         "tooltip": false
     },
 
     "custom/niri_close": {
         "format": "🗙",
-        "interval": 0,
+        "interval": 255,
         "on-click": "niri msg action close-window",
         "tooltip": false
     },
 
     "custom/niri_resize": {
         "format": "⥂",
-        "interval": 0,
+        "interval": 255,
         "on-click": "niri msg action switch-preset-column-width",
         "tooltip": false
     },
 
     "custom/niri_overview": {
         "format": "❏",
-        "interval": 0,
+        "interval": 255,
         "on-click": "niri msg action toggle-overview",
         "tooltip": false
     },
 
     "custom/niri_left": {
         "format": "◀",
-        "interval": 0,
+        "interval": 255,
         "on-click": "niri msg action focus-column-left",
         "tooltip": false
     },
 
     "custom/niri_up": {
         "format": "▲",
-        "interval": 0,
+        "interval": 255,
         "on-click": "niri msg action focus-window-up",
         "tooltip": false
     },
 
     "custom/niri_down": {
         "format": "▼",
-        "interval": 0,
+        "interval": 255,
         "on-click": "niri msg action focus-window-down",
         "tooltip": false
     },
 
     "custom/niri_right": {
         "format": "▶",
-        "interval": 0,
+        "interval": 255,
         "on-click": "niri msg action focus-column-right",
         "tooltip": false
     },
@@ -112,20 +112,6 @@
         "exec": "~/git/dotfiles/iowait.py",
         "interval": 1,
         "format": "I {}%",
-        "tooltip": false
-    },
-
-    "custom/vol_down": {
-        "format": "–",
-        "interval": 0,
-        "on-click": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05-",
-        "tooltip": false
-    },
-
-    "custom/vol_up": {
-        "format": "+",
-        "interval": 0,
-        "on-click": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+",
         "tooltip": false
     },
 

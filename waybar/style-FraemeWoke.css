@@ -35,7 +35,6 @@ tooltip {
 #custom-cpu_sum,
 #custom-governor,
 #memory,
-#custom-swap,
 #custom-iowait,
 #battery,
 #network,
@@ -180,7 +179,6 @@ tooltip {
 #window,
 #custom-cpu_sum,
 #memory,
-#custom-swap,
 #custom-iowait,
 #network,
 #pulseaudio,
@@ -204,11 +202,6 @@ tooltip {
 }
 
 #memory.critical {
-    color: @red;
-    border: 2px solid @red;
-}
-
-#custom-swap.critical {
     color: @red;
     border: 2px solid @red;
 }
