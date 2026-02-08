@@ -31,7 +31,7 @@ environment {
 
 binds {
     Mod+P { spawn "/home/bill88t/git/dotfiles/rotate.sh"; }
-    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/mountain-landscape-3840x2160-24317.jpg" "--font" "Inter" "-e"; }
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/Gelly_51df56d33fe108a2f87ef30d411e2f19.png" "--font" "Inter" "-e"; }
 }
 
 input {
@@ -52,7 +52,7 @@ layout {
 
     focus-ring {
         width 4
-        active-color "#3B5375"
+        active-color "#0C47A2"
         inactive-color "#505050"
     }
 
@@ -65,7 +65,7 @@ layout {
         position "bottom"
         gaps-between-tabs 2
         corner-radius 8
-        active-color "#3B5375"
+        active-color "#0C47A2"
         inactive-color "#000000"
         urgent-color "red"
     }
