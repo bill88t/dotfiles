@@ -48,8 +48,10 @@ input {
 
 
 layout {
+    gaps 4
+
     focus-ring {
-        width 3
+        width 4
         active-color "#3B5375"
         inactive-color "#505050"
     }
