@@ -827,6 +827,16 @@ def install_niri(force=False) -> None:
         ],
         check=True,
     )
+    subprocess.run(
+        [
+            "gsettings",
+            "set",
+            "org.gnome.desktop.wm.preferences",
+            "button-layout",
+            "appmenu:maximize,close",
+        ],
+        check=True,
+    )
     print(f"OK\nInstalled Niri config -> `{target_file}`")
 
 
