@@ -186,6 +186,7 @@ l(){
 
 k(){
     systemctl --user restart gpmaster-agent 2>/dev/null
+    systemctl --user restart gpg-agent 2>/dev/null
     if [ -f "$decfile" ]; then
         rm "$decfile"
         clear
