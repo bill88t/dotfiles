@@ -4,6 +4,10 @@ plainfile="$scriptdir/dotsecrets.bash"
 
 TMP="${TMPDIR:-/tmp}"
 
+YELLOW='\033[0;33m'
+PALEWHITE='\033[0;37m'
+NC='\033[0m'
+
 # Fallback if TMPDIR is set but unusable
 [ -d "$TMP" ] && [ -w "$TMP" ] || TMP="/tmp"
 
@@ -43,7 +47,7 @@ _load_secrets() {
             fi
     fi
 
-    echo "WARNING: Secrets could not be loaded. (GPG key locked or unavailable)"
+    echo -e "${YELLOW}WARNING:${NC} Secrets could not be loaded. ${PALEWHITE}(GPG key locked or unavailable)${NC}"
     return 1
 }
 
@@ -73,7 +77,7 @@ secrets-reload() {
         fi
     fi
 
-    echo "WARNING: Failed to reload secrets. (GPG key locked or unavailable)"
+    echo -e "${YELLOW}WARNING:${NC} Failed to reload secrets. ${PALEWHITE}(GPG key locked or unavailable)${NC}"
     return 1
 }
 
