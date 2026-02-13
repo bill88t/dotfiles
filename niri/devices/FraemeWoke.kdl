@@ -35,12 +35,6 @@ binds {
 }
 
 input {
-    touchpad {
-        natural-scroll
-        scroll-method "two-finger"
-        click-method "button-areas"
-    }
-
     tablet {
         map-to-output "eDP-1"
     }
