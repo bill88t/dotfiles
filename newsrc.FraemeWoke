@@ -14,7 +14,6 @@ def shortcuts_help() -> None:
     stdin.read(1)
     clear()
 
-
 shortcuts["1"] = "bredos-config"
 shortcuts["2"] = "waydroid session stop && echo Waydroid stopped && sleep 0.5"
 shortcuts["3"] = 'echo -n "Syncing.." && sync'
