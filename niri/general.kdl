@@ -160,7 +160,7 @@ window-rule {
 }
 
 window-rule {
-    match app-id="nemo"
+    match app-id="org.gnome.Nautilus"
     default-column-width { proportion 1.0; }
 }
 
@@ -210,7 +210,7 @@ overview {
 
 binds {
     Mod+T { spawn "alacritty"; }
-    Mod+E { spawn "nemo"; }
+    Mod+E { spawn "nautilus" "-w"; }
     Mod+B { spawn "helium-browser"; }
     Mod+D { spawn "/home/bill88t/git/dotfiles/appmenu_fuzzel"; }
     Mod+S { spawn "/home/bill88t/git/dotfiles/special_fuzzel"; }
