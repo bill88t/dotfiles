@@ -28,7 +28,7 @@ case "$selected" in
         ~/git/dotfiles/appmenu_fuzzel
         ;;
     *Files)
-        nemo
+        nautilus -w
         ;;
     *Terminal)
         alacritty
