@@ -1,0 +1,11 @@
+# Halloy config.
+#
+# For a complete list of available options,
+# please visit https://halloy.chat/configuration.html
+
+theme = "mine"
+
+[servers.liberachat]
+nickname = "bill88t"
+server = "irc.libera.chat"
+channels = ["#halloy"]

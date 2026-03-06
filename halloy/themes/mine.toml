@@ -1,0 +1,67 @@
+[general]
+background = "#000000C9"
+border = "#A51DF5"
+horizontal_rule = "#323034"
+scrollbar = "#A51DF5"
+unread_indicator = "#A51DF5"
+highlight_indicator = "#F5D76E"
+
+[text]
+primary = "#3C36DB"
+secondary = "#5B5B5B"
+tertiary = "#B67BCF"
+success = "#62B943"
+error = "#B2000F"
+warning = "#FFA07A"
+info = "#9CD1BB"
+debug = "#B4A7D6"
+trace = "#DCDCDC"
+
+[buffer]
+action = "#9DA37C"
+background = "#0000008C"
+background_text_input = "#000000"
+background_title_bar = "#000000"
+border = "#00000000"
+border_selected = "#A51DF5"
+code = "#AF8D9F"
+highlight = "#473F30"
+nickname = "#F6B6C9"
+selection = "#453D41"
+timestamp = "#685650"
+topic = "#AB8A79"
+url = "#A5A5FF"
+nickname_offline = "#A8A8A8"
+
+[buffer.server_messages]
+default = "#F5D76E"
+
+[buttons.primary]
+background = "#2B292D"
+background_hover = "#242226"
+background_selected = "#1D1B1E"
+background_selected_hover = "#0D0C0D"
+
+[buttons.secondary]
+background = "#000000"
+background_hover = "#3E3C41"
+background_selected = "#606155"
+background_selected_hover = "#6F7160"
+
+[formatting]
+white = "#FFFFFF"
+black = "#2B292D"
+blue = "#4A90E2"
+green = "#95A57A"
+red = "#E06B75"
+brown = "#6F5D63"
+magenta = "#D253D8"
+orange = "#FFA07A"
+yellow = "#F5D76E"
+lightgreen = "#B1B695"
+cyan = "#5DC1C5"
+lightcyan = "#7FD6D8"
+lightblue = "#7AAEDC"
+pink = "#F6B6C9"
+grey = "#8C858F"
+lightgrey = "#CBC3C8"
