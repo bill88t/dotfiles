@@ -140,6 +140,11 @@ window-rule {
 }
 
 window-rule {
+    match app-id="Waydroid"
+    open-fullscreen true
+}
+
+window-rule {
     match app-id="com.github.xournalpp.xournalpp"
     default-column-width { proportion 1.0; }
 }

@@ -35,7 +35,6 @@ tooltip {
 #custom-cpu_sum,
 #custom-governor,
 #memory,
-#custom-iowait,
 #battery,
 #network,
 #pulseaudio {
@@ -179,7 +178,6 @@ tooltip {
 #window,
 #custom-cpu_sum,
 #memory,
-#custom-iowait,
 #network,
 #pulseaudio,
 #battery,
