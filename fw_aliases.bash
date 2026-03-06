@@ -1,3 +1,19 @@
+ffmpsp () {
+    if [ "$#" -lt 1 ]; then
+        echo "Usage: ffmpsp <input> [ffmpeg options...]"
+        return 1
+    fi
+
+    ffmpeg -i "$1" \
+        -vf "scale='min(480,iw)':'min(272,ih)':force_original_aspect_ratio=decrease,pad=480:272:(ow-iw)/2:(oh-ih)/2" \
+        -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p \
+        -preset slow -crf 21 \
+        -r 29.97 \
+        -c:a aac -b:a 128k -ar 48000 \
+        -movflags +faststart \
+        "$2"
+}
+
 ffh264() {
     if [ "$#" -lt 1 ]; then
         echo "Usage: ffh264 <input> [ffmpeg options...]"
