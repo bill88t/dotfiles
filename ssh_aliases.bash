@@ -3,18 +3,32 @@ alias ssh="sshc && ssh"
 __ssh_pick_endpoint() {
     local ep port extra
     local candidate
+    local -a spinner=('-' '\' '/')
+    local spinner_idx=0
+    local line_drawn=0
 
-    for candidate in "$@"; do
-        IFS=':' read -r ep port extra <<< "$candidate"
-        port=${port:-22}
+    __ssh_selected_endpoint=""
+    trap '(( line_drawn )) && printf "\r\033[2K" >&2; trap - INT TERM; return 130' INT TERM
 
-        timeout 1 bash -c ":</dev/tcp/$ep/$port" &>/dev/null && {
-            echo "$ep:$port:$extra"
-            return 0
-        }
+    while true; do
+        for candidate in "$@"; do
+            IFS=':' read -r ep port extra <<< "$candidate"
+            port=${port:-22}
+
+            timeout 1 bash -c ":</dev/tcp/$ep/$port" &>/dev/null && {
+                (( line_drawn )) && printf '\r\033[2K' >&2
+                trap - INT TERM
+                __ssh_selected_endpoint="$ep:$port:$extra"
+                return 0
+            }
+        done
+
+        printf '\r%s No endpoints are available, waiting..' "${spinner[spinner_idx]}" >&2
+        line_drawn=1
+        spinner_idx=$(((spinner_idx + 1) % ${#spinner[@]}))
+
+        sleep 1
     done
-
-    return 1
 }
 
 __ssh_generate_functions() {
@@ -28,11 +42,15 @@ __ssh_generate_functions() {
 
         eval "
         $name() {
-            local selected ep port extra
-            selected=\$(__ssh_pick_endpoint ${endpoints[*]@Q}) || {
+            local selected ep port extra pick_rc
+            __ssh_pick_endpoint ${endpoints[*]@Q}
+            pick_rc=\$?
+            [ \$pick_rc -eq 130 ] && return 130
+            [ \$pick_rc -ne 0 ] && {
                 echo 'No reachable endpoint for $name' >&2
-                return 1
+                return \$pick_rc
             }
+            selected=\"\$__ssh_selected_endpoint\"
 
             IFS=':' read -r ep port extra <<< \"\$selected\"
             if [ -S '\$SSH_AUTH_SOCK' ]; then
