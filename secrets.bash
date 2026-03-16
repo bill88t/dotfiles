@@ -148,12 +148,23 @@ fi
 
 git-secrets-install() {
     if [ -f "$git_enc_creds" ]; then
-        if gpg --quiet --decrypt --output "$git_target_creds" "$git_enc_creds"; then
-            chmod 600 "$git_target_creds"
-            echo "NOTICE: Installed $git_target_creds"
+        if command -v okc-gpg >/dev/null 2>&1; then
+            if okc-gpg --decrypt --output "$git_target_creds" "$git_enc_creds"; then
+                chmod 600 "$git_target_creds"
+                echo "NOTICE: Installed $git_target_creds"
+            else
+                echo "ERROR: Failed to decrypt $git_enc_creds"
+                return 1
+            fi
+
         else
-            echo "ERROR: Failed to decrypt $git_enc_creds"
-            return 1
+            if gpg --quiet --decrypt --output "$git_target_creds" "$git_enc_creds"; then
+                chmod 600 "$git_target_creds"
+                echo "NOTICE: Installed $git_target_creds"
+            else
+                echo "ERROR: Failed to decrypt $git_enc_creds"
+                return 1
+            fi
         fi
     fi
 }

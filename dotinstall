@@ -356,7 +356,10 @@ def list_groups():
 
 
 def install_gitconf(force=False):
-    symlink_file(GIT_CONF_SRC, GIT_CONF_DST, force=force)
+    if GIT_CONF_DST.is_symlink():
+        GIT_CONF_DST.unlink()
+
+    subprocess.run(["cp", GIT_CONF_SRC, GIT_CONF_DST])
     print("Run `git-secrets-install` to install credentials")
 
 
