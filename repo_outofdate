@@ -8,8 +8,8 @@ import requests
 import pyalpm
 
 PACMAN_CONF = "/etc/pacman.conf"
-BREDOS_REPOS = ["BredOS-multilib", "BredOS"]
-BREDOS_ANY = ["BredOS-any"]
+BREDOS_REPOS = ["Beryllium-multilib", "Beryllium"]
+BREDOS_ANY = ["Beryllium-any"]
 UPSTREAM_REPOS = ["core", "extra"]
 EXCLUDE = ["aic8800-dkms", "iwd", "box86-git", "grub", "mkinitcpio", "pkgconf", "r8126-dkms"]
 
