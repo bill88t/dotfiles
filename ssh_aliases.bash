@@ -19,6 +19,7 @@ __ssh_pick_endpoint() {
                 (( line_drawn )) && printf '\r\033[2K' >&2
                 trap - INT TERM
                 __ssh_selected_endpoint="$ep:$port:$extra"
+                printf 'Selected endpoint: %s\n' "$ep:$port" >&2
                 return 0
             }
         done
