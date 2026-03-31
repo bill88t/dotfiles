@@ -3,7 +3,16 @@ alias la='ls -lha'
 alias date-dash='date +%Y-%m-%d-%H:%M:%S' # use this for tagging stuff.
 alias py='python3'
 hist() {
-    history | grep "$1" | tac | bat
+    local p
+    if command -v bat &>/dev/null; then
+        p="bat"
+    elif command -v batcat &>/dev/null; then
+        p="batcat"
+    else
+        p="cat"
+    fi
+
+    history | grep "$1" | tac | $p
 }
 alias ff='fastfetch'
 
