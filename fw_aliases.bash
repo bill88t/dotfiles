@@ -205,3 +205,21 @@ bake() {
 alias hotspot-up="nmcli connection modify Hotspot 802-11-wireless-security.pairwise ccmp && nmcli connection modify Hotspot 802-11-wireless-security.group ccmp && nmcli connection up Hotspot"
 
 alias hotspot-down="nmcli connection down Hotspot"
+
+kobold() {
+    cd ~
+
+    python3 git/koboldcpp/koboldcpp.py \
+        -m Local/Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-Q4_K_P.gguf \
+        -b 512 \
+        -c 4096 \
+        --threads 6 \
+        --usevulkan \
+        --gpulayers 43 \
+        --admin \
+        --admindir KCPPs \
+        --smartcache 8 \
+        --usemmap
+
+     return 0
+}
