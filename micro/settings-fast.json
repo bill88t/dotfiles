@@ -6,6 +6,8 @@
         "tabstospaces": false
     },
     "rmtrailingws": true,
+    "hltaberrors": true,
+    "diffgutter": true,
     "savecursor": true,
     "saveundo": true,
     "scrollbar": true,
