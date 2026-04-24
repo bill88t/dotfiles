@@ -207,19 +207,57 @@ alias hotspot-up="nmcli connection modify Hotspot 802-11-wireless-security.pairw
 alias hotspot-down="nmcli connection down Hotspot"
 
 kobold() {
-    cd ~
+    (
+        cd ~
+        clear
 
-    python3 git/koboldcpp/koboldcpp.py \
-        -m Local/Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-Q4_K_P.gguf \
-        -b 512 \
-        -c 4096 \
-        --threads 6 \
-        --usevulkan \
-        --gpulayers 43 \
-        --admin \
-        --admindir KCPPs \
-        --smartcache 8 \
-        --usemmap
+        python3 git/koboldcpp/koboldcpp.py \
+            -m Local/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf \
+            -b 512 \
+            -c 4096 \
+            --threads 6 \
+            --usevulkan \
+            --gpulayers 25 \
+            --smartcache 4 \
+            --usemmap
 
-     return 0
+        return 0
+    )
+}
+
+kobold_alt() {
+    (
+        cd ~
+        clear
+
+        python3 git/koboldcpp/koboldcpp.py \
+            -m Local/Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-Q4_K_P.gguf \
+            --port 5502 \
+            -b 512 \
+            -c 4096 \
+            --threads 6 \
+            --usevulkan \
+            --gpulayers 25 \
+            --smartcache 4 \
+            --usemmap \
+            --websearch \
+            --mmproj Local/mmproj-Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-f16.gguf
+
+        return 0
+    )
+}
+
+kobold_img() {
+    (
+        cd ~
+        clear
+
+        python3 git/koboldcpp/koboldcpp.py \
+            --sdmodel /home/bill88t/Local/Bunny-XL2-V3-NS.safetensors.q8_0.gguf \
+            --threads 6 \
+            --sdconvdirect full \
+            --usevulkan
+
+        return 0
+    )
 }
