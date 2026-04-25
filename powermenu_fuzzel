@@ -13,7 +13,7 @@ ask_confirm() {
             --prompt "$1"
 }
 
-selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 11)
+selected=$(printf "%b" "$choices" | fuzzel -d -b 00000000 -t ffffffff -l 10 -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 11)
 
 confirm_and_run() {
     action="$1"

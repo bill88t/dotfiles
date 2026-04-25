@@ -195,6 +195,23 @@ window-rule {
 }
 
 window-rule {
+    match app-id="^Alacritty$"
+
+    background-effect {
+        blur true
+    }
+}
+
+layer-rule {
+    match layer="top"
+    match layer="overlay"
+
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
     geometry-corner-radius 6
     clip-to-geometry true
 }

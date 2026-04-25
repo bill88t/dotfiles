@@ -9,7 +9,7 @@ reopen_menu() {
 option="${1:-Power}"
 choices="Power\nApplications\nFiles\nTerminal\nBrowser\nRotate\nKeyboard\nMinimize Bar\nBrightness Up\nBrightness Down\nWorkspace Up\nWorkspace Down\nToggle Stack\nScreenshot\nDismiss notifications"
 
-selected=$(printf "%b" "$choices" | fuzzel -d -b 000000cc -t ffffffff -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 18 --select="$option")
+selected=$(printf "%b" "$choices" | fuzzel -d -b 00000000 -t ffffffff -B 4 -C 7fc8ffff -f "Inter:size=14" --line-height=24 --log-no-syslog -a top-left --hide-prompt --minimal-lines --selection-radius=6 --width 18 --select="$option")
 
 confirm_and_run() {
     action="$1"
