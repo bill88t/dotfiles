@@ -36,6 +36,7 @@ input {
 layout {
     gaps 3
     center-focused-column "never"
+    background-color "transparent"
 
     preset-column-widths {
         proportion 0.3333
@@ -199,6 +200,7 @@ window-rule {
 
     background-effect {
         blur true
+        xray false
     }
 }
 
@@ -208,6 +210,17 @@ layer-rule {
 
     background-effect {
         blur true
+        xray false
+    }
+}
+
+layer-rule {
+    match layer="top"
+    match namespace="^notifications$"
+
+    background-effect {
+        blur false
+        xray false
     }
 }
 
@@ -226,7 +239,16 @@ gestures {
     }
 }
 
+
+layer-rule {
+    match namespace="awww-daemon"
+    place-within-backdrop true
+}
+
 overview {
+    workspace-shadow {
+        off
+    }
     zoom 0.75
 }
 
