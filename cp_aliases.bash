@@ -1,4 +1,5 @@
-alias espload='source ~/git/esp-idf-v6.0/export.sh'
+alias espload='source ~/git/esp-idf-v5.5.3/export.sh'
+alias esp6load='source ~/git/esp-idf-v6.0/export.sh'
 
 function lcontains {
   local list="$1"
@@ -62,7 +63,7 @@ make-aliases cardputer m5stack_cardputer espload M5S3BOOT both esp32s3 2000000 "
 make-aliases nodec2 nodemcu_esp32c2 espload "None" flash esp32c2 921600 "/dev/ttyUSB0" 60m keep
 make-aliases tws3 lilygo_twatch_s3 espload TWS3BOOT both esp32s3 921600 "/dev/ttyACM0" 80m keep
 make-aliases ws3z waveshare_esp32_s3_zero espload WS3ZEROBOOT both esp32s3 2000000 "/dev/ttyACM0" 80m keep
-make-aliases tdeck lilygo_tdeck espload TDECKBOOT both esp32s3 2000000 "/dev/ttyACM1" 80m keep
+make-aliases tdeck lilygo_tdeck espload TDECKBOOT both esp32s3 2000000 "/dev/ttyACM0" 80m keep
 make-aliases c3lcd 01space_lcd042_esp32c3 espload "None" flash esp32c3 2000000 "/dev/ttyACM0" 80m keep
 make-aliases wsh2 waveshare_esp32h2 espload "None" flash esp32h2 2000000 "/dev/ttyACM1" 48m keep
 
