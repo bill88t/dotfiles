@@ -8,10 +8,10 @@ function lcontains {
   return $result
 }
 
-alias utio-chipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool --port /dev/ttyUSB0 chip_id)"
-alias utio-bchipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool --port /dev/ttyUSB0 --before no-reset --after no-reset chip_id)"
-alias atio-chipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool --port /dev/ttyACM0 chip_id)"
-alias atio-bchipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool --port /dev/ttyACM0 --before no-reset --after no-reset chip_id)"
+alias utio-chipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyUSB0 chip_id)"
+alias utio-bchipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyUSB0 --before no_reset --after no_reset chip_id)"
+alias atio-chipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyACM0 chip_id)"
+alias atio-bchipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyACM0 --before no_reset --after no_reset chip_id)"
 
 NUM_CPUS=`nproc`
 make-aliases () {
@@ -21,14 +21,14 @@ make-aliases () {
     alias ${1}-dm="(${BASH_ALIASES[$3]}; time make -j$NUM_CPUS V='steps rules' BOARD=${2} DEBUG=1)"
     alias ${1}-dcm="(${BASH_ALIASES[$3]}; make -j$NUM_CPUS V='steps rules' BOARD=${2} clean; time make -j$NUM_CPUS V='steps rules' BOARD=${2} DEBUG=1)"
     lcontains "both uf2" ${5} && alias ${1}-l="echo 'Loading..' && sh -c 'cp build-${2}/firmware.uf2 \$(lsblk | grep -o '/.*'"${4}"'.*$')/firmware.uf2' && sync"
-    lcontains "both flash" ${5} && alias ${1}-f="echo "Flashing.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool -c ${6} -p ${8} -b ${7} write-flash -fm ${10} -ff ${9} 0x0 build-${2}/firmware.bin)"
-    lcontains "both flash" ${5} && alias ${1}-bf="echo "Flashing.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool -c ${6} --before no-reset --after no-reset -p ${8} -b ${7} write-flash -fm ${10} -ff ${9} 0x0 build-${2}/firmware.bin)"
-    lcontains "both flash" ${5} && alias ${1}-df="echo "Flashing.." && ${BASH_ALIASES[$3]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool -c ${6} -p ${8} -b ${7} write-flash -fm ${10} -ff ${9} 0x0"
-    lcontains "both flash" ${5} && alias ${1}-bdf="echo "Flashing.." && ${BASH_ALIASES[$3]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool -c ${6} --before no-reset --after no-reset -p ${8} -b ${7} write-flash -fm ${10} -ff ${9} 0x0"
-    lcontains "both flash" ${5} && alias ${1}-w="echo "Wiping.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool --after no-reset -c ${6} -p ${8} -b ${7} erase-flash)"
-    lcontains "both flash" ${5} && alias ${1}-bw="echo "Wiping.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool --after no-reset -c ${6} --before no-reset --after no-reset -p ${8} -b {7} erase-flash)"
+    lcontains "both flash" ${5} && alias ${1}-f="echo "Flashing.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py -c ${6} -p ${8} -b ${7} write_flash -fm ${10} -ff ${9} 0x0 build-${2}/firmware.bin)"
+    lcontains "both flash" ${5} && alias ${1}-bf="echo "Flashing.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py -c ${6} --before no_reset --after no_reset -p ${8} -b ${7} write_flash -fm ${10} -ff ${9} 0x0 build-${2}/firmware.bin)"
+    lcontains "both flash" ${5} && alias ${1}-df="echo "Flashing.." && ${BASH_ALIASES[$3]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py -c ${6} -p ${8} -b ${7} write_flash -fm ${10} -ff ${9} 0x0"
+    lcontains "both flash" ${5} && alias ${1}-bdf="echo "Flashing.." && ${BASH_ALIASES[$3]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py -c ${6} --before no_reset --after no_reset -p ${8} -b ${7} write_flash -fm ${10} -ff ${9} 0x0"
+    lcontains "both flash" ${5} && alias ${1}-w="echo "Wiping.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --after no_reset -c ${6} -p ${8} -b ${7} erase_flash)"
+    lcontains "both flash" ${5} && alias ${1}-bw="echo "Wiping.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --after no_reset -c ${6} --before no_reset --after no_reset -p ${8} -b {7} erase_flash)"
     alias ${1}-gdb="gdb -ex 'target extended-remote localhost:3333' build-${2}/firmware.elf"
-    alias ${1}-dump="(${BASH_ALIASES[$3]}; esptool -c ${6} -b ${7} -p ${8} read-flash 0x0 \$(esptool -b ${7} -p ${8} flash_id | grep 'flash size:' | awk '{printf \"0x%x\", \$NF*1024*1024}') backup.bin)"
+    alias ${1}-dump="(${BASH_ALIASES[$3]}; esptool.py -c ${6} -b ${7} -p ${8} read-flash 0x0 \$(esptool.py -b ${7} -p ${8} flash_id | grep 'flash size:' | awk '{printf \"0x%x\", \$NF*1024*1024}') backup.bin)"
 }
 
 # rp2
