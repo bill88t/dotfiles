@@ -215,10 +215,10 @@ kobold() {
         python3 git/koboldcpp/koboldcpp.py \
             -m Local/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf \
             -b 512 \
-            -c 4096 \
+            -c 8192 \
             --threads 6 \
             --usevulkan \
-            --gpulayers 25 \
+            --gpulayers 99 \
             --smartcache 4 \
             --usemmap
 
