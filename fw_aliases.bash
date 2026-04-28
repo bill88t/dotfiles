@@ -185,20 +185,21 @@ ffch264_480() {
 alias matlab="/home/bill88t/Matlab/R2024b/bin/matlab -webui -nosoftwareopengl"
 
 bake() {
-    cd /home/bill88t/git/BredOS
+    (
+        cd /home/bill88t/git/Beryllium
 
-    local dir="/home/bill88t/BUILD"
-    echo "Cleaning $dir"
-    [ -d "$dir" ] && sudo rm -rf "$dir"
+        local dir="/home/bill88t/BUILD"
+        echo "Cleaning $dir"
+        [ -d "$dir" ] && sudo rm -rf "$dir"
 
-    mkdir "$dir"
-    sudo mkimage/mkimage.py -w $dir -o /home/bill88t/Images -c ./images/"$1"/ -x
+        mkdir "$dir"
+        sudo mkimage/mkimage.py -w $dir -o /home/bill88t/Images -c ./images/"$1"/ -x
 
-    local status=$?
-    [ $status -ne 0 ] && sudo rm -rf "$dir"
+        local status=$?
+        [ $status -ne 0 ] && sudo rm -rf "$dir"
 
-    cd -
-    return $status
+        return $status
+    )
 }
 
 
@@ -260,4 +261,18 @@ kobold_img() {
 
         return 0
     )
+}
+
+dex() {
+    echo "Stopping firewalld"
+    sudo systemctl stop firewalld
+
+    echo "Launching scrcpy"
+    scrcpy --fullscreen --new-display=1920x1200/180 -S --max-fps=60 --mouse=uhid
+
+    echo "Killing adb.."
+    adb kill-server
+
+    echo "Starting firewalld"
+    sudo systemctl start firewalld
 }
