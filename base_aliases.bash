@@ -85,6 +85,7 @@ alias senablen="sudo systemctl enable --now"
 alias sdisable="sudo systemctl disable"
 alias sdisablen="sudo systemctl disable --now"
 alias sdreload="sudo systemctl daemon-reload"
+alias usdreload="systemctl --user daemon-reload"
 
 alias usstart="systemctl --user start"
 alias uskill="systemctl --user kill"

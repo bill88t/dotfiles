@@ -1,5 +1,5 @@
 bake() {
-    cd /home/bill88t/git/BredOS
+    cd /home/bill88t/git/Beryllium
 
     local dir="/tmp/BUILD"
     echo "Cleaning $dir"
