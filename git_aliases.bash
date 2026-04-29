@@ -47,6 +47,11 @@ alias gbl='git branch -a'                    # List all branches (local + remote
 alias gbd='git branch -d'                    # Delete branch safely
 alias gbdf='git branch -D'                   # Force delete branch
 
+gltag() {
+    git fetch --tags --force
+    git checkout "$(git describe --tags $(git rev-list --tags --max-count=1))" -f
+}
+
 gsu() {
     if [[ -z "$1" ]]; then
         echo "Usage: gsu <remote>/<branch>"
