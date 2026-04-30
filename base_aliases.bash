@@ -27,7 +27,7 @@ findcontent() {
     grep -rl "$@" .
 }
 
-copy() {
+fcopy() {
     if [[ -z "$1" ]]; then
         echo "Usage: copy <file_or_directory>"
         return 1
@@ -37,7 +37,7 @@ copy() {
     CUT_MODE=0
 }
 
-cut() {
+fcut() {
     if [[ -z "$1" ]]; then
         echo "Usage: cut <file_or_directory>"
         return 1
@@ -47,7 +47,7 @@ cut() {
     CUT_MODE=1
 }
 
-paste() {
+fpaste() {
     if [[ -z "$COPY_SOURCE" || -z "$COPY_NAME" ]]; then
         echo "No copied or cut file/directory."
         return 1
