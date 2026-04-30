@@ -25,9 +25,14 @@ shortcuts["4"] = (
 shortcuts["5"] = "winekill"
 shortcuts["b"] = "btop"
 shortcuts["q"] = quit
+shortcuts["f"] = (
+    "fw-fanctrl use off && "
+    "sleep 3 && "
+    "fw-fanctrl reset"
+)
 shortcuts["?"] = shortcuts_help
 
-shortcuts_reload = ["1", "2", "3", "4", "5", "b", "?"]
+shortcuts_reload = ["1", "2", "3", "4", "5", "b", "?", "f"]
 
 # shortcuts["4"] = "sleepctl -m \"always\" && echo Sleepctl now blocks everything && sleep 0.5"
 # shortcuts["5"] = "sleepctl -m \"button\" && echo Sleepctl now blocks power button && sleep 0.5"
