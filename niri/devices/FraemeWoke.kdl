@@ -31,7 +31,7 @@ environment {
 
 binds {
     Mod+P { spawn "/home/bill88t/git/dotfiles/rotate.sh"; }
-    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/Gelly_51df56d33fe108a2f87ef30d411e2f19.png" "--font" "Inter" "-e"; }
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/art002e021219.jpg" "--font" "Inter" "-e"; }
 }
 
 input {
