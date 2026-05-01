@@ -155,7 +155,7 @@ NIRI_PKGS = [
     "papirus-icon-theme",
     "brightnessctl",
     "noto-fonts",
-    "ttf-hanazono",
+    "ttf-jigmo",
     "ttf-dejavu",
     "gvfs-mtp",
     "gvfs-smb",
