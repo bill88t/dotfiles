@@ -248,6 +248,28 @@ kobold_alt() {
     )
 }
 
+kobold_mini() {
+    (
+        cd ~
+        clear
+
+        python3 git/koboldcpp/koboldcpp.py \
+            -m Local/Gemma-4-E2B-Uncensored-HauhauCS-Aggressive-Q5_K_P.gguf \
+            --port 5502 \
+            -b 512 \
+            -c 16384 \
+            --threads 6 \
+            --usevulkan \
+            --gpulayers 99 \
+            --smartcache 4 \
+            --usemmap \
+            --websearch \
+            --mmproj Local/mmproj-Gemma-4-E2B-Uncensored-HauhauCS-Aggressive-f16.gguf
+
+        return 0
+    )
+}
+
 kobold_img() {
     (
         cd ~
