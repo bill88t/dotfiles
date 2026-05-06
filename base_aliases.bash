@@ -1,5 +1,5 @@
-alias ll='ls -lh'
-alias la='ls -lha'
+alias ll='ls -lh --color=auto'
+alias la='ls -lha --color=auto'
 alias date-dash='date +%Y-%m-%d-%H:%M:%S' # use this for tagging stuff.
 alias py='python3'
 hist() {
@@ -73,7 +73,7 @@ getal() {
     echo "${result%?}"
 }
 
-alias n="clear && bredos-news -f && echo -ne '\033[1F\033[0K'"
+alias n="clear && beryl-news -f && echo -ne '\033[1F\033[0K'"
 
 alias sstart="sudo systemctl start"
 alias skill="sudo systemctl kill"
