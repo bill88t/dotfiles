@@ -37,4 +37,4 @@ color_prompt=yes
 . ~/git/dotfiles/zoxide_loader.bash      # z directory changer
 . ~/git/dotfiles/secrets.bash            # Load secrets
 
-bredos-news || true
+beryl-news || true

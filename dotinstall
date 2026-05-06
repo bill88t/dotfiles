@@ -371,7 +371,7 @@ def install_gitconftermux(force=False):
 
 
 def install_gpgconf(force=False):
-    install_packages(["pcsclite", "ccid", "openpgp-card-tools", "opensc"])
+    install_packages(["pcsclite", "ccid", "openpgp-card-tools", "opensc", "pinentry", "kguiaddons"])
     subprocess.run(
         ["sudo", "systemctl", "enable", "--now", "pcscd.socket"]
     )
@@ -920,7 +920,17 @@ def install_matlab(force=False) -> None:
 
 
 def install_newsrc(force=False) -> None:
-    pass
+    source_file = SCRIPT_DIR / str("newsrc." + socket.gethostname())
+    target_file = HOME / ".newsrc"
+
+    if not source_file.exists():
+        print("Using generic news file")
+        source_file = SCRIPT_DIR / "newsrc.generic"
+
+    if target_file.exists():
+        target_file.unlink()
+
+    symlink_file(source_file, target_file, force=True)
 
 
 def install_keyd(force=False) -> None:

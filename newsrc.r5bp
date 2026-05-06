@@ -1,0 +1,28 @@
+Accent = "\033[38;5;129m"
+Accent_Secondary = "\033[38;5;104m"
+
+def shortcuts_help() -> None:
+    clear()
+    print(f"{colors.accent}{colors.bold}Configured shortcuts:{colors.endc}")
+    for i in shortcuts.keys():
+        shortcut = shortcuts[i]
+        if is_function(shortcut):
+            print(f" - {i}: Function {shortcut.__name__}")
+        else:
+            print(f' - {i}: "{shortcuts[i]}"')
+    print("\nPress any key to go back")
+    stdin.read(1)
+    clear()
+
+shortcuts["1"] = "beryllium-config"
+shortcuts["3"] = 'echo -n "Syncing.." && sync'
+shortcuts["4"] = (
+    "sudo tailscale set --accept-dns=false && echo Tailscale DNS off && "
+    "sudo tailscale set --accept-dns=true && "
+    "echo Tailscale DNS on"
+)
+shortcuts["b"] = "btop"
+shortcuts["q"] = quit
+shortcuts["?"] = shortcuts_help
+
+shortcuts_reload = ["1", "3", "4", "b", "?"]
