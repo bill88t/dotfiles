@@ -121,6 +121,7 @@ BASE_PKGS = [
     "s-tui",
     "unp",
     "most",
+    "rsync",
 ]
 
 DOCKER_PKGS = [
