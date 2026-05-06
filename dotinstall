@@ -162,6 +162,7 @@ NIRI_PKGS = [
     "gvfs-smb",
     "gvfs-dnssd",
     "gvfs-afc",
+    "papirus-icon-theme",
 ]
 
 XFCE_PKGS = [

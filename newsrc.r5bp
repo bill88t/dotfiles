@@ -23,6 +23,7 @@ shortcuts["4"] = (
 )
 shortcuts["b"] = "btop"
 shortcuts["q"] = quit
+shortcuts["l"] = "l"
 shortcuts["?"] = shortcuts_help
 
 shortcuts_reload = ["1", "3", "4", "b", "?"]

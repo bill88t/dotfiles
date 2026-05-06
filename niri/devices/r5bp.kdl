@@ -1,0 +1,7 @@
+environment {
+    QT_QPA_PLATFORMTHEME "qt6ct"
+}
+
+binds {
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/michael-d-rnKqWvO80Y4-unsplash-cut.jpg" "--font" "Inter" "-e"; }
+}
