@@ -1,5 +1,5 @@
-alias espload='source ~/git/esp-idf-v5.5.3/export.sh'
-alias esp6load='source ~/git/esp-idf-v6.0/export.sh'
+alias esp5load='source ~/git/esp-idf-v5.5.4/export.sh'
+alias espload='source ~/git/esp-idf-v6.0.1/export.sh'
 
 function lcontains {
   local list="$1"
