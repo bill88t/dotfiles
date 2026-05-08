@@ -1,5 +1,5 @@
-alias esp5load='source ~/git/esp-idf-v5.5.4/export.sh'
-alias espload='source ~/git/esp-idf-v6.0.1/export.sh'
+alias espload='source ~/git/esp-idf-v5.5.3/export.sh'
+alias esp6load='source ~/git/esp-idf-v6.0.1/export.sh'
 
 function lcontains {
   local list="$1"
@@ -66,7 +66,7 @@ make-aliases ws3z waveshare_esp32_s3_zero espload WS3ZEROBOOT both esp32s3 20000
 make-aliases tdeck lilygo_tdeck espload TDECKBOOT both esp32s3 2000000 "/dev/ttyACM0" 80m keep
 make-aliases c3lcd 01space_lcd042_esp32c3 espload "None" flash esp32c3 2000000 "/dev/ttyACM0" 80m keep
 make-aliases wsh2 waveshare_esp32h2 espload "None" flash esp32h2 2000000 "/dev/ttyACM1" 48m keep
-make-aliases ws3lcd waveshare_esp32s3_touch_lcd espload "None" flash esp32s3 2000000 "/dev/ttyACM0" 80m keep
+make-aliases ws3lcd waveshare_esp32_s3_touch_lcd_1_54 espload "WSS3BOOT" flash esp32s3 2000000 "/dev/ttyACM0" 80m keep
 
 # samd
 make-aliases wio seeeduino_wio_terminal espload Arduino uf2
