@@ -15,6 +15,23 @@ bake() {
     return $status
 }
 
+bake_iso() {
+    cd /home/bill88t/git/Beryllium/iso
+
+    local dir="/tmp/BUILD"
+    echo "Cleaning $dir"
+    [ -d "$dir" ] && sudo rm -rf "$dir"
+
+    mkdir "$dir"
+    sudo ./mkarchiso -v -w $dir -o /home/bill88t/Images ./"$1"
+
+    local status=$?
+    [ $status -ne 0 ] && sudo rm -rf "$dir"
+
+    cd -
+    return $status
+}
+
 alias ledmod="(stty 115200 && echo -ne 'mod\n' >> /dev/ttyACM0)"
 alias ledoff="(stty 115200 && echo -ne 'off\n' >> /dev/ttyACM0)"
 alias ledrst="(stty 115200 && echo -ne 'rst\n' >> /dev/ttyACM0)"
