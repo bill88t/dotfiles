@@ -40,7 +40,7 @@ case "$selected" in
         ~/git/dotfiles/rotate.sh
         ;;
     *Keyboard)
-        pkill -SIGRTMIN wvkbd-mobintl
+        pkill -SIGRTMIN wvkbd-deskintl
         ;;
     *Minimize\ Bar)
         if [ -e "$HOME/git/dotfiles/waybar/minimal_mode" ]; then

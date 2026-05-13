@@ -1,3 +1,5 @@
 #/usr/bin/sh
 
-(wvkbd-mobintl --alpha 200 --fn "Inter Bold 18" -l full,greek --landscape-layers simple,greek -L 250 --hidden &) || true
+killall wvkbd-deskintl || true
+
+(wvkbd-deskintl --alpha 200 --fn "Inter Bold 18" -l full,greek --landscape-layers full,greek -L 400 --hidden &) || true
