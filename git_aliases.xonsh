@@ -1,0 +1,135 @@
+import subprocess
+
+aliases["gp"] = "git push"
+aliases["gl"] = "git pull"
+aliases["gs"] = "git status"
+aliases["gd"] = "git diff"
+aliases["gds"] = "git diff --staged"
+aliases["gc"] = "git clone"
+aliases["gcr"] = "git clone --recursive"
+aliases["gw"] = "git switch"
+aliases["ga"] = "git add"
+aliases["gm"] = "git commit"
+aliases["gma"] = "git commit -a"
+aliases["gck"] = "git checkout"
+aliases["gckb"] = "git checkout -b"
+aliases["gfa"] = "git fetch --all && git fetch --all"
+aliases["gpa"] = "git pushall"
+aliases["gpf"] = "git push --force"
+aliases["gaa"] = "git add ."
+aliases["gau"] = "git add --update"
+aliases["gmf"] = "git commit --fixup"
+aliases["gms"] = "git commit --squash"
+aliases["grs"] = "git reset --soft"
+aliases["grm"] = "git remote -v"
+aliases["glog"] = "git log --graph --oneline --all"
+aliases["gst"] = "git stash"
+aliases["gstp"] = "git stash pop"
+aliases["gstl"] = "git stash list"
+aliases["grg"] = "git remote get-url"
+aliases["grgs"] = "git remote set-url"
+aliases["grp"] = "git remote prune origin"
+aliases["gbl"] = "git branch -a"
+aliases["gbd"] = "git branch -d"
+aliases["gbdf"] = "git branch -D"
+
+
+def _gltag(args, stdin=None):
+    rc = subprocess.run(["git", "fetch", "--tags", "--force"], check=False).returncode
+    if rc != 0:
+        return rc
+    tag_proc = subprocess.run(
+        "git describe --tags $(git rev-list --tags --max-count=1)",
+        shell=True,
+        executable="/bin/sh",
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if tag_proc.returncode != 0 or not tag_proc.stdout.strip():
+        return 1
+    return subprocess.run(["git", "checkout", tag_proc.stdout.strip(), "-f"], check=False).returncode
+
+
+aliases["gltag"] = _gltag
+
+
+def _gsu(args, stdin=None):
+    if len(args) != 1:
+        print("Usage: gsu <remote>/<branch>")
+        return 1
+    return subprocess.run(["git", "branch", f"--set-upstream-to={args[0]}"], check=False).returncode
+
+
+aliases["gsu"] = _gsu
+
+
+def _gbr(args, stdin=None):
+    if len(args) != 2:
+        print("Usage: gbr <old-name> <new-name>")
+        return 1
+    old_name, new_name = args
+    rc = subprocess.run(["git", "branch", "-m", old_name, new_name], check=False).returncode
+    if rc != 0:
+        return rc
+    rc = subprocess.run(["git", "fetch", "origin"], check=False).returncode
+    if rc != 0:
+        return rc
+    rc = subprocess.run(["git", "branch", "-u", f"origin/{new_name}", new_name], check=False).returncode
+    if rc != 0:
+        return rc
+    return subprocess.run(["git", "remote", "set-head", "origin", "-a"], check=False).returncode
+
+
+aliases["gbr"] = _gbr
+
+
+def _gcp(args, stdin=None):
+    if not args:
+        print("Usage: gcp <commit-message-pattern>")
+        return 1
+    pattern = " ".join(args)
+    log_proc = subprocess.run(
+        ["git", "log", "--oneline", "--all"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if log_proc.returncode != 0:
+        return log_proc.returncode
+    commit = ""
+    for line in log_proc.stdout.splitlines():
+        if pattern in line:
+            commit = line.split()[0]
+            break
+    if not commit:
+        return 1
+    return subprocess.run(["git", "cherry-pick", commit], check=False).returncode
+
+
+aliases["gcp"] = _gcp
+
+
+def _gcp_push(args, stdin=None):
+    msg = " ".join(args) if args else "Quick commit"
+    rc = subprocess.run(["git", "commit", "-m", msg], check=False).returncode
+    if rc != 0:
+        return rc
+    return subprocess.run(["git", "push"], check=False).returncode
+
+
+aliases["gcp_push"] = _gcp_push
+
+
+def _gundo(args, stdin=None):
+    return subprocess.run(["git", "reset", "--soft", "HEAD~1"], check=False).returncode
+
+
+aliases["gundo"] = _gundo
+
+
+def _gbname(args, stdin=None):
+    return subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], check=False).returncode
+
+
+aliases["gbname"] = _gbname

@@ -1,0 +1,35 @@
+import subprocess
+
+
+def _gpsign(args, stdin=None):
+    if not args:
+        print("Usage: gpsign <file> [file..]")
+        return 1
+    rc = 0
+    for filename in args:
+        sig = f"{filename}.sig"
+        rc = subprocess.run(
+            ["gpg", "--use-agent", "--output", sig, "--detach-sig", filename],
+            check=False,
+        ).returncode
+        if rc != 0:
+            break
+    return rc
+
+
+aliases["gpsign"] = _gpsign
+aliases["gpgreload"] = "gpgconf --reload gpg-agent"
+aliases["gpgrestart"] = "systemctl --user restart gpg-agent"
+
+
+def _gpgpasswd(args, stdin=None):
+    if len(args) != 1:
+        print("Usage: gpgpasswd <key-id>")
+        return 1
+    return subprocess.run(
+        ["gpg", "--edit-key", args[0], "passwd", "save", "quit"],
+        check=False,
+    ).returncode
+
+
+aliases["gpgpasswd"] = _gpgpasswd

@@ -1,0 +1,11 @@
+import subprocess
+
+
+def _cleantmp(args, stdin=None):
+    return subprocess.run(
+        ["sudo", "find", "/tmp", "-maxdepth", "1", "-name", "tmp????????", "-exec", "rm", "-rf", "{}", "+"],
+        check=False,
+    ).returncode
+
+
+aliases["cleantmp"] = _cleantmp

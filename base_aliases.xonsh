@@ -1,85 +1,141 @@
-# My basic aliases
-aliases["ls"] = "ls --color=auto"
-aliases["ll"] = "ls --color=auto -lh"
-aliases["la"] = "ls --color=auto -lha"
-aliases["date-dash"] = "date +%Y-%m-%d-%H:%M:%S"  # use this for tagging stuff.
+import os
+import shutil
+import subprocess
+
+aliases["ll"] = "ls -lh --color=auto"
+aliases["la"] = "ls -lha --color=auto"
+aliases["date-dash"] = "date +%Y-%m-%d-%H:%M:%S"
 aliases["py"] = "python3"
 aliases["ff"] = "fastfetch"
 aliases["dun"] = "du -h -d 1"
 aliases["m"] = "micro"
 aliases["mf"] = "micro -config-dir ~/.config/microfast"
 aliases["reload"] = "source ~/.xonshrc"
-aliases["grep"] = "grep --color=auto"
-aliases["fgrep"] = "fgrep --color=auto"
-aliases["egrep"] = "egrep --color=auto"
+aliases["n"] = r"clear && beryl-news -f && printf '\033[1F\033[0K'"
 
-def hist(args):
-    return $(history | grep @args | tac | bat)
-aliases["hist"] = hist
-del hist
 
-def als():
-    for alias_name, command in aliases.items():
-        print(f"Alias: {alias_name}\nCommand: {command}\n-------")
-aliases['als'] = als
-del als
+def _hist(args, stdin=None):
+    query = " ".join(args).strip()
+    entries = list(getattr(__xonsh__.history, "inps", []))
+    if query:
+        entries = [e for e in entries if query in e]
+    entries.reverse()
+    text = "\n".join(entries)
+    if text:
+        text += "\n"
+    pager = "cat"
+    for candidate in ("bat", "batcat", "cat"):
+        if shutil.which(candidate):
+            pager = candidate
+            break
+    return subprocess.run([pager], input=text, text=True, check=False).returncode
 
-def getal(alias_name):
-    if alias_name in aliases:
-        print(aliases[alias_name])
-    else:
-        print(f"Alias '{alias_name}' not found.")
 
-aliases['getal'] = getal
-del getal
+aliases["hist"] = _hist
 
-# Seek structure recursively for text in files
-def findcontent(*args):
-    return $(grep -rl @args .)
-aliases['findcontent'] = findcontent
-del findcontent
 
-# Copy, Cut, and Paste operations
-$COPY_SOURCE = ''
-$COPY_NAME = ''
-$CUT_MODE = 0
+def _als(args, stdin=None):
+    for alias_name in sorted(aliases):
+        print(f"Alias: {alias_name}")
+        print(f"Command: {aliases[alias_name]}")
+        print("-------")
+    return 0
 
-def copy(path):
-    global $COPY_SOURCE, $COPY_NAME, $CUT_MODE
-    if not path:
-        print("Usage: copy <file_or_directory>")
+
+aliases["als"] = _als
+
+
+def _getal(args, stdin=None):
+    if not args:
+        print("Usage: getal <alias-name>")
         return 1
-    $COPY_SOURCE = $(realpath @(path))
-    $COPY_NAME = $(basename @(path))
-    $CUT_MODE = 0
-
-aliases['copy'] = copy
-
-def cut(path):
-    global $COPY_SOURCE, $COPY_NAME, $CUT_MODE
-    if not path:
-        print("Usage: cut <file_or_directory>")
+    alias_name = args[0]
+    if alias_name not in aliases:
+        print("")
         return 1
-    $COPY_SOURCE = $(realpath @(path))
-    $COPY_NAME = $(basename @(path))
-    $CUT_MODE = 1
+    print(aliases[alias_name])
+    return 0
 
-aliases['cut'] = cut
 
-def paste(target_name=None):
-    if not $COPY_SOURCE or not $COPY_NAME:
+aliases["getal"] = _getal
+
+
+def _findcontent(args, stdin=None):
+    return subprocess.run(["grep", "-rl", *args, "."], check=False).returncode
+
+
+aliases["findcontent"] = _findcontent
+
+_COPY_SOURCE = ""
+_COPY_NAME = ""
+_CUT_MODE = 0
+
+
+def _fcopy(args, stdin=None):
+    global _COPY_SOURCE, _COPY_NAME, _CUT_MODE
+    if not args:
+        print("Usage: fcopy <file_or_directory>")
+        return 1
+    src = os.path.realpath(args[0])
+    _COPY_SOURCE = src
+    _COPY_NAME = os.path.basename(src)
+    _CUT_MODE = 0
+    return 0
+
+
+def _fcut(args, stdin=None):
+    global _COPY_SOURCE, _COPY_NAME, _CUT_MODE
+    if not args:
+        print("Usage: fcut <file_or_directory>")
+        return 1
+    src = os.path.realpath(args[0])
+    _COPY_SOURCE = src
+    _COPY_NAME = os.path.basename(src)
+    _CUT_MODE = 1
+    return 0
+
+
+def _fpaste(args, stdin=None):
+    global _COPY_SOURCE, _COPY_NAME, _CUT_MODE
+    if not _COPY_SOURCE or not _COPY_NAME:
         print("No copied or cut file/directory.")
         return 1
+    target_name = args[0] if args else _COPY_NAME
+    target_path = os.path.join(".", target_name)
+    if _CUT_MODE == 1:
+        rc = subprocess.run(["mv", "--", _COPY_SOURCE, target_path], check=False).returncode
+        if rc == 0:
+            _COPY_SOURCE = ""
+            _COPY_NAME = ""
+            _CUT_MODE = 0
+        return rc
+    return subprocess.run(["cp", "-r", "--", _COPY_SOURCE, target_path], check=False).returncode
 
-    target_name = target_name or $COPY_NAME
 
-    if $CUT_MODE:
-        $(mv -- @($COPY_SOURCE) @(f"./{target_name}"))
-        $COPY_SOURCE = ''
-        $COPY_NAME = ''
-        $CUT_MODE = 0
-    else:
-        $(cp -r -- @($COPY_SOURCE) @(f"./{target_name}"))
+aliases["fcopy"] = _fcopy
+aliases["fcut"] = _fcut
+aliases["fpaste"] = _fpaste
+aliases["copy"] = _fcopy
+aliases["cut"] = _fcut
+aliases["paste"] = _fpaste
 
-aliases['paste'] = paste
-del paste
+aliases["sstart"] = "sudo systemctl start"
+aliases["skill"] = "sudo systemctl kill"
+aliases["sstop"] = "sudo systemctl stop"
+aliases["sstatus"] = "sudo systemctl status"
+aliases["srestart"] = "sudo systemctl restart"
+aliases["senable"] = "sudo systemctl enable"
+aliases["senablen"] = "sudo systemctl enable --now"
+aliases["sdisable"] = "sudo systemctl disable"
+aliases["sdisablen"] = "sudo systemctl disable --now"
+aliases["sdreload"] = "sudo systemctl daemon-reload"
+aliases["usdreload"] = "systemctl --user daemon-reload"
+aliases["usstart"] = "systemctl --user start"
+aliases["uskill"] = "systemctl --user kill"
+aliases["usstop"] = "systemctl --user stop"
+aliases["usstatus"] = "systemctl --user status"
+aliases["usrestart"] = "systemctl --user restart"
+aliases["usenable"] = "systemctl --user enable"
+aliases["usenablen"] = "systemctl --user enable --now"
+aliases["usdisable"] = "systemctl --user disable"
+aliases["usdisablen"] = "systemctl --user disable --now"

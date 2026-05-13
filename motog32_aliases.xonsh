@@ -1,0 +1,7 @@
+import subprocess
+
+aliases["st"] = "cd ~/storage/shared/Download"
+aliases["py"] = "python3"
+aliases["cdd"] = "cd ~/storage/shared/Download/"
+aliases["cds"] = "cd ~/storage/shared/"
+$GPG_TTY = subprocess.run(["tty"], capture_output=True, text=True, check=False).stdout.strip()

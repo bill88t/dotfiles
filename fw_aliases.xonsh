@@ -1,0 +1,218 @@
+import os
+import subprocess
+from pathlib import Path
+
+aliases["matlab"] = "/home/bill88t/Matlab/R2024b/bin/matlab -webui -nosoftwareopengl"
+aliases["hotspot-up"] = "nmcli connection modify Hotspot 802-11-wireless-security.pairwise ccmp && nmcli connection modify Hotspot 802-11-wireless-security.group ccmp && nmcli connection up Hotspot"
+aliases["hotspot-down"] = "nmcli connection down Hotspot"
+
+
+def _ffmpsp(args, stdin=None):
+    if len(args) < 2:
+        print("Usage: ffmpsp <input> <output>")
+        return 1
+    return subprocess.run(
+        [
+            "ffmpeg",
+            "-i",
+            args[0],
+            "-vf",
+            "scale='min(480,iw)':'min(272,ih)':force_original_aspect_ratio=decrease,pad=480:272:(ow-iw)/2:(oh-ih)/2",
+            "-c:v",
+            "libx264",
+            "-profile:v",
+            "baseline",
+            "-level",
+            "3.0",
+            "-pix_fmt",
+            "yuv420p",
+            "-preset",
+            "slow",
+            "-crf",
+            "21",
+            "-r",
+            "29.97",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "128k",
+            "-ar",
+            "48000",
+            "-movflags",
+            "+faststart",
+            args[1],
+        ],
+        check=False,
+    ).returncode
+
+
+aliases["ffmpsp"] = _ffmpsp
+
+
+def _ff_vaapi(args, scale=None, constrained=False):
+    if len(args) < 1:
+        return 1
+    input_file = args[0]
+    passthrough = args[1:]
+    cmd = [
+        "ffmpeg",
+        "-init_hw_device",
+        "vaapi=intel:/dev/dri/renderD128",
+        "-hwaccel",
+        "vaapi",
+        "-hwaccel_device",
+        "intel",
+        "-hwaccel_output_format",
+        "vaapi",
+        "-i",
+        input_file,
+        "-c:v",
+        "h264_vaapi",
+    ]
+    if constrained:
+        cmd.extend(["-b:v", "8M", "-maxrate", "10M", "-bufsize", "16M", "-profile:v", "main"])
+    if scale:
+        cmd.extend(["-vf", f"scale_vaapi=w=-2:h={scale}"])
+    cmd.extend(passthrough)
+    return subprocess.run(cmd, check=False).returncode
+
+
+aliases["ffh264"] = lambda args, stdin=None: _ff_vaapi(args)
+aliases["ffch264"] = lambda args, stdin=None: _ff_vaapi(args, constrained=True)
+aliases["ffh264_1080"] = lambda args, stdin=None: _ff_vaapi(args, scale=1080)
+aliases["ffch264_1080"] = lambda args, stdin=None: _ff_vaapi(args, scale=1080, constrained=True)
+aliases["ffh264_720"] = lambda args, stdin=None: _ff_vaapi(args, scale=720)
+aliases["ffch264_720"] = lambda args, stdin=None: _ff_vaapi(args, scale=720, constrained=True)
+aliases["ffh264_480"] = lambda args, stdin=None: _ff_vaapi(args, scale=480)
+aliases["ffch264_480"] = lambda args, stdin=None: _ff_vaapi(args, scale=480, constrained=True)
+
+
+def _bake(args, stdin=None):
+    if not args:
+        print("Usage: bake <image-config-dir>")
+        return 1
+    old_cwd = os.getcwd()
+    os.chdir("/home/bill88t/git/Beryllium")
+    try:
+        build_dir = "/home/bill88t/BUILD"
+        print(f"Cleaning {build_dir}")
+        if Path(build_dir).exists():
+            subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
+        subprocess.run(["mkdir", "-p", build_dir], check=False)
+        rc = subprocess.run(
+            ["sudo", "mkimage/mkimage.py", "-w", build_dir, "-o", "/home/bill88t/Images", "-c", f"./images/{args[0]}/", "-x"],
+            check=False,
+        ).returncode
+        if rc != 0:
+            subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
+        return rc
+    finally:
+        os.chdir(old_cwd)
+
+
+aliases["bake"] = _bake
+
+
+def _run_kobold(model_args):
+    old_cwd = os.getcwd()
+    os.chdir(str(Path.home()))
+    try:
+        subprocess.run(["clear"], check=False)
+        return subprocess.run(["python3", "git/koboldcpp/koboldcpp.py", *model_args], check=False).returncode
+    finally:
+        os.chdir(old_cwd)
+
+
+aliases["kobold"] = lambda args, stdin=None: _run_kobold(
+    [
+        "-m",
+        "Local/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf",
+        "-b",
+        "512",
+        "-c",
+        "8192",
+        "--threads",
+        "6",
+        "--usevulkan",
+        "--gpulayers",
+        "99",
+        "--smartcache",
+        "4",
+        "--usemmap",
+    ]
+)
+
+aliases["kobold_alt"] = lambda args, stdin=None: _run_kobold(
+    [
+        "-m",
+        "Local/Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-Q4_K_P.gguf",
+        "--port",
+        "5502",
+        "-b",
+        "512",
+        "-c",
+        "4096",
+        "--threads",
+        "6",
+        "--usevulkan",
+        "--gpulayers",
+        "25",
+        "--smartcache",
+        "4",
+        "--usemmap",
+        "--websearch",
+        "--mmproj",
+        "Local/mmproj-Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-f16.gguf",
+    ]
+)
+
+aliases["kobold_mini"] = lambda args, stdin=None: _run_kobold(
+    [
+        "-m",
+        "Local/Gemma-4-E2B-Uncensored-HauhauCS-Aggressive-Q5_K_P.gguf",
+        "--port",
+        "5502",
+        "-b",
+        "512",
+        "-c",
+        "16384",
+        "--threads",
+        "6",
+        "--usevulkan",
+        "--gpulayers",
+        "99",
+        "--smartcache",
+        "4",
+        "--usemmap",
+        "--websearch",
+        "--mmproj",
+        "Local/mmproj-Gemma-4-E2B-Uncensored-HauhauCS-Aggressive-f16.gguf",
+    ]
+)
+
+aliases["kobold_img"] = lambda args, stdin=None: _run_kobold(
+    [
+        "--sdmodel",
+        "/home/bill88t/Local/Bunny-XL2-V3-NS.safetensors.q8_0.gguf",
+        "--threads",
+        "6",
+        "--sdconvdirect",
+        "full",
+        "--usevulkan",
+    ]
+)
+
+
+def _dex(args, stdin=None):
+    print("Stopping firewalld")
+    subprocess.run(["sudo", "systemctl", "stop", "firewalld"], check=False)
+    print("Launching scrcpy")
+    subprocess.run(["scrcpy", "--fullscreen", "--new-display=1920x1200/180", "-S", "--max-fps=60", "--mouse=uhid"], check=False)
+    print("Killing adb..")
+    subprocess.run(["adb", "kill-server"], check=False)
+    print("Starting firewalld")
+    subprocess.run(["sudo", "systemctl", "start", "firewalld"], check=False)
+    return 0
+
+
+aliases["dex"] = _dex

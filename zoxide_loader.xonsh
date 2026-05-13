@@ -1,0 +1,11 @@
+import subprocess
+
+if _cmd_exists("zoxide"):
+    init = subprocess.run(
+        ["zoxide", "init", "xonsh", "--cmd", "cd"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if init.returncode == 0 and init.stdout:
+        execx(init.stdout, filename="zoxide_init.xsh")

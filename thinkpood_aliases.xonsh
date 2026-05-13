@@ -1,0 +1,4 @@
+aliases["unthrottle"] = "sudo systemctl start throttled"
+aliases["lte-up"] = "sudo modprobe iosm && cd ~/git/xmm7360-pci/ && sudo ./scripts/lte.sh up && cd -"
+aliases["lte-down"] = "sudo modprobe iosm && cd ~/git/xmm7360-pci/ && sudo ./scripts/lte.sh down && cd -"
+$LC_ALL = "en_US.UTF-8"

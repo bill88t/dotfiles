@@ -1,10 +1,440 @@
-aliases["nht"] = "nhentai --no-html -t @(int($(nproc).strip())) --id"
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
 
+aliases["nht"] = "nhentai --no-html -t $(getconf _NPROCESSORS_ONLN) --id"
 aliases["lsgovernor"] = "cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
-
 aliases["jf"] = "journalctl -f"
-aliases["jb"] = "journalctl -b"
-
-aliases["mv_subdirfiles_to_pwd"] = "sh -c 'find . -mindepth 2 -type f -exec mv -t . {} +'"
-
 aliases["wifipass"] = "nmcli dev wifi show-password"
+aliases["lswakeups"] = "grep . /sys/bus/usb/devices/*/power/wakeup"
+aliases["mdl"] = "megatools dl"
+aliases["kml"] = "kemono-scraper --link"
+aliases["cookies"] = "yt-dlp --cookies cookies.txt --cookies-from-browser firefox"
+aliases["tiny_rsync"] = "rsync --whole-file --info=progress2 -zaHAX --safe-links --delete-delay --delay-updates --timeout=600"
+aliases["best_rsync"] = "rsync --info=progress2 -zaHAX --safe-links --delete-delay --delay-updates --timeout=600"
+
+
+def _tempvenv(args, stdin=None):
+    venv_dir = tempfile.mkdtemp(prefix="tempvenv-")
+    print(f"Created temporary venv directory {venv_dir}")
+    rc = subprocess.run([sys.executable, "-m", "venv", venv_dir], check=False).returncode
+    if rc != 0:
+        return rc
+    print("Setup complete")
+
+    env = os.environ.copy()
+    env["VIRTUAL_ENV"] = venv_dir
+    env["PATH"] = f"{venv_dir}/bin:{env.get('PATH', '')}"
+    subprocess.run(["xonsh"], env=env, check=False)
+
+    if os.path.isdir(venv_dir) and os.path.isfile(f"{venv_dir}/bin/activate"):
+        print("Cleaning up..")
+        shutil.rmtree(venv_dir, ignore_errors=True)
+    else:
+        print(f"Warning: Skipping removal, unexpected venv path: {venv_dir}")
+    return 0
+
+
+aliases["tempvenv"] = _tempvenv
+
+
+def _cpu_freqs(args, stdin=None):
+    for cpu in sorted(Path("/sys/devices/system/cpu").glob("cpu[0-9]*")):
+        freq_file = cpu / "cpufreq" / "scaling_cur_freq"
+        if not freq_file.is_file():
+            continue
+        freq_khz = int(freq_file.read_text().strip())
+        print(f"{cpu.name}: {freq_khz/1000:.1f} MHz")
+    return 0
+
+
+aliases["cpu_freqs"] = _cpu_freqs
+
+
+def _jb(args, stdin=None):
+    pager = __xonsh__.env.get("PAGER", "cat")
+    return subprocess.run(f"journalctl -b --no-pager | {pager}", shell=True, executable="/bin/sh", check=False).returncode
+
+
+aliases["jb"] = _jb
+
+
+def _ju(args, stdin=None):
+    if not args:
+        print("No unit specified!")
+        return 1
+    pager = __xonsh__.env.get("PAGER", "cat")
+    unit = args[0]
+    return subprocess.run(f"journalctl -u {unit} | {pager}", shell=True, executable="/bin/sh", check=False).returncode
+
+
+aliases["ju"] = _ju
+
+
+def _mv_subdirfiles_to_pwd(args, stdin=None):
+    cwd = Path.cwd().resolve()
+    depth = str(cwd).count("/")
+    if depth < 3:
+        print(f"ERROR: Directory too shallow ({cwd}) — likely unsafe.", file=sys.stderr)
+        confirm = input("Type 'yes' to continue: ").strip()
+        if confirm != "yes":
+            return 1
+
+    files = [p for p in cwd.rglob("*") if p.is_file() and len(p.relative_to(cwd).parts) >= 2]
+    if not files:
+        print("No files found in subdirectories.", file=sys.stderr)
+        return 0
+
+    print(f"Dry run: would move the following files to {cwd}")
+    for f in files:
+        print(f"  ./{f.relative_to(cwd)}")
+    print("")
+    confirm = input("Proceed with actual move? (yes/no) ").strip()
+    if confirm != "yes":
+        print("Aborted.")
+        return 0
+
+    for src in files:
+        base = src.name
+        if "." in base and not base.startswith("."):
+            name = base.rsplit(".", 1)[0]
+            ext = base.rsplit(".", 1)[1]
+        elif base.startswith(".") and base.count(".") > 1:
+            name = base.rsplit(".", 1)[0]
+            ext = base.rsplit(".", 1)[1]
+        else:
+            name = base
+            ext = ""
+
+        target = cwd / base
+        n = 1
+        while target.exists():
+            target = cwd / (f"{name} ({n}).{ext}" if ext else f"{name} ({n})")
+            n += 1
+        shutil.move(str(src), str(target))
+
+    print(f"Done: All subdirectory files safely moved into {cwd}.")
+    for d in sorted(cwd.rglob("*"), reverse=True):
+        if d.is_dir():
+            try:
+                d.rmdir()
+            except OSError:
+                pass
+    print("Cleanup: Removed all subdirs.")
+    return 0
+
+
+aliases["mv_subdirfiles_to_pwd"] = _mv_subdirfiles_to_pwd
+
+
+def _nopen(args, stdin=None):
+    target = args[0] if args else "."
+    subprocess.Popen(
+        ["nautilus", target],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    return 0
+
+
+def _dopen(args, stdin=None):
+    target = args[0] if args else os.getcwd()
+    subprocess.Popen(
+        ["dolphin", target],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    return 0
+
+
+aliases["nopen"] = _nopen
+aliases["dopen"] = _dopen
+
+
+def _zcomp(args, stdin=None):
+    if not args:
+        print("Usage: zstd_compress_rm file_or_dir1 [file_or_dir2 ...]")
+        return 1
+    for item in args:
+        path = Path(item)
+        if path.is_file():
+            rc = subprocess.run(["zstd", "-20", "--ultra", "-T0", "--long=31", str(path)], check=False).returncode
+            if rc == 0:
+                print(f"Successfully compressed file {item}, removing original")
+                path.unlink(missing_ok=True)
+            else:
+                print(f"Failed to compress file {item}, keeping original")
+        elif path.is_dir():
+            output_file = f"{item.rstrip('/')}.tar.zst"
+            cmd = f"tar -cf - {shlex.quote(item)} | zstd -20 --ultra -T0 --long=31 > {shlex.quote(output_file)}"
+            rc = subprocess.run(cmd, shell=True, executable="/bin/sh", check=False).returncode
+            if rc == 0:
+                print(f"Successfully compressed directory {item} to {output_file}, removing original")
+                shutil.rmtree(path, ignore_errors=True)
+            else:
+                print(f"Failed to compress directory {item}, keeping original")
+        else:
+            print(f"Warning: {item} is not a file or directory, skipping")
+    return 0
+
+
+aliases["zcomp"] = _zcomp
+
+
+def _zarchive(args, stdin=None):
+    if len(args) < 2:
+        print("Usage: zarchive archive_name.tar.zst file_or_dir1 [file_or_dir2 ...]")
+        return 1
+    output_file = args[0]
+    originals = args[1:]
+    quoted = " ".join(shlex.quote(i) for i in originals)
+    rc = subprocess.run(
+        f"tar -cf - {quoted} | zstd -20 --ultra -T0 --long=31 > {shlex.quote(output_file)}",
+        shell=True,
+        executable="/bin/sh",
+        check=False,
+    ).returncode
+    if rc == 0:
+        print(f"Successfully created compressed archive {output_file}, removing original files/directories")
+        subprocess.run(["rm", "-r", *originals], check=False)
+        return 0
+    print("Failed to create compressed archive, keeping original files/directories")
+    return 1
+
+
+aliases["zarchive"] = _zarchive
+
+
+def _zextract(args, stdin=None):
+    if len(args) != 1:
+        print("Usage: zextract archive_name.tar.zst")
+        return 1
+    archive_file = args[0]
+    if not Path(archive_file).is_file():
+        print(f"Error: File '{archive_file}' does not exist.")
+        return 1
+    rc = subprocess.run(
+        f"zstd -d -c --long=31 {shlex.quote(archive_file)} | tar -xf -",
+        shell=True,
+        executable="/bin/sh",
+        check=False,
+    ).returncode
+    if rc == 0:
+        print(f"Successfully extracted archive {archive_file}, removing archive file")
+        Path(archive_file).unlink(missing_ok=True)
+        return 0
+    print(f"Failed to extract archive {archive_file}, keeping archive file")
+    return 1
+
+
+aliases["zextract"] = _zextract
+
+
+def _pchain(args, stdin=None):
+    if len(args) != 1 or not args[0].isdigit():
+        print("Usage: pchain PID", file=sys.stderr)
+        return 2
+    pid = int(args[0])
+    print(f"{'PID':<8} | Name")
+    print("--------+----------------")
+    while pid != 0:
+        comm = Path(f"/proc/{pid}/comm")
+        status = Path(f"/proc/{pid}/status")
+        name = comm.read_text().strip() if comm.exists() else "[no-comm]"
+        print(f"{pid:<8} | {name or '[unknown]'}")
+        if not status.exists():
+            break
+        ppid = 0
+        for line in status.read_text().splitlines():
+            if line.startswith("PPid:"):
+                ppid = int(line.split()[1])
+                break
+        if ppid <= 0 or ppid == pid:
+            break
+        pid = ppid
+    return 0
+
+
+aliases["pchain"] = _pchain
+
+
+def _disk_compress(args, stdin=None):
+    if len(args) != 2:
+        print("Usage: disk_compress <device> <output.zst>", file=sys.stderr)
+        return 1
+    dev, outfile = args
+    if not Path(dev).exists():
+        print(f"Error: '{dev}' does not exist.", file=sys.stderr)
+        return 1
+    print(f"Imaging {dev} -> {outfile}..")
+    rc = subprocess.run(
+        f"sudo dd if={shlex.quote(dev)} bs=16M status=none | "
+        f"pv -s $(sudo blockdev --getsize64 {shlex.quote(dev)}) | "
+        f"zstd -T0 -19 -q -o {shlex.quote(outfile)}",
+        shell=True,
+        executable="/bin/sh",
+        check=False,
+    ).returncode
+    if rc != 0:
+        return rc
+    print("Validating..")
+    md5_zst = subprocess.run(
+        f"zstdcat {shlex.quote(outfile)} | md5sum | awk '{{print $1}}'",
+        shell=True,
+        executable="/bin/sh",
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.strip()
+    md5_dev = subprocess.run(
+        f"sudo dd if={shlex.quote(dev)} bs=16M status=none | "
+        f"pv -s $(sudo blockdev --getsize64 {shlex.quote(dev)}) | md5sum | awk '{{print $1}}'",
+        shell=True,
+        executable="/bin/sh",
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.strip()
+    if md5_zst != md5_dev:
+        print("Warning: Checksums do NOT match!")
+        print(f"MD5 of zst: {md5_zst}")
+        print(f"MD5 of dev: {md5_dev}")
+    print(f"Done: {outfile}")
+    return 0
+
+
+aliases["disk_compress"] = _disk_compress
+
+
+def _disk_decompress(args, stdin=None):
+    if len(args) != 2:
+        print("Usage: disk_decompress <input.zst> <device>", file=sys.stderr)
+        return 1
+    infile, dev = args
+    if not Path(dev).exists():
+        print(f"Error: '{dev}' does not exist.", file=sys.stderr)
+        return 1
+    print(f"Restoring {infile} -> {dev} ...")
+    rc = subprocess.run(
+        f"zstd -dc -q {shlex.quote(infile)} | "
+        f"sudo dd of={shlex.quote(dev)} bs=16M status=progress conv=fsync",
+        shell=True,
+        executable="/bin/sh",
+        check=False,
+    ).returncode
+    if rc != 0:
+        return rc
+    print("Validating..")
+    md5_zst = subprocess.run(
+        f"zstdcat {shlex.quote(infile)} | md5sum | awk '{{print $1}}'",
+        shell=True,
+        executable="/bin/sh",
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.strip()
+    md5_dev = subprocess.run(
+        f"sudo dd if={shlex.quote(dev)} bs=16M status=none | "
+        f"pv -s $(sudo blockdev --getsize64 {shlex.quote(dev)}) | md5sum | awk '{{print $1}}'",
+        shell=True,
+        executable="/bin/sh",
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.strip()
+    if md5_zst != md5_dev:
+        print("Warning: Checksums do NOT match!")
+        print(f"MD5 of zst: {md5_zst}")
+        print(f"MD5 of dev: {md5_dev}")
+    print(f"Done writing to {dev}")
+    return 0
+
+
+aliases["disk_decompress"] = _disk_decompress
+
+
+def _t(args, stdin=None):
+    if shutil.which("tmux") is None:
+        print("tmux not installed")
+        return 1
+    print("tmux:")
+    print("  1) Create session")
+    print("  2) Attach to newest session")
+    print("  3) Attach to named session")
+    print("  4) Detach everyone")
+    print("  5) Kill all sessions")
+    print("  q) Abort")
+    print("")
+    opt = input("Select option [1-5/q]: ").strip()
+    if opt == "1":
+        name = input("Session name: ").strip()
+        if not name:
+            print("No name given")
+            return 1
+        return subprocess.run(["tmux", "new", "-s", name], check=False).returncode
+    if opt == "2":
+        if subprocess.run(["tmux", "ls"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode != 0:
+            print("No tmux sessions")
+            return 1
+        session = subprocess.run(
+            ["tmux", "ls", "-F", "#{session_name}"],
+            capture_output=True,
+            text=True,
+            check=False,
+        ).stdout.strip().splitlines()
+        if not session:
+            print("No tmux sessions")
+            return 1
+        return subprocess.run(["tmux", "attach", "-t", session[-1]], check=False).returncode
+    if opt == "3":
+        if subprocess.run(["tmux", "ls"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode != 0:
+            print("No tmux sessions")
+            return 1
+        print("Sessions:")
+        subprocess.run(["tmux", "ls", "-F", "#{session_name}"], check=False)
+        print("")
+        name = input("Session name: ").strip()
+        if not name:
+            print("No name given")
+            return 1
+        return subprocess.run(["tmux", "attach", "-t", name], check=False).returncode
+    if opt == "4":
+        return subprocess.run(["tmux", "detach-client", "-a"], check=False).returncode
+    if opt == "5":
+        confirm = input("Really kill ALL tmux sessions? [y/N]: ").strip()
+        if confirm.lower() == "y":
+            return subprocess.run(["tmux", "kill-server"], check=False).returncode
+        print("Aborted")
+        return 0
+    if opt == "q":
+        return 0
+    print("Invalid option")
+    return 1
+
+
+aliases["t"] = _t
+
+
+def _detab4(args, stdin=None):
+    if len(args) != 1:
+        print("Usage: detab4 <file>")
+        return 2
+    file = Path(args[0])
+    if not file.is_file():
+        print(f"detab4: '{file}' not found", file=sys.stderr)
+        return 1
+    if not os.access(file, os.W_OK):
+        print(f"detab4: '{file}' not writable", file=sys.stderr)
+        return 1
+    file.write_text(file.read_text().replace("\t", "    "))
+    return 0
+
+
+aliases["detab4"] = _detab4

@@ -1,0 +1,333 @@
+import os
+import shlex
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+_SSH_SELECTED_ENDPOINT = ""
+
+
+def _ssh_pick_endpoint_candidates(candidates):
+    spinner = ["-", "\\", "/"]
+    idx = 0
+    line_drawn = False
+    try:
+        while True:
+            for candidate in candidates:
+                parts = candidate.split(":", 2)
+                ep = parts[0]
+                port = int(parts[1]) if len(parts) >= 2 and parts[1] else 22
+                extra = parts[2] if len(parts) >= 3 else ""
+                try:
+                    with socket.create_connection((ep, port), timeout=1):
+                        if line_drawn:
+                            print("\r\033[2K", end="", file=sys.stderr)
+                        print(f"Selected endpoint: {ep}:{port}", file=sys.stderr)
+                        return (ep, port, extra)
+                except OSError:
+                    continue
+            print(
+                f"\r{spinner[idx]} No endpoints are available, waiting..",
+                end="",
+                file=sys.stderr,
+            )
+            line_drawn = True
+            idx = (idx + 1) % len(spinner)
+            time.sleep(1)
+    except KeyboardInterrupt:
+        if line_drawn:
+            print("\r\033[2K", end="", file=sys.stderr)
+        print("", file=sys.stderr)
+        return None
+
+
+def _ssh_pick_endpoint(args, stdin=None):
+    global _SSH_SELECTED_ENDPOINT
+    if not args:
+        print("Usage: __ssh_pick_endpoint host[:port[:extra]] ...", file=sys.stderr)
+        return 1
+    selected = _ssh_pick_endpoint_candidates(args)
+    if not selected:
+        return 130
+    ep, port, extra = selected
+    _SSH_SELECTED_ENDPOINT = f"{ep}:{port}:{extra}"
+    return 0
+
+
+aliases["__ssh_pick_endpoint"] = _ssh_pick_endpoint
+
+
+def _sshc(args, stdin=None):
+    sock = __xonsh__.env.get("SSH_AUTH_SOCK") or os.environ.get("SSH_AUTH_SOCK", "")
+    if sock and os.path.exists(sock):
+        proc = subprocess.run(["ssh-add", "-l"], capture_output=True, text=True, check=False)
+        out = (proc.stdout + proc.stderr).strip()
+        if out == "The agent has no identities.":
+            rc = subprocess.run(["ssh-add"], check=False).returncode
+            if rc == 0:
+                print("SSH agent identities added.")
+            return rc
+    return 0
+
+
+aliases["sshc"] = _sshc
+
+
+def _ssh(args, stdin=None):
+    rc = _sshc([], None)
+    if rc != 0:
+        return rc
+    return subprocess.run(["ssh", *args], check=False).returncode
+
+
+aliases["ssh"] = _ssh
+aliases["cssh"] = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+aliases["csftp"] = "sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+
+
+def _fusermount_until_success(mountpoint, timeout=90):
+    start_time = time.time()
+    while True:
+        if subprocess.run(["fusermount3", "-u", mountpoint], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode == 0:
+            return 0
+        print("Failed, retrying..")
+        if time.time() - start_time >= timeout:
+            print(f"Timeout reached while trying to unmount: {mountpoint}", file=sys.stderr)
+            return 1
+        time.sleep(0.5)
+
+
+def _fusermount_until_success_alias(args, stdin=None):
+    if not args:
+        print("Usage: fusermount_until_success <mountpoint> [timeout]")
+        return 1
+    mountpoint = args[0]
+    timeout = int(args[1]) if len(args) > 1 else 90
+    return _fusermount_until_success(mountpoint, timeout)
+
+
+aliases["fusermount_until_success"] = _fusermount_until_success_alias
+
+
+def _parse_opts(args, option_map):
+    values = {v: "" for v in option_map.values()}
+    positional = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in option_map:
+            if i + 1 >= len(args):
+                print(f"Missing value for {a}", file=sys.stderr)
+                return None, None
+            values[option_map[a]] = args[i + 1]
+            i += 2
+            continue
+        if a.startswith("-"):
+            print(f"Unknown option: {a}", file=sys.stderr)
+            return None, None
+        positional.append(a)
+        i += 1
+    return values, positional
+
+
+def _cifs_common(args, open_nautilus=False):
+    values, _ = _parse_opts(
+        args,
+        {
+            "-n": "name",
+            "--name": "name",
+            "-i": "ip",
+            "--ip": "ip",
+            "-s": "share",
+            "--share": "share",
+            "-u": "username",
+            "--username": "username",
+            "-d": "domain",
+            "--domain": "domain",
+            "-P": "password",
+            "--password": "password",
+        },
+    )
+    if values is None:
+        return 1
+    share = values["share"] or "Public"
+    if not values["ip"] or not values["username"] or not values["password"]:
+        print("Usage: cifsattach -i ip -u username -P password [-d domain] [-s share] [-n name]")
+        return 1
+
+    if values["name"]:
+        mountpoint = f"/tmp/{values['name']}"
+        Path(mountpoint).mkdir(parents=True, exist_ok=True)
+    else:
+        mountpoint = tempfile.mkdtemp(prefix="cifs.", dir="/tmp")
+
+    print(f"Mounting //{values['ip']}/{share} to {mountpoint}...")
+    opts = f"username={values['username']},password={values['password']},uid=1000,gid=1000"
+    if values["domain"]:
+        opts += f",domain={values['domain']}"
+
+    rc = subprocess.run(
+        ["sudo", "mount", "-t", "cifs", f"//{values['ip']}/{share}", mountpoint, "-o", opts],
+        check=False,
+    ).returncode
+    if rc == 0:
+        print(f"Mounted at {mountpoint}")
+        if open_nautilus:
+            subprocess.Popen(
+                ["nautilus", mountpoint],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        input("Press Enter to unmount...")
+        subprocess.run(["sudo", "umount", mountpoint], check=False)
+    else:
+        print("Failed to mount CIFS share!")
+
+    try:
+        Path(mountpoint).rmdir()
+    except OSError:
+        print("Failed to clean up mount point!")
+    return rc
+
+
+def _cifsattach(args, stdin=None):
+    return _cifs_common(args, open_nautilus=False)
+
+
+def _ncifsattach(args, stdin=None):
+    return _cifs_common(args, open_nautilus=True)
+
+
+aliases["cifsattach"] = _cifsattach
+aliases["ncifsattach"] = _ncifsattach
+
+
+def _sshfs_common(args, open_nautilus=False):
+    subprocess.run(
+        "grep -q '^user_allow_other' /etc/fuse.conf || "
+        "echo 'user_allow_other' | sudo tee -a /etc/fuse.conf >/dev/null",
+        shell=True,
+        executable="/bin/sh",
+        check=False,
+    )
+    values, positional = _parse_opts(args, {"-n": "name", "--name": "name", "-p": "port", "--port": "port"})
+    if values is None:
+        return 1
+    if len(positional) != 1:
+        print("Usage: sshfsattach [-n name] [-p port] user@host:/remote/path")
+        return 1
+    remote_source = positional[0]
+    if values["name"]:
+        mountpoint = f"/tmp/{values['name']}"
+        Path(mountpoint).mkdir(parents=True, exist_ok=True)
+    else:
+        mountpoint = tempfile.mkdtemp(prefix="sshfs.", dir="/tmp")
+
+    uid = os.getuid()
+    gid = os.getgid()
+    sshfs_opts = f"reconnect,uid={uid},gid={gid},cache=yes,compression=yes,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3,allow_root"
+    if values["port"]:
+        sshfs_opts += f",port={values['port']}"
+    print(f"Mounting {remote_source} to {mountpoint}...")
+    rc = subprocess.run(["sshfs", remote_source, mountpoint, "-o", sshfs_opts], check=False).returncode
+    if rc == 0:
+        print(f"Mounted at {mountpoint}")
+        if open_nautilus:
+            subprocess.Popen(
+                ["nautilus", mountpoint],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        input("Press Enter to unmount...")
+        _fusermount_until_success(mountpoint)
+    else:
+        print("Failed to mount remote source!")
+    try:
+        Path(mountpoint).rmdir()
+    except OSError:
+        print("Failed to clean up mount point!")
+    return rc
+
+
+def _sshfsattach(args, stdin=None):
+    return _sshfs_common(args, open_nautilus=False)
+
+
+def _nsshfsattach(args, stdin=None):
+    return _sshfs_common(args, open_nautilus=True)
+
+
+aliases["sshfsattach"] = _sshfsattach
+aliases["nsshfsattach"] = _nsshfsattach
+
+
+def _make_ssh_machine_alias(name, user, opts, endpoints):
+    def _generated(args, stdin=None):
+        selected = _ssh_pick_endpoint_candidates(endpoints)
+        if not selected:
+            print(f"No reachable endpoint for {name}", file=sys.stderr)
+            return 1
+        ep, port, extra = selected
+        rc = _sshc([], None)
+        if rc != 0:
+            return rc
+        cmd = ["ssh", "-p", str(port)]
+        if opts:
+            cmd.extend(shlex.split(opts))
+        if extra:
+            cmd.extend(shlex.split(extra))
+        target = f"{user}@{ep}" if user else ep
+        cmd.append(target)
+        cmd.extend(args)
+        return subprocess.run(cmd, check=False).returncode
+
+    return _generated
+
+
+def _ssh_generate_functions(args, stdin=None):
+    raw = __xonsh__.env.get("SSH_MACHINES", [])
+    machines = raw if isinstance(raw, (list, tuple)) else [raw] if raw else []
+    for entry in machines:
+        parts = str(entry).split("|", 3)
+        if len(parts) != 4:
+            continue
+        name, user, opts, endpoints_str = parts
+        endpoints = endpoints_str.split()
+        if not name or not endpoints:
+            continue
+        aliases[name] = _make_ssh_machine_alias(name, user, opts, endpoints)
+    return 0
+
+
+aliases["__ssh_generate_functions"] = _ssh_generate_functions
+
+if not __xonsh__.env.get("SSH_AUTH_SOCK") and __xonsh__.env.get("XDG_RUNTIME_DIR"):
+    $SSH_AUTH_SOCK = f"{__xonsh__.env['XDG_RUNTIME_DIR']}/ssh-agent.socket"
+
+gpg_sock_proc = subprocess.run(
+    ["gpgconf", "--list-dirs", "agent-ssh-socket"],
+    capture_output=True,
+    text=True,
+    check=False,
+)
+if gpg_sock_proc.returncode == 0 and gpg_sock_proc.stdout.strip():
+    $SSH_AUTH_SOCK = gpg_sock_proc.stdout.strip()
+
+if _cmd_exists("okc-gpg") and _cmd_exists("okc-ssh-agent"):
+    okc_proc = subprocess.run(["okc-ssh-agent"], capture_output=True, text=True, check=False)
+    if okc_proc.returncode == 0:
+        for line in okc_proc.stdout.splitlines():
+            if "=" not in line:
+                continue
+            key, val = line.split("=", 1)
+            key = key.strip()
+            val = val.split(";", 1)[0].strip()
+            if key and val:
+                __xonsh__.env[key] = val
+
+_ssh_generate_functions([], None)

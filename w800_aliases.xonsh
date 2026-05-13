@@ -1,0 +1,3 @@
+_toolchain_path = "/opt/t-head/csky-elfabiv2-tools/bin"
+if _toolchain_path not in $PATH:
+    $PATH.insert(0, _toolchain_path)

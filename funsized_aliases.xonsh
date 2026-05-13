@@ -2,9 +2,6 @@ import os
 import subprocess
 from pathlib import Path
 
-$DEFAULT_TTYACM = "/dev/ttyACM1"
-$DEFAULT_TTYUSB = "/dev/ttyUSB0"
-
 
 def _bake(args, stdin=None):
     if not args:
@@ -13,7 +10,7 @@ def _bake(args, stdin=None):
     old_cwd = os.getcwd()
     os.chdir("/home/bill88t/git/Beryllium")
     try:
-        build_dir = "/tmp/BUILD"
+        build_dir = "/home/bill88t/BUILD"
         print(f"Cleaning {build_dir}")
         if Path(build_dir).exists():
             subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)

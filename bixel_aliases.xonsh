@@ -1,0 +1,12 @@
+import os
+import subprocess
+
+aliases["st"] = "cd ~/storage/shared/Download"
+aliases["py"] = "python3"
+aliases["cdd"] = "cd ~/storage/shared/Download/"
+aliases["cds"] = "cd ~/storage/shared/"
+
+_termux_shortcuts = "/data/data/com.termux/files/home/.shortcuts"
+if _termux_shortcuts not in $PATH:
+    $PATH.append(_termux_shortcuts)
+$GPG_TTY = subprocess.run(["tty"], capture_output=True, text=True, check=False).stdout.strip()

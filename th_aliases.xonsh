@@ -1,0 +1,52 @@
+import subprocess
+
+aliases["thcut"] = "python3 -c \"from pytherm import thermal;a=thermal();a.cut()\""
+aliases["thline"] = "python3 -c \"from pytherm import thermal;a=thermal();a.line()\""
+aliases["thdoujin"] = "python3 /home/bill88t/git/dotfiles/thdoujin.py"
+$PYTHONPATH = "/home/bill88t/git/pytherm/"
+
+
+def _thimg(args, stdin=None):
+    if len(args) != 1:
+        print("Usage: thimg <path>")
+        return 1
+    return subprocess.run(
+        ["python3", "-c", f'from pytherm import thermal;a=thermal();a.image("{args[0]}");a.cut()'],
+        check=False,
+    ).returncode
+
+
+def _thcat(args, stdin=None):
+    if len(args) != 1:
+        print("Usage: thcat <path>")
+        return 1
+    return subprocess.run(
+        ["python3", "-c", f'from pytherm import thermal;a=thermal();a.cat("{args[0]}");a.cut()'],
+        check=False,
+    ).returncode
+
+
+def _uthcat(args, stdin=None):
+    if len(args) != 1:
+        print("Usage: uthcat <path>")
+        return 1
+    return subprocess.run(
+        ["python3", "-c", f'from pytherm import thermal;a=thermal();a.cat("{args[0]}")'],
+        check=False,
+    ).returncode
+
+
+def _thqr(args, stdin=None):
+    if len(args) != 1:
+        print("Usage: thqr <text>")
+        return 1
+    return subprocess.run(
+        ["python3", "-c", f'from pytherm import thermal;a=thermal();a.qr("{args[0]}")'],
+        check=False,
+    ).returncode
+
+
+aliases["thimg"] = _thimg
+aliases["thcat"] = _thcat
+aliases["uthcat"] = _uthcat
+aliases["thqr"] = _thqr

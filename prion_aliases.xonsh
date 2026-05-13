@@ -1,0 +1,45 @@
+import os
+import subprocess
+from pathlib import Path
+
+aliases["raids"] = "sudo btrfs filesystem usage /mnt/Array && echo && sudo btrfs device stats /mnt/Array"
+aliases["rcon"] = 'mcrcon -P 25575 -p "$MCRCON"'
+aliases["cin"] = "startx /usr/bin/cinnamon-session && clear"
+
+
+def _do_bake(image, include_x):
+    old_cwd = os.getcwd()
+    os.chdir("/home/bill88t/git/BredOS")
+    try:
+        build_dir = "/mnt/Array/BUILD"
+        print(f"Cleaning {build_dir}")
+        if Path(build_dir).exists():
+            subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
+        subprocess.run(["mkdir", "-p", build_dir], check=False)
+        cmd = ["sudo", "mkimage/mkimage.py", "-w", build_dir, "-o", "/mnt/Array/Images", "-c", f"./images/{image}/"]
+        if include_x:
+            cmd.append("-x")
+        rc = subprocess.run(cmd, check=False).returncode
+        if rc != 0:
+            subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
+        return rc
+    finally:
+        os.chdir(old_cwd)
+
+
+def _bake(args, stdin=None):
+    if not args:
+        print("Usage: bake <image-config-dir>")
+        return 1
+    return _do_bake(args[0], include_x=True)
+
+
+def _cbake(args, stdin=None):
+    if not args:
+        print("Usage: cbake <image-config-dir>")
+        return 1
+    return _do_bake(args[0], include_x=False)
+
+
+aliases["bake"] = _bake
+aliases["cbake"] = _cbake

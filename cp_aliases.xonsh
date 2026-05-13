@@ -1,33 +1,321 @@
-aliases["espload"] = "source-bash ~/git/esp-idf-v5.3/export.sh"
-aliases["espload4"] = "source-bash ~/git/esp-idf-v5.4.1/export.sh"
-aliases["espmload"] = "source-bash ~/git/esp-idf-master/export.sh"
+import os
+import re
+import shlex
+import subprocess
+import time
+from pathlib import Path
 
-$DEFAULT_IDF = "~/git/esp-idf-v5.3/export.sh"
+ESP_EXPORT_SCRIPTS = {
+    "espload": Path("~/git/esp-idf-v5.5.3/export.sh").expanduser(),
+    "esp6load": Path("~/git/esp-idf-v6.0.1/export.sh").expanduser(),
+}
 
-class safenv:
-    def __enter__(self):
-        self._og = __xonsh__.env.detype()
+_ESP_ENV_CACHE = {}
+_NUM_CPUS = os.cpu_count() or 1
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        for i in __xonsh__.env.keys():
-            if i not in self._og.keys():
-                del __xonsh__.env[i]
-            else:
-                __xonsh__.env[i] = self._og[i]
 
-def utio_chipid():
-    with safenv():
-        espload
-        while not os.path.exists({$DEFAULT_TTYACM}):
-            print('Waiting for board..')
-            time.sleep 1
-        esptool.py --port /dev/ttyUSB0 chip_id
+def _load_env_from_export_script(script_path):
+    script_path = Path(script_path).expanduser()
+    if not script_path.is_file():
+        return None
+    proc = subprocess.run(
+        ["/bin/sh", "-lc", f". {shlex.quote(str(script_path))} >/dev/null 2>&1; env -0"],
+        capture_output=True,
+        text=False,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return None
+    env = {}
+    for chunk in proc.stdout.split(b"\0"):
+        if not chunk or b"=" not in chunk:
+            continue
+        key, value = chunk.split(b"=", 1)
+        env[key.decode(errors="ignore")] = value.decode(errors="ignore")
+    return env
 
-aliases["utio-chipid"] = utio_chipid
-del utio_chipid
 
-# alias utio-bchipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyUSB0 --before no_reset --after no_reset chip_id)"
-# alias atio-chipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyACM0 chip_id)"
-# alias atio-bchipid="(${BASH_ALIASES[espload]} && while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --port /dev/ttyACM0 --before no_reset --after no_reset chip_id)"
+def _activate_esp_env(alias_name):
+    script = ESP_EXPORT_SCRIPTS.get(alias_name)
+    if script is None:
+        print(f"Unknown ESP export alias: {alias_name}")
+        return 1
+    cache_key = str(script)
+    env = _ESP_ENV_CACHE.get(cache_key)
+    if env is None:
+        env = _load_env_from_export_script(script)
+        if env is None:
+            print(f"Failed to load ESP-IDF environment from: {script}")
+            return 1
+        _ESP_ENV_CACHE[cache_key] = env
+    for k, v in env.items():
+        __xonsh__.env[k] = v
+    return 0
 
-NUM_CPUS=$(nproc)
+
+def _make_env_alias(alias_name):
+    def _runner(args, stdin=None):
+        return _activate_esp_env(alias_name)
+
+    return _runner
+
+
+aliases["espload"] = _make_env_alias("espload")
+aliases["esp6load"] = _make_env_alias("esp6load")
+
+
+def _wait_for_device(path):
+    while not Path(path).exists():
+        print("Waiting for board..")
+        time.sleep(1)
+
+
+def _chip_id(port, no_reset=False):
+    rc = _activate_esp_env("espload")
+    if rc != 0:
+        return rc
+    _wait_for_device(port)
+    cmd = ["esptool.py", "--port", port]
+    if no_reset:
+        cmd.extend(["--before", "no_reset", "--after", "no_reset"])
+    cmd.append("chip_id")
+    return subprocess.run(cmd, check=False).returncode
+
+
+aliases["utio-chipid"] = (lambda args, stdin=None: _chip_id("/dev/ttyUSB0", no_reset=False))
+aliases["utio-bchipid"] = (lambda args, stdin=None: _chip_id("/dev/ttyUSB0", no_reset=True))
+aliases["atio-chipid"] = (lambda args, stdin=None: _chip_id("/dev/ttyACM0", no_reset=False))
+aliases["atio-bchipid"] = (lambda args, stdin=None: _chip_id("/dev/ttyACM0", no_reset=True))
+
+
+def _find_mount_by_label(label_hint):
+    proc = subprocess.run(
+        ["lsblk", "-o", "LABEL,MOUNTPOINT", "-nr"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return ""
+    for line in proc.stdout.splitlines():
+        parts = line.split(None, 1)
+        if len(parts) != 2:
+            continue
+        label, mountpoint = parts
+        if label_hint in label and mountpoint:
+            return mountpoint.strip()
+    return ""
+
+
+def _cp_make(board, debug=False, clean=False):
+    cmd = ["make"]
+    if not clean:
+        cmd.extend([f"-j{_NUM_CPUS}", "V=steps rules"])
+    else:
+        cmd.extend(["V=0"])
+    cmd.append(f"BOARD={board}")
+    if clean:
+        cmd.append("clean")
+    if debug and not clean:
+        cmd.append("DEBUG=1")
+    return subprocess.run(cmd, check=False).returncode
+
+
+def _cp_make_clean_then_build(board, debug=False):
+    rc = subprocess.run(["make", f"-j{_NUM_CPUS}", "V=steps rules", f"BOARD={board}", "clean"], check=False).returncode
+    if rc != 0:
+        return rc
+    cmd = ["make", f"-j{_NUM_CPUS}", "V=steps rules", f"BOARD={board}"]
+    if debug:
+        cmd.append("DEBUG=1")
+    return subprocess.run(cmd, check=False).returncode
+
+
+def _cp_load_uf2(board, boot_label):
+    mountpoint = _find_mount_by_label(boot_label)
+    if not mountpoint:
+        print(f"Could not find mounted UF2 drive matching label: {boot_label}")
+        return 1
+    fw = Path(f"build-{board}") / "firmware.uf2"
+    if not fw.is_file():
+        print(f"Missing firmware: {fw}")
+        return 1
+    print("Loading..")
+    rc = subprocess.run(["cp", str(fw), str(Path(mountpoint) / "firmware.uf2")], check=False).returncode
+    if rc == 0:
+        subprocess.run(["sync"], check=False)
+    return rc
+
+
+def _cp_flash(board, chip, baud, port, ff, fm, before_no_reset=False, erase=False, raw_args=None):
+    rc = _activate_esp_env("espload")
+    if rc != 0:
+        return rc
+    _wait_for_device(port)
+    if erase:
+        cmd = ["esptool.py", "--after", "no_reset", "-c", chip]
+        if before_no_reset:
+            cmd.extend(["--before", "no_reset", "--after", "no_reset"])
+        cmd.extend(["-p", port, "-b", str(baud), "erase_flash"])
+        return subprocess.run(cmd, check=False).returncode
+
+    cmd = ["esptool.py", "-c", chip]
+    if before_no_reset:
+        cmd.extend(["--before", "no_reset", "--after", "no_reset"])
+    cmd.extend(["-p", port, "-b", str(baud), "write_flash", "-fm", fm, "-ff", ff, "0x0"])
+    if raw_args:
+        cmd.extend(raw_args)
+    else:
+        cmd.append(f"build-{board}/firmware.bin")
+    return subprocess.run(cmd, check=False).returncode
+
+
+def _cp_dump(board, chip, baud, port):
+    rc = _activate_esp_env("espload")
+    if rc != 0:
+        return rc
+    size_proc = subprocess.run(
+        ["esptool.py", "-b", str(baud), "-p", port, "flash_id"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if size_proc.returncode != 0:
+        return size_proc.returncode
+    size_hex = ""
+    for line in size_proc.stdout.splitlines():
+        if "flash size:" in line:
+            m = re.search(r"(\d+)\s*MB", line)
+            if m:
+                size_hex = hex(int(m.group(1)) * 1024 * 1024)
+            break
+    if not size_hex:
+        size_hex = "0x400000"
+    return subprocess.run(
+        ["esptool.py", "-c", chip, "-b", str(baud), "-p", port, "read_flash", "0x0", size_hex, "backup.bin"],
+        check=False,
+    ).returncode
+
+
+def _register_make_aliases(prefix, board, mode, chip="", baud="", port="", ff="", fm="", boot_label=""):
+    def _mk(action):
+        def _runner(args, stdin=None):
+            rc = _activate_esp_env("espload")
+            if rc != 0:
+                return rc
+            if action == "m":
+                return _cp_make(board, debug=False, clean=False)
+            if action == "c":
+                return _cp_make(board, clean=True)
+            if action == "cm":
+                return _cp_make_clean_then_build(board, debug=False)
+            if action == "dm":
+                return _cp_make(board, debug=True, clean=False)
+            if action == "dcm":
+                return _cp_make_clean_then_build(board, debug=True)
+            if action == "l":
+                return _cp_load_uf2(board, boot_label)
+            if action == "f":
+                print("Flashing..")
+                return _cp_flash(board, chip, baud, port, ff, fm, before_no_reset=False)
+            if action == "bf":
+                print("Flashing..")
+                return _cp_flash(board, chip, baud, port, ff, fm, before_no_reset=True)
+            if action == "df":
+                print("Flashing..")
+                return _cp_flash(board, chip, baud, port, ff, fm, before_no_reset=False, raw_args=args)
+            if action == "bdf":
+                print("Flashing..")
+                return _cp_flash(board, chip, baud, port, ff, fm, before_no_reset=True, raw_args=args)
+            if action == "w":
+                print("Wiping..")
+                return _cp_flash(board, chip, baud, port, ff, fm, erase=True)
+            if action == "bw":
+                print("Wiping..")
+                return _cp_flash(board, chip, baud, port, ff, fm, before_no_reset=True, erase=True)
+            if action == "gdb":
+                return subprocess.run(
+                    ["gdb", "-ex", "target extended-remote localhost:3333", f"build-{board}/firmware.elf"],
+                    check=False,
+                ).returncode
+            if action == "dump":
+                return _cp_dump(board, chip, baud, port)
+            return 1
+
+        return _runner
+
+    for action in ("m", "c", "cm", "dm", "dcm", "gdb", "dump"):
+        aliases[f"{prefix}-{action}"] = _mk(action)
+    if mode in ("both", "uf2"):
+        aliases[f"{prefix}-l"] = _mk("l")
+    if mode in ("both", "flash"):
+        for action in ("f", "bf", "df", "bdf", "w", "bw"):
+            aliases[f"{prefix}-{action}"] = _mk(action)
+
+
+for cfg in [
+    ("pico", "raspberry_pi_pico", "uf2", "", "", "", "", "", "RPI-RP2"),
+    ("pico2", "raspberry_pi_pico2", "uf2", "", "", "", "", "", "RP2350"),
+    ("picow", "raspberry_pi_pico_w", "uf2", "", "", "", "", "", "RPI-RP2"),
+    ("ppl16", "pimoroni_picolipo_16mb", "uf2", "", "", "", "", "", "RPI-RP2"),
+    ("ppl4", "pimoroni_picolipo_4mb", "uf2", "", "", "", "", "", "RPI-RP2"),
+    ("rp2z", "waveshare_rp2040_zero", "uf2", "", "", "", "", "", "RPI-RP2"),
+    ("rp2t", "waveshare_rp2040_tiny", "uf2", "", "", "", "", "", "RPI-RP2"),
+    ("f2350", "adafruit_feather_rp2350", "uf2", "", "", "", "", "", "RP2350"),
+    ("sx52", "Seeed_XIAO_nRF52840_Sense", "uf2", "", "", "", "", "", "XIAO-SENSE"),
+    ("wspico", "waveshare_esp32s2_pico", "both", "esp32s2", "115200", "/dev/ttyACM0", "80m", "keep", "ESP32S2PICO"),
+    ("beetlec3", "beetle-esp32-c3", "flash", "esp32c3", "115200", "/dev/ttyACM0", "40m", "keep", "None"),
+    ("yd16", "yd_esp32_s3_n16r8", "both", "esp32s3", "2000000", "/dev/ttyACM0", "80m", "keep", "YDESP32S3"),
+    ("ttgoten", "lilygo_ttgo_tenergy", "flash", "esp32", "115200", "/dev/ttyUSB0", "40m", "keep", "None"),
+    ("s3tft", "adafruit_feather_esp32s3_tft", "both", "esp32s3", "115200", "/dev/ttyACM0", "40m", "keep", "FTHRS3BOOT"),
+    ("m5x", "m5stack_timer_camera_x", "flash", "esp32", "115200", "/dev/ttyUSB0", "80m", "qio", "None"),
+    ("wc6", "weact_esp32c6_n4", "flash", "esp32c6", "921600", "/dev/ttyACM0", "40m", "keep", "None"),
+    ("fbs3", "firebeetle2_esp32s3", "both", "esp32s3", "2000000", "/dev/ttyACM0", "80m", "keep", "FIRE2BOOT"),
+    ("ls2", "lolin_s2_mini", "both", "esp32s2", "115200", "/dev/ttyACM0", "80m", "keep", "S2MINIBOOT"),
+    ("espcam", "ai_thinker_esp32_cam", "flash", "esp32", "921600", "/dev/ttyUSB0", "80m", "qio", "None"),
+    ("monster", "monster", "flash", "esp32", "921600", "/dev/ttyUSB0", "80m", "qio", "None"),
+    ("c3sm", "makergo_esp32c3_supermini", "flash", "esp32c3", "2000000", "/dev/ttyACM0", "80m", "keep", "None"),
+    ("c6sm", "makergo_esp32c6_supermini", "flash", "esp32c6", "2000000", "/dev/ttyACM0", "80m", "keep", "None"),
+    ("esp32lite", "wemos_lolin32_lite", "flash", "esp32", "2000000", "/dev/ttyUSB0", "80m", "keep", "None"),
+    ("cardputer", "m5stack_cardputer", "both", "esp32s3", "2000000", "/dev/ttyACM0", "keep", "keep", "M5S3BOOT"),
+    ("nodec2", "nodemcu_esp32c2", "flash", "esp32c2", "921600", "/dev/ttyUSB0", "60m", "keep", "None"),
+    ("tws3", "lilygo_twatch_s3", "both", "esp32s3", "921600", "/dev/ttyACM0", "80m", "keep", "TWS3BOOT"),
+    ("ws3z", "waveshare_esp32_s3_zero", "both", "esp32s3", "2000000", "/dev/ttyACM0", "80m", "keep", "WS3ZEROBOOT"),
+    ("tdeck", "lilygo_tdeck", "both", "esp32s3", "2000000", "/dev/ttyACM0", "80m", "keep", "TDECKBOOT"),
+    ("c3lcd", "01space_lcd042_esp32c3", "flash", "esp32c3", "2000000", "/dev/ttyACM0", "80m", "keep", "None"),
+    ("wsh2", "waveshare_esp32h2", "flash", "esp32h2", "2000000", "/dev/ttyACM1", "48m", "keep", "None"),
+    ("ws3lcd", "waveshare_esp32_s3_touch_lcd_1_54", "flash", "esp32s3", "2000000", "/dev/ttyACM0", "80m", "keep", "WSS3BOOT"),
+    ("wio", "seeeduino_wio_terminal", "uf2", "", "", "", "", "", "Arduino"),
+    ("m2s3", "beryllium_m2s3", "both", "esp32s3", "2000000", "/dev/ttyACM0", "80m", "keep", "M2S3"),
+]:
+    _register_make_aliases(*cfg)
+
+
+def _ffmpeg_wav(args, stdin=None):
+    if len(args) < 2:
+        print("Usage: ffmpeg_wav <input.mp3> <output.wav> [additional ffmpeg options]")
+        return 1
+    input_file = args[0]
+    output_file = args[1]
+    extra = args[2:]
+    cmd = [
+        "ffmpeg",
+        "-i",
+        input_file,
+        "-bitexact",
+        "-acodec",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-map_metadata",
+        "-1",
+        "-bitexact",
+        *extra,
+        output_file,
+    ]
+    return subprocess.run(cmd, check=False).returncode
+
+
+aliases["ffmpeg_wav"] = _ffmpeg_wav

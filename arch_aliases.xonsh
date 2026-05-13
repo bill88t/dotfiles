@@ -1,0 +1,148 @@
+import os
+import shutil
+import subprocess
+from pathlib import Path
+
+aliases["yayau"] = "while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns $(pacman -Qdtq); done"
+aliases["yayauf"] = "while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns --noconfirm $(pacman -Qdtq); done"
+aliases["yaycc"] = r"""
+echo "==> Removing orphaned packages..."
+orphans=$(pacman -Qdtq 2>/dev/null)
+if [ -n "$orphans" ]; then
+  sudo pacman -Rns --noconfirm $orphans
+else
+  echo "   No orphans found."
+fi
+echo "==> Cleaning pacman cache..."
+sudo rm -rf /var/cache/pacman/pkg/download-* 2>/dev/null || true
+if [ -d ~/Built ]; then
+  echo "==> Cleaning ~/Built..."
+  rm -rf ~/Built/* 2>/dev/null || true
+fi
+echo "==> Deep cleaning yay cache..."
+yes | yay -Scc >/dev/null 1>/dev/null 2>/dev/null
+"""
+aliases["yayc"] = "yes | yay -Scc"
+aliases["yayd"] = "yay -Su --devel"
+aliases["yayexpl"] = "yay -Qeq"
+aliases["mksrc"] = "(updpkgsums || true) && (makepkg --printsrcinfo > .SRCINFO || true)"
+aliases["mkncs"] = "makepkg -rA --skipchecksums --skippgpcheck -s"
+aliases["mkncsi"] = "makepkg -rA --skipchecksums --skippgpcheck -si"
+aliases["mkncsif"] = "makepkg -rA --skipchecksums --skippgpcheck -si --noconfirm"
+aliases["mks"] = "(updpkgsums || true) && makepkg -sr"
+aliases["mksi"] = "(updpkgsums || true) && makepkg -si"
+aliases["mksif"] = "(updpkgsums || true) && makepkg -si --noconfirm"
+aliases["mkndcs"] = "makepkg -dA --skipchecksums --skippgpcheck -s"
+aliases["mkndcsi"] = "makepkg -dA --skipchecksums --skippgpcheck -si"
+aliases["mkndcsif"] = "makepkg -dA --skipchecksums --skippgpcheck -si --noconfirm"
+aliases["mkr"] = "(updpkgsums || true) && rm -rf src *.zst && makepkg -sr"
+aliases["mkri"] = "(updpkgsums || true) && rm -rf src *.zst && makepkg -si"
+aliases["mkrif"] = "(updpkgsums || true) && rm -rf src *.zst && makepkg -si --noconfirm"
+aliases["mkndcr"] = "rm -rf src *.zst && makepkg -dA --skipchecksums --skippgpcheck -s"
+aliases["mkndcri"] = "rm -rf src *.zst && makepkg -dA --skipchecksums --skippgpcheck -si"
+aliases["mkndcrif"] = "rm -rf src *.zst && makepkg -dA --skipchecksums --skippgpcheck -si --noconfirm"
+aliases["mksd"] = "(updpkgsums || true) && makepkg -sd"
+aliases["mksdi"] = "(updpkgsums || true) && makepkg -sid"
+aliases["mksdif"] = "(updpkgsums || true) && makepkg -sid --noconfirm"
+aliases["mkdl"] = "(updpkgsums || true) && makepkg --nobuild"
+aliases["mkc"] = "rm -rf pkg src"
+aliases["mkcc"] = "([ -d ~/Built ] && rm ~/Built/* 2>/dev/null || true) && rm -rf pkg src *.zst"
+aliases["mkrpk"] = "makepkg -Rdf"
+aliases["mkms"] = "makepkg --noprepare --noextract -df"
+
+
+def _yaydown(args, stdin=None):
+    if not args:
+        print("Usage: yaydown <pkg> [pkg..]")
+        return 1
+    for pkg in args:
+        file_proc = subprocess.run(
+            ["pacman", "-Sp", pkg, f"--cachedir={os.getcwd()}", "--noconfirm"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if file_proc.returncode != 0:
+            return file_proc.returncode
+        filename = os.path.basename(file_proc.stdout.strip())
+        rc = subprocess.run(
+            ["sudo", "pacman", "-Sw", f"--cachedir={os.getcwd()}", "--noconfirm", pkg],
+            check=False,
+        ).returncode
+        if rc != 0:
+            return rc
+        rc = subprocess.run(["sudo", "chown", f"{os.getuid()}:{os.getgid()}", filename], check=False).returncode
+        if rc != 0:
+            return rc
+        subprocess.run(["sudo", "rm", "-f", f"{filename}.sig"], check=False)
+    return 0
+
+
+aliases["yaydown"] = _yaydown
+
+
+def _find_pkg_in_dir(directory, strict_pattern, loose_pattern):
+    d = Path(directory)
+    if not d.is_dir():
+        return ""
+    matches = sorted(d.rglob(strict_pattern))
+    if not matches:
+        matches = sorted(d.rglob(loose_pattern))
+    return str(matches[-1]) if matches else ""
+
+
+def _upkg(args, stdin=None):
+    if len(args) != 1:
+        print("Usage: upkg <pkg>")
+        return 1
+    pkg = args[0]
+    built_dir = Path.home() / "Built"
+    cache_dir = Path.home() / ".cache" / "yay" / pkg
+    strict_pattern = f"{pkg}-[0-9]*-[0-9]*-*.pkg.tar.zst"
+    loose_pattern = f"{pkg}-*-[0-9]*-*.pkg.tar.zst"
+
+    newpkg = _find_pkg_in_dir(built_dir, strict_pattern, loose_pattern)
+    if not newpkg:
+        newpkg = _find_pkg_in_dir(cache_dir, strict_pattern, loose_pattern)
+    if not newpkg:
+        print(f"No new package for {pkg} found in {built_dir} or {cache_dir}")
+        return 1
+
+    fname = os.path.basename(newpkg)
+    arch = fname.removesuffix(".pkg.tar.zst").split("-")[-1]
+    if arch == "any":
+        repo_dir = Path.home() / "Repo" / "repo" / "BredOS-any" / "any"
+    else:
+        repo_dir = Path.home() / "Repo" / "repo" / "BredOS" / arch
+    if not repo_dir.is_dir():
+        print(f"Repo directory not found: {repo_dir}")
+        return 1
+
+    old_cwd = os.getcwd()
+    os.chdir(repo_dir)
+    try:
+        old_matches = sorted(Path(".").rglob(loose_pattern))
+        oldpkg = str(old_matches[-1]) if old_matches else ""
+        if oldpkg:
+            subprocess.run(["./db.sh", "remove", pkg], check=False)
+            subprocess.run(["rm", "-f", oldpkg, f"{oldpkg}.sig"], check=False)
+
+        rc = subprocess.run(["cp", newpkg, "./"], check=False).returncode
+        if rc != 0:
+            return rc
+        basename = os.path.basename(newpkg)
+        gpsign_alias = aliases.get("gpsign")
+        if callable(gpsign_alias):
+            sign_rc = gpsign_alias([basename], None)
+            if sign_rc != 0:
+                return sign_rc
+        else:
+            rc = subprocess.run(["gpg", "--use-agent", "--output", f"{basename}.sig", "--detach-sig", basename], check=False).returncode
+            if rc != 0:
+                return rc
+        return subprocess.run(["./db.sh", "add", basename], check=False).returncode
+    finally:
+        os.chdir(old_cwd)
+
+
+aliases["upkg"] = _upkg

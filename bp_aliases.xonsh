@@ -2,8 +2,9 @@ import os
 import subprocess
 from pathlib import Path
 
-$DEFAULT_TTYACM = "/dev/ttyACM1"
-$DEFAULT_TTYUSB = "/dev/ttyUSB0"
+aliases["stio"] = "tio /dev/ttyS2"
+aliases["kde"] = "XDG_SESSION_TYPE=wayland QT_QPA_PLATFORM=wayland GDK_BACKEND=wayland dbus-run-session startplasma-wayland > /dev/null 2>&1"
+aliases["niri"] = "DISPLAY=:0 XDG_SESSION_TYPE=wayland QT_QPA_PLATFORM=wayland GDK_BACKEND=wayland dbus-run-session niri > /dev/null 2>&1"
 
 
 def _bake(args, stdin=None):
@@ -11,9 +12,9 @@ def _bake(args, stdin=None):
         print("Usage: bake <image-config-dir>")
         return 1
     old_cwd = os.getcwd()
-    os.chdir("/home/bill88t/git/Beryllium")
+    os.chdir("/home/bill88t/git/BredOS")
     try:
-        build_dir = "/tmp/BUILD"
+        build_dir = "/home/bill88t/BUILD"
         print(f"Cleaning {build_dir}")
         if Path(build_dir).exists():
             subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
@@ -30,7 +31,3 @@ def _bake(args, stdin=None):
 
 
 aliases["bake"] = _bake
-aliases["ledmod"] = r"(stty 115200 && echo -ne 'mod\n' >> /dev/ttyACM0)"
-aliases["ledoff"] = r"(stty 115200 && echo -ne 'off\n' >> /dev/ttyACM0)"
-aliases["ledrst"] = r"(stty 115200 && echo -ne 'rst\n' >> /dev/ttyACM0)"
-aliases["ledprog"] = r"(stty 115200 && echo -ne 'pro\n' >> /dev/ttyACM0)"
