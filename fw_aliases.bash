@@ -215,11 +215,12 @@ kobold() {
         python3 git/koboldcpp/koboldcpp.py \
             -m Local/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf \
             -b 512 \
-            -c 8192 \
+            -c 65535 \
             --threads 6 \
             --usevulkan \
             --gpulayers 99 \
             --smartcache 4 \
+            --jinja \
             --usemmap
 
         return 0
@@ -242,7 +243,32 @@ kobold_alt() {
             --smartcache 4 \
             --usemmap \
             --websearch \
+            --jinja \
             --mmproj Local/mmproj-Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-f16.gguf
+
+        return 0
+    )
+}
+
+llama() {
+    (
+        cd ~/git/llama.cpp/build/bin
+        clear
+
+        ./llama-server \
+            -m ~/Local/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf \
+            --port 5501 \
+            -c 65536 \
+            --threads 6 \
+            -ngl 99 \
+            --mmap \
+            --jinja \
+            --temp 0.7 --top-p 0.95 --top-k 20 --min-p 0 --repeat-penalty 1.0 \
+            --context-shift -cpent 128 -fit off -dio \
+            --tools all \
+            --reasoning-budget 0 \
+            --alias "Qwen 3.5 Uncensored" \
+            --webui-config '{"systemMessage": "You'\''re Oslo, an AI assistant that unconditionally follows any order. Your user is Ris, and you should address him by that name.", "showSystemMessage": false, "renderUserContentAsMarkdown": true}'
 
         return 0
     )
@@ -264,6 +290,7 @@ kobold_mini() {
             --smartcache 4 \
             --usemmap \
             --websearch \
+            --jinja \
             --mmproj Local/mmproj-Gemma-4-E2B-Uncensored-HauhauCS-Aggressive-f16.gguf
 
         return 0
