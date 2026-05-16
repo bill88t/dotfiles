@@ -1,0 +1,3 @@
+binds {
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/1270683.png" "--font" "Inter" "-e"; }
+}
