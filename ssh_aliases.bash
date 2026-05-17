@@ -32,39 +32,52 @@ __ssh_pick_endpoint() {
     done
 }
 
+__ssh_connect_machine() {
+    local name="$1"
+    local user="$2"
+    local opts="$3"
+    local endpoints_str="$4"
+    shift 4
+
+    local selected ep port extra pick_rc
+    local -a endpoints
+    read -ra endpoints <<< "$endpoints_str"
+
+    __ssh_pick_endpoint "${endpoints[@]}"
+    pick_rc=$?
+    [ $pick_rc -eq 130 ] && return 130
+    [ $pick_rc -ne 0 ] && {
+        echo "No reachable endpoint for $name" >&2
+        return $pick_rc
+    }
+
+    selected="$__ssh_selected_endpoint"
+    IFS=':' read -r ep port extra <<< "$selected"
+
+    if [ $# -gt 0 ]; then
+        local remote_cmd remote_payload
+        if [ $# -eq 1 ]; then
+            remote_cmd="$1"
+        else
+            printf -v remote_cmd '%q ' "$@"
+            remote_cmd="${remote_cmd% }"
+        fi
+        printf -v remote_payload '%q' "$remote_cmd"
+        ssh -t -p "$port" $opts ${extra} ${user:+$user@}$ep "exec bash --noprofile --norc -c $remote_payload"
+    else
+        ssh -p "$port" $opts ${extra} ${user:+$user@}$ep
+    fi
+}
+
 __ssh_generate_functions() {
     local entry name user opts endpoints_str
-    local -a endpoints
-    local ep port extra
 
     for entry in "${SSH_MACHINES[@]}"; do
         IFS='|' read -r name user opts endpoints_str <<< "$entry"
-        read -ra endpoints <<< "$endpoints_str"
 
         eval "
         $name() {
-            local selected ep port extra pick_rc
-            __ssh_pick_endpoint ${endpoints[*]@Q}
-            pick_rc=\$?
-            [ \$pick_rc -eq 130 ] && return 130
-            [ \$pick_rc -ne 0 ] && {
-                echo 'No reachable endpoint for $name' >&2
-                return \$pick_rc
-            }
-            selected=\"\$__ssh_selected_endpoint\"
-
-            IFS=':' read -r ep port extra <<< \"\$selected\"
-            if [ -S '\$SSH_AUTH_SOCK' ]; then
-                if [ '\$(ssh-add -l)' == 'The agent has no identities.' ]; then
-                    ssh-add
-                    echo 'SSH agent identities added.'
-                fi
-            fi
-            if [ \$# -gt 0 ]; then
-                ssh -t -p \$port $opts ${extra} ${user:+$user@}\$ep "exec \$SHELL -c \"\$@\"" -- \"\$@\"
-            else
-                ssh -p \$port $opts ${extra} ${user:+$user@}\$ep
-            fi
+            __ssh_connect_machine ${name@Q} ${user@Q} ${opts@Q} ${endpoints_str@Q} \"\$@\"
         }
         "
     done
