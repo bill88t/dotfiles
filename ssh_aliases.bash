@@ -60,7 +60,11 @@ __ssh_generate_functions() {
                     echo 'SSH agent identities added.'
                 fi
             fi
-            ssh -p \$port $opts ${extra} ${user:+$user@}\$ep \"\$@\"
+            if [ \$# -gt 0 ]; then
+                ssh -t -p \$port $opts ${extra} ${user:+$user@}\$ep "exec \$SHELL -c \"\$@\"" -- \"\$@\"
+            else
+                ssh -p \$port $opts ${extra} ${user:+$user@}\$ep
+            fi
         }
         "
     done
