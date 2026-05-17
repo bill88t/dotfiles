@@ -38,7 +38,7 @@
     },
 
     "custom/start": {
-        "format": "🍞",
+        "format": "🥞",
         "interval": 255,
         "on-click": "~/git/dotfiles/special_fuzzel",
         "tooltip": false
