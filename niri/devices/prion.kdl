@@ -1,3 +1,12 @@
 binds {
     Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/1270683.png" "--font" "Inter" "-e"; }
 }
+
+layout {
+    focus-ring {
+        width 3
+
+        active-color "#d92020"
+        inactive-color "#505050"
+    }
+}
