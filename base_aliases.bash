@@ -63,7 +63,7 @@ fpaste() {
     fi
 }
 
-alias reload='. ~/.bashrc'
+alias reload='exec bash'
 
 getal() {
     local a result offset
