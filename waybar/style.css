@@ -35,6 +35,7 @@ tooltip {
 #custom-cpu_sum,
 #custom-governor,
 #memory,
+#custom-vram,
 #battery,
 #network,
 #pulseaudio {
@@ -178,6 +179,7 @@ tooltip {
 #window,
 #custom-cpu_sum,
 #memory,
+#custom-vram,
 #network,
 #pulseaudio,
 #battery,

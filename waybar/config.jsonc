@@ -28,7 +28,7 @@
     "modules-right": [
         "custom/cpu_sum",
         "memory",
-        "custom/swap",
+        "custom/vram",
         "custom/governor",
         "network",
         "pulseaudio#source",
@@ -115,6 +115,12 @@
         "states": {
             "critical": 85
         }
+    },
+
+    "custom/vram": {
+        "exec": "~/git/dotfiles/waybar/vram_usage.sh",
+        "interval": 1,
+        "tooltip": true
     },
 
     "custom/vol_down": {
