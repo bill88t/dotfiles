@@ -1,4 +1,4 @@
-alias nht='nhentai --no-html -t $(getconf _NPROCESSORS_ONLN) --id'
+alias nht='doujinshi-dl --no-html -t $(getconf _NPROCESSORS_ONLN) --id'
 
 tempvenv() {
     local venv_dir
