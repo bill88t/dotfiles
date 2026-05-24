@@ -1,5 +1,5 @@
 #!/bin/bash
-DRM_BASE="/sys/class/drm/"
+DRM_BASE="/sys/class/drm"
 
 if [ -d "$DRM_BASE" ]; then
     HIGHEST_CARD_NUM=$(find $DRM_BASE -maxdepth 1 -name "card*" | grep -v -E '.*-' | awk -F'/' '{print $NF}' | sort -n | tail -n 1)
@@ -9,6 +9,11 @@ if [ -d "$DRM_BASE" ]; then
     fi
 
     TARGET_CARD_DIR="${DRM_BASE}/${HIGHEST_CARD_NUM}/device"
+
+    if [ ! -f "${TARGET_CARD_DIR}/mem_info_vram_used" ]; then
+        exit 1
+    fi
+
     USED_MEM=$(cat "${TARGET_CARD_DIR}/mem_info_vram_used")
     TOTAL_MEM=$(cat "${TARGET_CARD_DIR}/mem_info_vram_total")
     PERCENT=$(awk "BEGIN {printf \"%.0f\", ($USED_MEM * 100) / $TOTAL_MEM}")
