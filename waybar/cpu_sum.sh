@@ -17,3 +17,31 @@ percent=$(awk -v t0="$total0" -v i0="$idle0" -v t1="$total1" -v i1="$idle1" -v n
   }')
 
 printf "C %s%%\n" "$percent"
+
+# Append per-core frequencies: use /sys cpufreq when available, fallback to /proc/cpuinfo
+i=0
+while [ "$i" -lt "$n" ]; do
+    path="/sys/devices/system/cpu/cpu${i}/cpufreq/scaling_cur_freq"
+    if [ -r "$path" ]; then
+        val=$(cat "$path" 2>/dev/null)
+        # scaling_cur_freq is in kHz; convert to MHz (rounded)
+        mhz=$(awk -v v="$val" 'BEGIN{printf "%d", (v/1000)+0.5}')
+    else
+        mhz=$(awk -v cpu="$i" 'BEGIN{p=-1}
+            /^processor[[:space:]]*:/ {p=$3}
+            /^cpu MHz[[:space:]]*:/ && p==cpu {printf "%d", $4+0.5; exit}
+            END{if(p!=cpu) print "0"}' /proc/cpuinfo)
+    fi
+    if [ -z "$mhz" ]; then mhz=0; fi
+    if [ ! "$i" -lt "1" ]; then
+        echo -n " | "
+    fi
+    if [ "$mhz" -ge 1000 ]; then
+        ghz=$(awk -v m="$mhz" 'BEGIN{printf "%.2f", m/1000}')
+        echo -n "$i: $ghz GHz"
+    else
+        echo -n "$i: $mhz MHz"
+    fi
+    i=$((i+1))
+done
+

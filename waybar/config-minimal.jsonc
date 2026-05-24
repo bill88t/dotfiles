@@ -96,7 +96,8 @@
     "custom/cpu_sum": {
       "exec": "~/git/dotfiles/waybar/cpu_sum.sh",
       "interval": 1,
-      "format": "{}"
+      "format": "{}",
+      "tooltip": true
     },
 
     "memory": {
