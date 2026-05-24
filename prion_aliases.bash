@@ -9,8 +9,27 @@ nollm() {
     systemctl --user stop kobold.image
 }
 
-alias kobold="nollm && systemctl --user start kobold.cpp"
-alias kobold-image="nollm && systemctl --user start kobold.image"
-alias gemma="nollm && systemctl --user start llama.gemma"
-alias qwen="nollm && systemctl --user start llama.qwen"
-alias coder="nollm && systemctl --user start llama.coder"
+kobold() {
+    nollm
+    systemctl --user start kobold.cpp
+}
+
+kobold-image() {
+    nollm
+    systemctl --user start kobold.image
+}
+
+gemma() {
+    nollm
+    systemctl --user start llama.gemma
+}
+
+qwen() {
+    nollm
+    systemctl --user start llama.qwen
+}
+
+coder() {
+    nollm
+    systemctl --user start llama.coder
+}
