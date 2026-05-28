@@ -1,0 +1,29 @@
+environment {
+    QT_QPA_PLATFORMTHEME "qt6ct"
+}
+
+layout {
+    gaps 4
+
+    focus-ring {
+        active-color "#E6CB1F"
+   }
+
+    tab-indicator {
+        on
+        place-within-column
+        gap 1
+        width 6
+        length total-proportion=0.5
+        position "bottom"
+        gaps-between-tabs 2
+        corner-radius 8
+        active-color "#E6CB1F"
+        inactive-color "#000000"
+        urgent-color "red"
+    }
+}
+
+binds {
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/Horn.(Arknights).1080p.3689449.png" "--font" "Inter" "-e"; }
+}
