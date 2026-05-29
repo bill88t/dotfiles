@@ -3,6 +3,8 @@ spawn-at-startup "/home/bill88t/git/dotfiles/waymount.sh"
 output "eDP-1" {
     scale 1.1
     position x=0 y=0
+    focus-at-startup
+    variable-refresh-rate
 }
 
 output "DP-1" {
