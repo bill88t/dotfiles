@@ -31,11 +31,7 @@ _load_secrets() {
     fi
 
     if command -v okc-gpg >/dev/null 2>&1; then
-        if okc-gpg --decrypt --output "$decfile" "$encfile" 2>/dev/null; then
-            chmod 600 "$decfile"
-            . "$decfile"
-            return 0
-        fi
+        true
     else
         if timeout 1 gpg --quiet --batch --yes \
             --passphrase '' \
@@ -63,7 +59,7 @@ secrets-reload() {
     fi
 
     if command -v okc-gpg >/dev/null 2>&1; then
-        if okc-gpg --decrypt --output "$decfile" "$encfile"; then
+        if okc-gpg --decrypt --output "$decfile" "$encfile" 2>/dev/null; then
             chmod 600 "$decfile"
             . "$decfile"
             return 0
