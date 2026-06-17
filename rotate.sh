@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ALLOW_UPSIDE_DOWN=0
+IS_DUO=$(hostname) && [[ "$HOSTNAME" == "duo" ]] || true
 
 # If user passed an output as first argument, use it; otherwise try to auto-detect
 if [[ "${1:-}" ]]; then
@@ -66,8 +67,14 @@ done
 if [[ $INDEX -eq -1 ]]; then
   NEXT="${TRANSFORMS[0]}"
 else
-  NEXT_INDEX=$(( (INDEX + 1) % ${#TRANSFORMS[@]} ))
-  NEXT="${TRANSFORMS[NEXT_INDEX]}"
+  # On duo system, step backwards through the transform list instead of forwards
+  if [[ "${IS_DUO:-}" == "duo" ]]; then
+    PREV_INDEX=$(( (INDEX + ${#TRANSFORMS[@]}) % ${#TRANSFORMS[@]} ))
+    NEXT="${TRANSFORMS[PREV_INDEX]}"
+  else
+    NEXT_INDEX=$(( (INDEX + 1) % ${#TRANSFORMS[@]} ))
+    NEXT="${TRANSFORMS[NEXT_INDEX]}"
+  fi
 fi
 
 niri msg output "$OUTPUT" transform "$NEXT"
