@@ -4,6 +4,7 @@ alias rcon='mcrcon -P 25575 -p "$MCRCON"'
 nollm() {
     systemctl --user stop llama.qwen
     systemctl --user stop llama.gemma
+    systemctl --user stop llama.gemma.low
     systemctl --user stop llama.qwythos
     systemctl --user stop llama.coder
     systemctl --user stop kobold.cpp
@@ -23,6 +24,11 @@ kobold-image() {
 gemma() {
     nollm
     systemctl --user start llama.gemma
+}
+
+lowgemma() {
+    nollm
+    systemctl --user start llama.gemma.low
 }
 
 qwen() {
