@@ -358,6 +358,7 @@ binds {
     // Session Management
     Ctrl+Alt+Backslash { quit skip-confirmation=true; }
     Ctrl+Alt+Home      { quit skip-confirmation=true; }
+    Ctrl+Alt+Equal     { spawn "sudo" "systemctl" "soft-reboot"; }
     Ctrl+Alt+Print     { spawn "reboot"; }
     Ctrl+Alt+Pause     { spawn "reboot"; }
     Ctrl+Alt+Delete    { spawn "poweroff"; }

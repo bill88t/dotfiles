@@ -395,3 +395,5 @@ detab4() {
   # Replace literal tab characters with four spaces in-place
   perl -pi -e 's/\t/    /g' "$file"
 }
+
+alias ldrestart="sudo systemctl soft-reboot"
