@@ -4,7 +4,6 @@ output "eDP-1" {
     scale 1.1
     position x=0 y=0
     focus-at-startup
-    variable-refresh-rate
 }
 
 output "DP-1" {
@@ -33,7 +32,7 @@ environment {
 
 binds {
     Mod+P { spawn "/home/bill88t/git/dotfiles/rotate.sh"; }
-    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/art002e021219.jpg" "--font" "Inter" "-e"; }
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/99658581_p0.jpg" "--font" "Inter" "-e"; }
 }
 
 input {

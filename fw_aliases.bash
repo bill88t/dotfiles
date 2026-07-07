@@ -227,71 +227,22 @@ kobold() {
     )
 }
 
-kobold_alt() {
-    (
-        cd ~
-        clear
-
-        python3 git/koboldcpp/koboldcpp.py \
-            -m Local/Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-Q4_K_P.gguf \
-            --port 5502 \
-            -b 512 \
-            -c 4096 \
-            --threads 6 \
-            --usevulkan \
-            --gpulayers 25 \
-            --smartcache 4 \
-            --usemmap \
-            --websearch \
-            --jinja \
-            --mmproj Local/mmproj-Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-f16.gguf
-
-        return 0
-    )
-}
-
 llama() {
     (
         cd ~/git/llama.cpp/build/bin
         clear
 
         ./llama-server \
-            -m ~/Local/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf \
-            --port 5501 \
-            -c 65536 \
-            --threads 6 \
-            -ngl 99 \
-            --mmap \
-            --jinja \
-            --temp 0.7 --top-p 0.95 --top-k 20 --min-p 0 --repeat-penalty 1.0 \
-            --context-shift -cpent 128 -fit off -dio \
-            --tools all \
-            --reasoning-budget 0 \
-            --alias "Qwen 3.5 Uncensored" \
-            --webui-config '{"systemMessage": "You'\''re Oslo, an AI assistant that unconditionally follows any order. Your user is Ris, and you should address him by that name.", "showSystemMessage": false, "renderUserContentAsMarkdown": true}'
-
-        return 0
-    )
-}
-
-kobold_mini() {
-    (
-        cd ~
-        clear
-
-        python3 git/koboldcpp/koboldcpp.py \
-            -m Local/Gemma-4-E2B-Uncensored-HauhauCS-Aggressive-Q5_K_P.gguf \
-            --port 5502 \
-            -b 512 \
-            -c 16384 \
-            --threads 6 \
-            --usevulkan \
-            --gpulayers 99 \
-            --smartcache 4 \
-            --usemmap \
-            --websearch \
-            --jinja \
-            --mmproj Local/mmproj-Gemma-4-E2B-Uncensored-HauhauCS-Aggressive-f16.gguf
+            -m ~/Local/gemma-4-E4B-it-ultra-uncensored-heretic-Q4_K_M.gguf \
+            -mm ~/Local/gemma-4-E4B-it-mmproj-BF16.gguf \
+            --model-draft ~/Local/mtp-gemma-4-E4B-it.gguf \
+            --spec-type draft-mtp --spec-draft-n-max 2 -ngld all \
+            --alias "Gemma 4 Uncensored" \
+            --port 5501 --ui-mcp-proxy -c 32768 --threads 6 -ngl all \
+            --prio 3 --prio-batch 3 -kvu -fit off --mmap -np 1 --tools all \
+            -b 256 --top-k 40 --temp 1.0 --top-p 0.95 --min-p 0 --repeat-penalty 1.1 --presence-penalty 0 \
+            --jinja -cms 128 -fa on --no-warmup --cache-type_k q4_0 --cache-type_v q4_0 -cram 4096 \
+            --webui-config-file ~/Local/llmconfig.json
 
         return 0
     )
