@@ -391,6 +391,10 @@ if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ];
     then   export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)";
 fi
 
+if [[ -t 0 ]] && command -v gpg-connect-agent >/dev/null 2>&1; then
+    gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
+fi
+
 if command -v okc-gpg >/dev/null 2>&1; then
     eval $(okc-ssh-agent) >/dev/null 2>&1
 fi
