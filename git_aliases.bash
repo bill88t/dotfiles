@@ -30,6 +30,7 @@ alias gms='git commit --squash'              # Create squash commit
 
 alias grs='git reset --soft'                 # Soft reset (keep changes staged)
 alias grm='git reset --mixed'                # Mixed reset (keep changes unstaged)
+alias grst='git reset --hard'                # Reset hard (hard-discard)
 
 alias glog='git log --graph --oneline --all'  # Graph view of all branches
 
