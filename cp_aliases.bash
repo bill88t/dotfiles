@@ -1,5 +1,5 @@
 alias espload='source ~/git/esp-idf-v5.5.3/export.sh'
-alias esp6load='source ~/git/esp-idf-v6.0.1/export.sh'
+alias esp6load='source ~/git/esp-idf-v6.0.2/export.sh'
 
 function lcontains {
   local list="$1"
@@ -28,7 +28,7 @@ make-aliases () {
     lcontains "both flash" ${5} && alias ${1}-w="echo "Wiping.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --after no_reset -c ${6} -p ${8} -b ${7} erase_flash)"
     lcontains "both flash" ${5} && alias ${1}-bw="echo "Wiping.." && (${BASH_ALIASES[$3]}; while [ ! -e ${8} ]; do echo 'Waiting for board..'; sleep 1; done; esptool.py --after no_reset -c ${6} --before no_reset --after no_reset -p ${8} -b {7} erase_flash)"
     alias ${1}-gdb="gdb -ex 'target extended-remote localhost:3333' build-${2}/firmware.elf"
-    alias ${1}-dump="(${BASH_ALIASES[$3]}; esptool.py -c ${6} -b ${7} -p ${8} read_flash 0x0 \$(esptool.py -b ${7} -p ${8} flash_id | grep 'flash size:' | awk '{printf \"0x%x\", \$NF*1024*1024}') backup.bin)"
+    alias ${1}-dump="(${BASH_ALIASES[$3]}; esptool.py -c ${6} -b ${7} -p ${8} read_flash 0x0 \$(esptool.py --after no_reset -b ${7} -p ${8} flash_id | grep 'flash size:' | awk '{printf \"0x%x\", \$NF*1024*1024}') backup.bin)"
 }
 
 # rp2
@@ -61,7 +61,7 @@ make-aliases c6sm makergo_esp32c6_supermini esp6load "None" flash esp32c6 200000
 make-aliases esp32lite wemos_lolin32_lite esp6load "None" flash esp32 2000000 "/dev/ttyUSB0" 80m keep
 make-aliases cardputer m5stack_cardputer esp6load M5S3BOOT both esp32s3 2000000 "/dev/ttyACM0" keep keep
 make-aliases nodec2 nodemcu_esp32c2 esp6load "None" flash esp32c2 921600 "/dev/ttyUSB0" 60m keep
-make-aliases tws3 lilygo_twatch_s3 esp6load TWS3BOOT both esp32s3 921600 "/dev/ttyACM0" 80m keep
+make-aliases tws3 lilygo_twatch_s3 espload TWS3BOOT both esp32s3 921600 "/dev/ttyACM0" 80m keep
 make-aliases ws3z waveshare_esp32_s3_zero esp6load WS3ZEROBOOT both esp32s3 2000000 "/dev/ttyACM0" 80m keep
 make-aliases tdeck lilygo_tdeck esp6load TDECKBOOT both esp32s3 2000000 "/dev/ttyACM0" 80m keep
 make-aliases c3lcd 01space_lcd042_esp32c3 esp6load "None" flash esp32c3 2000000 "/dev/ttyACM0" 80m keep
