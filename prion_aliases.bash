@@ -79,3 +79,10 @@ bake_iso() {
     cd -
     return $status
 }
+
+build_llama() {
+    cd /home/bill88t/git/llama.cpp
+
+    cmake -B build -DCMAKE_BUILD_TYPE=Release -DGGML_CCACHE=OFF -DGGML_NATIVE=ON -DGGML_VULKAN=ON -DGGML_CPU_KLEIDIAI=ON
+    cmake --build build --config Release -j15
+}
