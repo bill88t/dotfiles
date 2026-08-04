@@ -28,7 +28,17 @@ cpu_freqs() {
 }
 
 alias jf="journalctl -f"
-alias jb="journalctl -b --no-pager | $PAGER"
+
+jb() {
+    local -a jargs=(-b)
+    [[ "$1" == "-b" ]] && shift
+    if [[ -n "$1" && "$1" =~ ^-[0-9]+$ ]]; then
+        jargs+=("$1")
+        shift
+    fi
+    journalctl "${jargs[@]}" --no-pager "$@" | "${PAGER}"
+}
+
 function ju() {
     if [ $# -eq 0 ]; then
         echo "No unit specified!"
