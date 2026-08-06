@@ -232,17 +232,15 @@ llama() {
         cd ~/git/llama.cpp/build/bin
         clear
 
-        ./llama-server \
-            -m ~/Local/gemma-4-E4B-it-ultra-uncensored-heretic-Q4_K_M.gguf \
-            -mm ~/Local/gemma-4-E4B-it-mmproj-BF16.gguf \
-            --model-draft ~/Local/mtp-gemma-4-E4B-it.gguf \
-            --spec-type draft-mtp --spec-draft-n-max 2 -ngld all \
-            --alias "Gemma 4 Uncensored" \
+        sudo bash -c "ulimit -l unlimited && source /opt/intel/oneapi/setvars.sh && ./llama-server \
+            -m /home/bill88t/Local/gemma-4-E4B-it-ultra-uncensored-heretic-Q4_K_M.gguf \
+            -mm /home/bill88t/Local/gemma-4-E4B-it-mmproj-BF16.gguf \
+            --alias \"Gemma 4 Uncensored\" \
             --port 5501 --ui-mcp-proxy -c 32768 --threads 6 -ngl all \
-            --prio 3 --prio-batch 3 -kvu -fit off --mmap -np 1 --tools all \
+            --prio 3 --prio-batch 3 -fit off -np 1 -lm mlock -lv 4 --tools all \
             -b 256 --top-k 40 --temp 1.0 --top-p 0.95 --min-p 0 --repeat-penalty 1.1 --presence-penalty 0 \
             --jinja -cms 128 -fa on --no-warmup --cache-type_k q4_0 --cache-type_v q4_0 -cram 4096 \
-            --webui-config-file ~/Local/llmconfig.json
+            --webui-config-file /home/bill88t/Local/llmconfig.json"
 
         return 0
     )

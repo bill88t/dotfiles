@@ -407,3 +407,4 @@ detab4() {
 }
 
 alias ldrestart="sudo systemctl soft-reboot"
+alias lurpak="flatpak"
