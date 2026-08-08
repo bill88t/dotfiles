@@ -9,6 +9,8 @@ nollm() {
     systemctl --user stop llama.coder
     systemctl --user stop kobold.cpp
     systemctl --user stop kobold.image
+
+    sudo killall -s9 llama-server 2>/dev/null || true
 }
 
 kobold() {
