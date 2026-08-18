@@ -1,5 +1,6 @@
 alias raids="sudo btrfs filesystem usage /mnt/Array && echo && sudo btrfs device stats /mnt/Array"
 alias rcon='mcrcon -P 25575 -p "$MCRCON"'
+alias nv="sudo nvtop"
 
 nollm() {
     systemctl --user stop llama.qwen
