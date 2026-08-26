@@ -72,8 +72,10 @@ gbr() {
     git remote set-head origin -a
 }
 
+alias gcp='git cherry-pick'
+
 # Cherry-pick by commit message pattern
-gcp() {
+gcpm() {
     if [[ -z "$1" ]]; then
         echo "Usage: gcp <commit-message-pattern>"
         return 1

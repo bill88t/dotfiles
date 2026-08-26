@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+import os
+import shlex
+import subprocess
+import sys
+
+
+def git(*args, check=True):
+    r = subprocess.run(["git", *args], capture_output=True, text=True)
+    if check and r.returncode != 0:
+        raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip()}")
+    return r.stdout.strip()
+
+
+def die(msg):
+    print(f"error: {msg}", file=sys.stderr)
+    sys.exit(1)
+
+
+def warn(msg):
+    print(f"warning: {msg}", file=sys.stderr)
+
+
+def derive_dirname(url: str) -> str:
+    """Mirror git's own convention for the default clone directory name,
+    including scp-like ssh syntax (user@host:path)."""
+    name = url.rstrip("/")
+    if name.endswith(".git"):
+        name = name[: -len(".git")]
+    name = name.rsplit("/", 1)[-1]
+    name = name.rsplit(":", 1)[-1]
+    return name or "repo"
+
+
+def main():
+    r = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"],
+                        capture_output=True, text=True)
+    if r.returncode != 0 or r.stdout.strip() != "true":
+        die("not inside a git repository")
+
+    # Detached HEAD covers both "checked out a tag" and "checked out a
+    # bare commit" -- refuse in either case, there is no branch to replicate.
+    sym = subprocess.run(["git", "symbolic-ref", "-q", "--short", "HEAD"],
+                          capture_output=True, text=True)
+    if sym.returncode != 0:
+        die("HEAD is detached (tag or specific commit checked out); "
+            "check out a branch first")
+    current_branch = sym.stdout.strip()
+
+    remote_names = [n for n in git("remote").splitlines() if n]
+    if not remote_names:
+        die("repository has no remotes; there is nothing to clone from")
+    remotes = {name: git("remote", "get-url", name) for name in remote_names}
+
+    # local branch -> "remote/branch" upstream short-name, or None
+    raw = git("for-each-ref",
+              "--format=%(refname:short)%09%(upstream:short)",
+              "refs/heads/")
+    branches = {}
+    for line in raw.splitlines():
+        if not line:
+            continue
+        name, _, upstream = line.partition("\t")
+        branches[name] = upstream or None
+
+    current_upstream = branches.get(current_branch)
+
+    # Which remote do we actually run `git clone` against? Prefer the
+    # current branch's own upstream remote (guarantees its history is
+    # already present after the initial fetch); never assume "origin".
+    if current_upstream:
+        primary_remote = current_upstream.split("/", 1)[0]
+    else:
+        primary_remote = sorted(remotes)[0]
+        warn(f"'{current_branch}' has no upstream configured; it will be "
+             f"recreated as an empty branch off {primary_remote}'s default "
+             f"branch tip on the target machine (no commits to replicate)")
+
+    primary_url = remotes[primary_remote]
+    dirname = derive_dirname(primary_url)
+    q = shlex.quote
+
+    cmds = [
+        f"git clone --no-checkout --origin {q(primary_remote)} {q(primary_url)} {q(dirname)}",
+        f"cd {q(dirname)}",
+        # Detach HEAD from whatever branch name the remote's default HEAD
+        # happened to be (commonly 'main'), onto a ref that doesn't exist.
+        # Otherwise `git branch -f main ...` below fails with "cannot force
+        # update the branch you're currently on" whenever a local branch
+        # shares a name with the primary remote's default branch.
+        "git symbolic-ref HEAD refs/heads/__replicate_tmp__",
+    ]
+
+    other_remotes = [n for n in sorted(remotes) if n != primary_remote]
+    for name in other_remotes:
+        cmds.append(f"git remote add {q(name)} {q(remotes[name])}")
+    if other_remotes:
+        cmds.append("git fetch --multiple " + " ".join(q(n) for n in other_remotes))
+
+    for name, upstream in sorted(branches.items()):
+        if not upstream:
+            continue  # branches without an upstream are not replicated
+        cmds.append(f"git branch -f {q(name)} {q(upstream)}")
+        cmds.append(f"git branch --set-upstream-to={q(upstream)} {q(name)}")
+
+    if current_upstream:
+        cmds.append(f"git checkout {q(current_branch)}")
+    else:
+        cmds.append(f"git checkout -b {q(current_branch)}")
+
+    toplevel = git("rev-parse", "--show-toplevel")
+    if os.path.isfile(os.path.join(toplevel, ".gitmodules")):
+        cmds.append("git submodule update --init --recursive")
+
+    print(" && ".join(cmds))
+
+
+if __name__ == "__main__":
+    main()
