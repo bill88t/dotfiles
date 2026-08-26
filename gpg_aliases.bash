@@ -9,3 +9,7 @@ alias gpgrestart="systemctl --user restart gpg-agent"
 gpgpasswd() {
     gpg --edit-key $1 passwd save quit
 }
+
+gpgunlock() {
+    rm .gnupg/public-keys.d/pubring.db.lock 2>/dev/null | true
+}
