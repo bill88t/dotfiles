@@ -71,6 +71,8 @@ HAL_DST = HOME / ".config" / "halloy"
 
 TMX_SRC = SCRIPT_DIR / "termux.properties"
 TMX_DST = HOME / ".termux" / "termux.properties"
+TMX_TSK_SRC = SCRIPT_DIR / "termux-tasker"
+TMX_TSK_DST = HOME / ".termux" / "tasker"
 BASE_PKGS = [
     "bash-completion",
     "pacman-contrib",
@@ -1055,6 +1057,17 @@ def install_halloy(force=False) -> None:
 def install_termuxprop(force=False) -> None:
     symlink_file(TMX_SRC, TMX_DST, force=force)
 
+def install_termuxtasker(force=False) -> None:
+    try:
+        subprocess.run(["rm", "-r", TMX_TSK_DST])
+    except:
+        pass
+    try:
+        subprocess.run(["mkdir", TMX_TSK_DST])
+    except:
+        pass
+    subprocess.run(f"cp -v {TMX_TSK_SRC}/* {TMX_TSK_DST}/", shell=True)
+
 INSTALLERS = {
     "base": install_base,
     "bredify": bredify,
@@ -1075,6 +1088,7 @@ INSTALLERS = {
     "superfile": install_superfile,
     "halloy": install_halloy,
     "termuxprop": install_termuxprop,
+    "termuxtasker": install_termuxtasker,
 }
 
 
