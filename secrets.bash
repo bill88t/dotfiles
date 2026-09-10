@@ -65,7 +65,7 @@ secrets-reload() {
             return 0
         fi
     else
-        if gpg --use-agent --try-secret-key "$GPGKEY" \
+        if gpg --quiet --use-agent --try-secret-key "$GPGKEY" \
                --decrypt --output "$decfile" "$encfile"; then
             chmod 600 "$decfile"
             . "$decfile"
