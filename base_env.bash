@@ -18,7 +18,9 @@ build_ps1() {
         sections+=("\[\e[33m\]$PORTABLE_ENV\[\e[0m\]")
     fi
 
-    sections+=("\[\e[38;5;37m\]\u\[\e[0m\]@\[\e[38;5;37m\]\h\[\e[0m\]")
+    local host='\h'
+    [[ -n $TERMUX_VERSION ]] && host="$HOSTNAME"
+    sections+=("\[\e[38;5;37m\]\u\[\e[0m\]@\[\e[38;5;37m\]$host\[\e[0m\]")
 
     sections+=("| \[\e[33m\]\w\[\e[0m\]")
 
