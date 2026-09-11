@@ -274,3 +274,21 @@ dex() {
     echo "Starting firewalld"
     sudo systemctl start firewalld
 }
+
+dex_cadmium() {
+    echo "Stopping firewalld.."
+    sudo systemctl stop firewalld
+
+    echo "Connecting.."
+    adb connect 192.168.1.231:5555
+
+    echo "Launching scrcpy.."
+    scrcpy --fullscreen --new-display=1920x1200/180 -S --max-fps=60 --mouse=uhid
+
+    echo "Killing adb.."
+    adb disconnect
+    adb kill-server
+
+    echo "Starting firewalld.."
+    sudo systemctl start firewalld
+}
