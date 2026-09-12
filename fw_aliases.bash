@@ -283,7 +283,12 @@ dex_cadmium() {
     adb connect 192.168.1.231:5555
 
     echo "Launching scrcpy.."
-    scrcpy --fullscreen --new-display=1920x1200/180 -S --max-fps=60 --mouse=uhid
+    scrcpy \
+        --fullscreen \
+        --new-display=1920x1200/180 \
+        --video-codec=h265 -b16M \
+        --max-fps=60 \
+        --mouse=uhid
 
     echo "Killing adb.."
     adb disconnect
