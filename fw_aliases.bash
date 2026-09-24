@@ -207,39 +207,19 @@ alias hotspot-up="nmcli connection modify Hotspot 802-11-wireless-security.pairw
 
 alias hotspot-down="nmcli connection down Hotspot"
 
-kobold() {
-    (
-        cd ~
-        clear
-
-        python3 git/koboldcpp/koboldcpp.py \
-            -m Local/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf \
-            -b 512 \
-            -c 65535 \
-            --threads 6 \
-            --usevulkan \
-            --gpulayers 99 \
-            --smartcache 4 \
-            --jinja \
-            --usemmap
-
-        return 0
-    )
-}
-
 llama() {
     (
         cd ~/git/llama.cpp/build/bin
         clear
 
         sudo bash -c "ulimit -l unlimited && source /opt/intel/oneapi/setvars.sh && ./llama-server \
-            -m /home/bill88t/Local/gemma-4-E4B-it-ultra-uncensored-heretic-Q4_K_M.gguf \
-            -mm /home/bill88t/Local/gemma-4-E4B-it-mmproj-BF16.gguf \
+            -m /home/bill88t/Local/gemma-4-12b-it-uncensored-Q4_K_S.gguf \
+            -mm /home/bill88t/Local/mmproj-gemma-4-12B-it-bf16.gguf \
             --alias \"Gemma 4 Uncensored\" \
             --port 5501 --ui-mcp-proxy -c 32768 --threads 6 -ngl all \
-            --prio 3 --prio-batch 3 -fit off -np 1 -lm mlock -lv 4 --tools all \
+            --prio 3 --prio-batch 3 -fit off -np 1 -lm none -lv 4 --agent \
             -b 256 --top-k 40 --temp 1.0 --top-p 0.95 --min-p 0 --repeat-penalty 1.1 --presence-penalty 0 \
-            --jinja -cms 128 -fa on --no-warmup --cache-type_k q4_0 --cache-type_v q4_0 -cram 4096 \
+            --jinja -cms 128 -fa on --no-warmup -ctk q4_0 -ctv q4_0 -cram 2048 \
             --webui-config-file /home/bill88t/Local/llmconfig.json"
 
         return 0
