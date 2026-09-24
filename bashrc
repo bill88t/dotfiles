@@ -27,6 +27,7 @@ color_prompt=yes
 #. ~/git/dotfiles/bixel_aliases.bash     # Google Pixel 2XL
 #. ~/git/dotfiles/thinkpood_aliases.bash # Thinkpad T480
 #. ~/git/dotfiles/motog32_aliases.bash   # Moto G32
+#. ~/git/dotfiles/samsus_aliases.bash    # Samsus Tab A7
 #. ~/git/dotfiles/bp_aliases.bash        # Radxa Rock 5B Plus "r5bp"
 #. ~/git/dotfiles/fydetab_aliases.bash   # FydeTab Duo Aliases
 #. ~/git/dotfiles/prion_aliases.bash     # Radxa Orion O6 "Prion"
