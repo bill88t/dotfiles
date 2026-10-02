@@ -1,0 +1,183 @@
+#!/usr/bin/python
+
+import json
+import os
+import subprocess
+import time
+from typing import Dict, List, Optional
+
+import requests
+
+
+class Autotagger:
+    CONTAINER_NAME = "at-autotagger"
+    IMAGE = "ghcr.io/danbooru/autotagger:latest"
+    READINESS_TIMEOUT = 120.0
+
+    def __init__(self, threshold: float = 50.0, port: int = 5000) -> None:
+        self.threshold_decimal = max(0.0, min(100, threshold / 100.0))
+        self.port = port
+        self.base_url = f"http://localhost:{self.port}"
+        self.docker_started_by_us = False
+        self.session = requests.Session()
+
+    # ------------------------------------------------------------------
+    # docker service lifecycle
+    # ------------------------------------------------------------------
+
+    def _docker_running(self) -> bool:
+        return subprocess.run(
+            ["systemctl", "is-active", "--quiet", "docker"],
+            check=False,
+        ).returncode == 0
+
+    def _ensure_docker(self) -> None:
+        if self._docker_running():
+            return
+        rc = subprocess.run(
+            ["sudo", "systemctl", "start", "docker"],
+            check=False,
+        ).returncode
+        if rc != 0:
+            raise RuntimeError("Failed to start the docker service")
+        self.docker_started_by_us = True
+
+    def _maybe_stop_docker(self) -> None:
+        if self.docker_started_by_us:
+            subprocess.run(
+                ["sudo", "systemctl", "stop", "docker"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+            self.docker_started_by_us = False
+
+    # ------------------------------------------------------------------
+    # container lifecycle
+    # ------------------------------------------------------------------
+
+    def _container_exists(self) -> bool:
+        return subprocess.run(
+            ["docker", "container", "inspect", self.CONTAINER_NAME],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode == 0
+
+    def _remove_stale_container(self) -> None:
+        if self._container_exists():
+            subprocess.run(
+                ["docker", "rm", "-f", self.CONTAINER_NAME],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+
+    def _start_container(self) -> None:
+        self._remove_stale_container()
+        rc = subprocess.run(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--name",
+                self.CONTAINER_NAME,
+                "-d",
+                "-p",
+                f"{self.port}:{self.port}",
+                self.IMAGE,
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode
+        if rc != 0:
+            raise RuntimeError(f"Failed to start the {self.IMAGE} container")
+
+    def _stop_container(self) -> None:
+        if self._container_exists():
+            subprocess.run(
+                ["docker", "stop", self.CONTAINER_NAME],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+
+    def _wait_ready(self) -> None:
+        deadline = time.monotonic() + self.READINESS_TIMEOUT
+        last_error: Optional[Exception] = None
+        while time.monotonic() < deadline:
+            try:
+                response = self.session.get(self.base_url, timeout=5)
+                if response.status_code < 500:
+                    return
+            except requests.RequestException as exc:
+                last_error = exc
+            if not self._container_exists():
+                raise RuntimeError(
+                    f"Container {self.CONTAINER_NAME} exited during startup"
+                )
+            time.sleep(1)
+        raise TimeoutError(
+            f"Autotagger server not ready after {self.READINESS_TIMEOUT:.0f}s"
+            f" (last error: {last_error})"
+        )
+
+    # ------------------------------------------------------------------
+    # context manager
+    # ------------------------------------------------------------------
+
+    def __enter__(self) -> "Autotagger":
+        self._ensure_docker()
+        self._start_container()
+        self._wait_ready()
+        return self
+
+    def __exit__(self, exc_type, exc_val, tb) -> None:
+        self._stop_container()
+        self.session.close()
+        self._maybe_stop_docker()
+
+    # ------------------------------------------------------------------
+    # tagging
+    # ------------------------------------------------------------------
+
+    def get_file_json(self, path: str) -> List[str]:
+        with open(path, "rb") as f:
+            with self.session.post(
+                f"{self.base_url}/evaluate",
+                files={"file": f},
+                data={"format": "json"},
+                timeout=120,
+            ) as response:
+                response.raise_for_status()
+                result_data = response.json()
+        tags_dict = result_data[0].get("tags", {})
+        return [
+            tag_name
+            for tag_name, val in tags_dict.items()
+            if val >= self.threshold_decimal and "rating" not in tag_name
+        ]
+
+    def get_batch_jsons(self, path: str = ".", output_path: Optional[str] = None) -> Dict[str, List[str]]:
+        results: Dict[str, List[str]] = {}
+        if os.path.isdir(path):
+            for root, _, files in os.walk(path):
+                for file in files:
+                    if file.lower().endswith((".png", ".jpg", ".jpeg")):
+                        full_path = os.path.join(root, file)
+                        results[os.path.relpath(full_path, path)] = self.get_file_json(full_path)
+        else:
+            results[os.path.basename(path)] = self.get_file_json(path)
+
+        if output_path:
+            with open(output_path, "w") as f:
+                json.dump(results, f)
+
+        return results
+
+
+if __name__ == "__main__":
+    with Autotagger(threshold=50.0) as at:
+        print(at.get_file_json("test.jpg"))
+        print(at.get_batch_jsons(".", "output.json"))
