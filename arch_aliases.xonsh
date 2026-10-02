@@ -6,7 +6,8 @@ from pathlib import Path
 
 aliases["yayau"] = "while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns $(pacman -Qdtq); done"
 aliases["yayauf"] = "while pacman -Qdtq >/dev/null 2>&1; do sudo pacman -Rns --noconfirm $(pacman -Qdtq); done"
-aliases["yaycc"] = r"""
+def _yaycc(args, stdin=None):
+    script = r"""
 echo "==> Removing orphaned packages..."
 orphans=$(pacman -Qdtq 2>/dev/null)
 if [ -n "$orphans" ]; then
@@ -23,6 +24,10 @@ fi
 echo "==> Deep cleaning yay cache..."
 yes | yay -Scc >/dev/null 1>/dev/null 2>/dev/null
 """
+    return subprocess.run(script, shell=True, executable="/bin/bash").returncode
+
+
+aliases["yaycc"] = _yaycc
 aliases["yayc"] = "yes | yay -Scc"
 aliases["yayd"] = "yay -Su --devel"
 aliases["yayexpl"] = "yay -Qeq"
