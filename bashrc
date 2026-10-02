@@ -6,6 +6,11 @@ case $- in
       *) return;;
 esac
 
+# XONSH OVERRIDE
+# if [[ $- == *i* ]] && [[ -z $XONSH_PARENT ]]; then
+#   exec xonsh
+# fi
+
 color_prompt=yes
 
 # Base environment
