@@ -2,9 +2,6 @@ import os
 import subprocess
 from pathlib import Path
 
-$DEFAULT_TTYACM = "/dev/ttyACM1"
-$DEFAULT_TTYUSB = "/dev/ttyUSB0"
-
 
 def _bake(args, stdin=None):
     if not args:
@@ -30,7 +27,4 @@ def _bake(args, stdin=None):
 
 
 aliases["bake"] = _bake
-aliases["ledmod"] = r"(stty 115200 && echo -ne 'mod\n' >> /dev/ttyACM0)"
-aliases["ledoff"] = r"(stty 115200 && echo -ne 'off\n' >> /dev/ttyACM0)"
-aliases["ledrst"] = r"(stty 115200 && echo -ne 'rst\n' >> /dev/ttyACM0)"
-aliases["ledprog"] = r"(stty 115200 && echo -ne 'pro\n' >> /dev/ttyACM0)"
+aliases["prionrcon"] = "mcrcon -H 192.168.1.236 -p QwEr2252"

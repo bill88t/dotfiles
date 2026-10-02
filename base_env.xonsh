@@ -86,3 +86,49 @@ def _e(args, stdin=None):
 
 
 aliases["e"] = _e
+
+
+def _git_branch():
+    proc = _run_capture(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+    return proc.stdout.strip() if proc.returncode == 0 else ""
+
+
+def _build_ps1():
+    env = __xonsh__.env
+    # xonsh-native color fields; resolved by the shell at render time
+    _yellow = "{YELLOW}"
+    _teal = "{#00afaf}"      # 256-color 37, same as bash's \e[38;5;37m
+    _green = "{BOLD_GREEN}"  # bright green, same as bash's \e[92m
+    _reset = "{RESET}"
+
+    sections = []
+
+    portable = env.get("PORTABLE_ENV")
+    if portable:
+        sections.append(f"{_yellow}{portable}{_reset}")
+
+    if env.get("TERMUX_VERSION"):
+        user = "bill88t"
+        host = env.get("HOSTNAME", "")
+    else:
+        user = env.get("USER", "")
+        host = env.get("HOSTNAME", "").split(".")[0]
+    sections.append(f"{_teal}{user}{_reset}@{_teal}{host}{_reset}")
+
+    cwd = env.get("PWD", os.getcwd())
+    home = os.path.expanduser("~")
+    if cwd == home:
+        cwd = "~"
+    elif cwd.startswith(home + os.sep):
+        cwd = "~" + cwd[len(home):]
+    sections.append(f"| {_yellow}{cwd}{_reset}")
+
+    gb = _git_branch()
+    if gb:
+        sections.append(f"| {_green}{gb}{_reset}")
+
+    prompt_body = " ".join(sections)
+    return f"{_reset}[{prompt_body}]{_reset}{_teal}>" + "{RESET} "
+
+
+$PROMPT = _build_ps1

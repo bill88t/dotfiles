@@ -1,6 +1,7 @@
 import os
 import shlex
 import socket
+import stat
 import subprocess
 import sys
 import tempfile
@@ -62,7 +63,7 @@ aliases["__ssh_pick_endpoint"] = _ssh_pick_endpoint
 
 def _sshc(args, stdin=None):
     sock = __xonsh__.env.get("SSH_AUTH_SOCK") or os.environ.get("SSH_AUTH_SOCK", "")
-    if sock and os.path.exists(sock):
+    if sock and stat.S_ISSOCK(os.stat(sock).st_mode):
         proc = subprocess.run(["ssh-add", "-l"], capture_output=True, text=True, check=False)
         out = (proc.stdout + proc.stderr).strip()
         if out == "The agent has no identities.":
@@ -317,6 +318,14 @@ gpg_sock_proc = subprocess.run(
 )
 if gpg_sock_proc.returncode == 0 and gpg_sock_proc.stdout.strip():
     $SSH_AUTH_SOCK = gpg_sock_proc.stdout.strip()
+
+if sys.stdin.isatty() and _cmd_exists("gpg-connect-agent"):
+    subprocess.run(
+        ["gpg-connect-agent", "updatestartuptty", "/bye"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
 
 if _cmd_exists("okc-gpg") and _cmd_exists("okc-ssh-agent"):
     okc_proc = subprocess.run(["okc-ssh-agent"], capture_output=True, text=True, check=False)

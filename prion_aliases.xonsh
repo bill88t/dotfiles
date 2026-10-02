@@ -4,22 +4,93 @@ from pathlib import Path
 
 aliases["raids"] = "sudo btrfs filesystem usage /mnt/Array && echo && sudo btrfs device stats /mnt/Array"
 aliases["rcon"] = 'mcrcon -P 25575 -p "$MCRCON"'
-aliases["cin"] = "startx /usr/bin/cinnamon-session && clear"
+aliases["nv"] = "sudo nvtop"
 
 
-def _do_bake(image, include_x):
+def _stop_unit(unit):
+    return subprocess.run(["systemctl", "--user", "stop", unit], check=False).returncode
+
+
+def _nollm(args, stdin=None):
+    for unit in (
+        "llama.qwen",
+        "llama.gemma",
+        "llama.gemma.low",
+        "llama.qwythos",
+        "llama.coder",
+        "kobold.cpp",
+        "kobold.image",
+    ):
+        _stop_unit(unit)
+    subprocess.run(
+        ["sudo", "killall", "-s9", "llama-server"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return 0
+
+
+aliases["nollm"] = _nollm
+
+
+def _start_after_nollm(args, unit):
+    rc = _nollm(args, None)
+    if rc != 0:
+        return rc
+    return subprocess.run(["systemctl", "--user", "start", unit], check=False).returncode
+
+
+def _kobold(args, stdin=None):
+    return _start_after_nollm(args, "kobold.cpp")
+
+
+def _kobold_image(args, stdin=None):
+    return _start_after_nollm(args, "kobold.image")
+
+
+def _gemma(args, stdin=None):
+    return _start_after_nollm(args, "llama.gemma")
+
+
+def _lowgemma(args, stdin=None):
+    return _start_after_nollm(args, "llama.gemma.low")
+
+
+def _qwen(args, stdin=None):
+    return _start_after_nollm(args, "llama.qwen")
+
+
+def _qwythos(args, stdin=None):
+    return _start_after_nollm(args, "llama.qwythos")
+
+
+def _coder(args, stdin=None):
+    return _start_after_nollm(args, "llama.coder")
+
+
+aliases["kobold"] = _kobold
+aliases["kobold-image"] = _kobold_image
+aliases["gemma"] = _gemma
+aliases["lowgemma"] = _lowgemma
+aliases["qwen"] = _qwen
+aliases["qwythos"] = _qwythos
+aliases["coder"] = _coder
+
+
+def _do_bake(repo, cmd, image, out_dir):
     old_cwd = os.getcwd()
-    os.chdir("/home/bill88t/git/BredOS")
+    os.chdir(repo)
     try:
         build_dir = "/mnt/Array/BUILD"
         print(f"Cleaning {build_dir}")
         if Path(build_dir).exists():
             subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
         subprocess.run(["mkdir", "-p", build_dir], check=False)
-        cmd = ["sudo", "mkimage/mkimage.py", "-w", build_dir, "-o", "/mnt/Array/Images", "-c", f"./images/{image}/"]
-        if include_x:
-            cmd.append("-x")
-        rc = subprocess.run(cmd, check=False).returncode
+        rc = subprocess.run(
+            [*cmd, image],
+            check=False,
+        ).returncode
         if rc != 0:
             subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
         return rc
@@ -31,15 +102,64 @@ def _bake(args, stdin=None):
     if not args:
         print("Usage: bake <image-config-dir>")
         return 1
-    return _do_bake(args[0], include_x=True)
+    cmd = [
+        "sudo", "mkimage/mkimage.py",
+        "-w", "/mnt/Array/BUILD",
+        "-o", "/mnt/Array/Images",
+        "-c", f"./images/{args[0]}/",
+        "-x",
+    ]
+    return _do_bake("/home/bill88t/git/Beryllium", cmd, args[0], "/mnt/Array/Images")
 
 
-def _cbake(args, stdin=None):
+def _bake_iso(args, stdin=None):
     if not args:
-        print("Usage: cbake <image-config-dir>")
+        print("Usage: bake_iso <profile-dir>")
         return 1
-    return _do_bake(args[0], include_x=False)
+    old_cwd = os.getcwd()
+    os.chdir("/home/bill88t/git/Beryllium/iso")
+    try:
+        build_dir = "/mnt/Array/BUILD"
+        print(f"Cleaning {build_dir}")
+        if Path(build_dir).exists():
+            subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
+        subprocess.run(["mkdir", "-p", build_dir], check=False)
+        rc = subprocess.run(
+            ["sudo", "./mkarchiso", "-v", "-w", build_dir, "-o", "/mnt/Array/Images", f"./{args[0]}"],
+            check=False,
+        ).returncode
+        if rc != 0:
+            subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
+        return rc
+    finally:
+        os.chdir(old_cwd)
 
 
 aliases["bake"] = _bake
-aliases["cbake"] = _cbake
+aliases["bake_iso"] = _bake_iso
+
+
+def _build_llama(args, stdin=None):
+    old_cwd = os.getcwd()
+    os.chdir("/home/bill88t/git/llama.cpp")
+    try:
+        rc = subprocess.run(
+            ["cmake", "-B", "build",
+             "-DCMAKE_BUILD_TYPE=Release",
+             "-DGGML_CCACHE=OFF",
+             "-DGGML_NATIVE=ON",
+             "-DGGML_VULKAN=ON",
+             "-DGGML_CPU_KLEIDIAI=ON"],
+            check=False,
+        ).returncode
+        if rc != 0:
+            return rc
+        return subprocess.run(
+            ["cmake", "--build", "build", "--config", "Release", "-j15"],
+            check=False,
+        ).returncode
+    finally:
+        os.chdir(old_cwd)
+
+
+aliases["build_llama"] = _build_llama

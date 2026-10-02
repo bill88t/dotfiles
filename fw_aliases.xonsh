@@ -216,3 +216,65 @@ def _dex(args, stdin=None):
 
 
 aliases["dex"] = _dex
+
+
+def _llama(args, stdin=None):
+    old_cwd = os.getcwd()
+    os.chdir(str(Path.home() / "git" / "llama.cpp" / "build" / "bin"))
+    try:
+        subprocess.run(["clear"], check=False)
+        return subprocess.run(
+            [
+                "sudo",
+                "bash",
+                "-c",
+                "ulimit -l unlimited && source /opt/intel/oneapi/setvars.sh && ./llama-server "
+                "-m /home/bill88t/Local/gemma-4-12b-it-uncensored-Q4_K_S.gguf "
+                "-mm /home/bill88t/Local/mmproj-gemma-4-12B-it-bf16.gguf "
+                '--alias "Gemma 4 Uncensored" '
+                "--port 5501 --ui-mcp-proxy -c 32768 --threads 6 -ngl all "
+                "--prio 3 --prio-batch 3 -fit off -np 1 -lm none -lv 4 --agent "
+                "-b 256 --top-k 40 --temp 1.0 --top-p 0.95 --min-p 0 --repeat-penalty 1.1 --presence-penalty 0 "
+                "--jinja -cms 128 -fa on --no-warmup -ctk q4_0 -ctv q4_0 -cram 2048 "
+                "--webui-config-file /home/bill88t/Local/llmconfig.json",
+            ],
+            check=False,
+        ).returncode
+    finally:
+        os.chdir(old_cwd)
+
+
+aliases["llama"] = _llama
+
+
+def _dex_cadmium(args, stdin=None):
+    print("Stopping firewalld..")
+    subprocess.run(["sudo", "systemctl", "stop", "firewalld"], check=False)
+
+    print("Connecting..")
+    subprocess.run(["adb", "connect", "192.168.1.231:5555"], check=False)
+
+    print("Launching scrcpy..")
+    subprocess.run(
+        [
+            "scrcpy",
+            "--fullscreen",
+            "--new-display=1920x1200/180",
+            "--video-codec=h265",
+            "-b16M",
+            "--max-fps=60",
+            "--mouse=uhid",
+        ],
+        check=False,
+    )
+
+    print("Killing adb..")
+    subprocess.run(["adb", "disconnect"], check=False)
+    subprocess.run(["adb", "kill-server"], check=False)
+
+    print("Starting firewalld..")
+    subprocess.run(["sudo", "systemctl", "start", "firewalld"], check=False)
+    return 0
+
+
+aliases["dex_cadmium"] = _dex_cadmium

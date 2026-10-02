@@ -33,3 +33,5 @@ def _gpgpasswd(args, stdin=None):
 
 
 aliases["gpgpasswd"] = _gpgpasswd
+
+aliases["gpgunlock"] = "rm -f ~/.gnupg/public-keys.d/pubring.db.lock 2>/dev/null || true"

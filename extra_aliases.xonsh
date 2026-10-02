@@ -1,4 +1,5 @@
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -7,7 +8,7 @@ import tempfile
 import time
 from pathlib import Path
 
-aliases["nht"] = "nhentai --no-html -t $(getconf _NPROCESSORS_ONLN) --id"
+aliases["nht"] = "doujinshi-dl --no-html -t $(getconf _NPROCESSORS_ONLN) --id"
 aliases["lsgovernor"] = "cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
 aliases["jf"] = "journalctl -f"
 aliases["wifipass"] = "nmcli dev wifi show-password"
@@ -58,7 +59,19 @@ aliases["cpu_freqs"] = _cpu_freqs
 
 def _jb(args, stdin=None):
     pager = __xonsh__.env.get("PAGER", "cat")
-    return subprocess.run(f"journalctl -b --no-pager | {pager}", shell=True, executable="/bin/sh", check=False).returncode
+    jargs = ["-b"]
+    remaining = list(args)
+    if remaining and remaining[0] == "-b":
+        remaining.pop(0)
+    if remaining and re.fullmatch(r"-\d+", remaining[0]):
+        jargs.append(remaining.pop(0))
+    quoted = " ".join(shlex.quote(a) for a in remaining)
+    return subprocess.run(
+        f"journalctl {' '.join(jargs)} --no-pager {quoted} | {shlex.quote(pager)}".replace("  ", " "),
+        shell=True,
+        executable="/bin/sh",
+        check=False,
+    ).returncode
 
 
 aliases["jb"] = _jb
@@ -270,7 +283,7 @@ def _disk_compress(args, stdin=None):
         print("Usage: disk_compress <device> <output.zst>", file=sys.stderr)
         return 1
     dev, outfile = args
-    if not Path(dev).exists():
+    if not Path(dev).is_block_device():
         print(f"Error: '{dev}' does not exist.", file=sys.stderr)
         return 1
     print(f"Imaging {dev} -> {outfile}..")
@@ -318,7 +331,7 @@ def _disk_decompress(args, stdin=None):
         print("Usage: disk_decompress <input.zst> <device>", file=sys.stderr)
         return 1
     infile, dev = args
-    if not Path(dev).exists():
+    if not Path(dev).is_block_device():
         print(f"Error: '{dev}' does not exist.", file=sys.stderr)
         return 1
     print(f"Restoring {infile} -> {dev} ...")
@@ -438,3 +451,6 @@ def _detab4(args, stdin=None):
 
 
 aliases["detab4"] = _detab4
+
+aliases["ldrestart"] = "sudo systemctl soft-reboot"
+aliases["lurpak"] = "flatpak"

@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -81,13 +82,21 @@ def _yaydown(args, stdin=None):
 aliases["yaydown"] = _yaydown
 
 
+def _version_key(path):
+    # Approximates `sort -V` for version-numbered filenames
+    return [
+        int(part) if part.isdigit() else part
+        for part in re.split(r"(\d+)", path.name)
+    ]
+
+
 def _find_pkg_in_dir(directory, strict_pattern, loose_pattern):
     d = Path(directory)
     if not d.is_dir():
         return ""
-    matches = sorted(d.rglob(strict_pattern))
+    matches = sorted(d.rglob(strict_pattern), key=_version_key)
     if not matches:
-        matches = sorted(d.rglob(loose_pattern))
+        matches = sorted(d.rglob(loose_pattern), key=_version_key)
     return str(matches[-1]) if matches else ""
 
 
@@ -121,7 +130,7 @@ def _upkg(args, stdin=None):
     old_cwd = os.getcwd()
     os.chdir(repo_dir)
     try:
-        old_matches = sorted(Path(".").rglob(loose_pattern))
+        old_matches = sorted(Path(".").rglob(loose_pattern), key=_version_key)
         oldpkg = str(old_matches[-1]) if old_matches else ""
         if oldpkg:
             subprocess.run(["./db.sh", "remove", pkg], check=False)

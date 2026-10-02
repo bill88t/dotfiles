@@ -22,6 +22,7 @@ aliases["gmf"] = "git commit --fixup"
 aliases["gms"] = "git commit --squash"
 aliases["grs"] = "git reset --soft"
 aliases["grm"] = "git remote -v"
+aliases["grst"] = "git reset --hard"
 aliases["glog"] = "git log --graph --oneline --all"
 aliases["gst"] = "git stash"
 aliases["gstp"] = "git stash pop"
@@ -84,7 +85,10 @@ def _gbr(args, stdin=None):
 aliases["gbr"] = _gbr
 
 
-def _gcp(args, stdin=None):
+aliases["gcp"] = "git cherry-pick"
+
+
+def _gcpm(args, stdin=None):
     if not args:
         print("Usage: gcp <commit-message-pattern>")
         return 1
@@ -107,7 +111,7 @@ def _gcp(args, stdin=None):
     return subprocess.run(["git", "cherry-pick", commit], check=False).returncode
 
 
-aliases["gcp"] = _gcp
+aliases["gcpm"] = _gcpm
 
 
 def _gcp_push(args, stdin=None):
