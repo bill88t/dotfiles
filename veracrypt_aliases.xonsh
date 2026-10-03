@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -33,7 +34,7 @@ def _parse_vera_args(args, include_hidden=False):
             i += 2
             continue
         if a.startswith("-"):
-            print(f"Unknown option: {a}", file=sys.stderr)
+            print(f"Unknown option: {a}", file=sys.stderr, flush=True)
             return None
         device = a
         i += 1
@@ -46,10 +47,10 @@ def _verprivattach(args, stdin=None):
         return 1
     password, _, device = parsed
     if not device or not password:
-        print("Usage: verprivattach -p password <device-or-container>")
+        print("Usage: verprivattach -p password <device-or-container>", flush=True)
         return 1
     mountpoint = _next_mountpoint()
-    print(f"Mounting {device} to {mountpoint}..")
+    print(f"Mounting {device} to {mountpoint}..", flush=True)
     rc = subprocess.run(
         [
             "veracrypt",
@@ -65,17 +66,27 @@ def _verprivattach(args, stdin=None):
         check=False,
     ).returncode
     if rc != 0:
-        print(f"Failed to mount {device}")
+        print(f"Failed to mount {device}", flush=True)
         return rc
-    print(f"Mounted hidden volume at {mountpoint}.")
+    print(f"Mounted hidden volume at {mountpoint}.", flush=True)
     old_cwd = os.getcwd()
     os.chdir(mountpoint)
     try:
         if Path(".loadsh").is_file():
-            print("Entering environment, exit to unmount..")
+            # Always drop into bash to load .loadsh (it's bash syntax).
+            print("Entering environment, exit to unmount..", flush=True)
+            time.sleep(0.1)
             env = {"HOME": mountpoint, "PATH": os.environ.get("PATH", "")}
-            subprocess.run(["xonsh"], env=env, check=False)
-            print("Unmounting..")
+            shell = shutil.which("bash") or "/bin/bash"
+            subprocess.run(
+                [shell, "-c", f'source "{mountpoint}/.loadsh"; exec bash'],
+                env=env,
+                cwd=mountpoint,
+                check=False,
+            )
+            # Clear screen and reset cursor after the .loadsh shell exits.
+            print("\x1bc", end="", flush=True)
+            print("Unmounting..", flush=True)
         else:
             input("Press Enter to unmount...")
     finally:
@@ -106,10 +117,10 @@ def _verpubattach(args, stdin=None):
         return 1
     password, hiddenpw, device = parsed
     if not device or not password:
-        print("Usage: verpubattach -p password [-P hidden-password] <device-or-container>")
+        print("Usage: verpubattach -p password [-P hidden-password] <device-or-container>", flush=True)
         return 1
     mountpoint = _next_mountpoint()
-    print(f"Mounting {device} to {mountpoint}..")
+    print(f"Mounting {device} to {mountpoint}..", flush=True)
     cmd = ["veracrypt", "-t", "--pim=0", f"--password={password}", "-k=", device, mountpoint]
     if hiddenpw:
         cmd.extend(
@@ -124,9 +135,9 @@ def _verpubattach(args, stdin=None):
         cmd.append("--protect-hidden=no")
     rc = subprocess.run(cmd, check=False).returncode
     if rc != 0:
-        print(f"Failed to mount {device}")
+        print(f"Failed to mount {device}", flush=True)
         return rc
-    print(f"Mounted volume at {mountpoint}.")
+    print(f"Mounted volume at {mountpoint}.", flush=True)
     input("Press Enter to unmount...")
     while True:
         subprocess.run(["sync", mountpoint], check=False)
@@ -164,34 +175,23 @@ aliases["verpubattach"] = _verpubattach
 def _enter_env(mountpoint):
     """Interaction phase: .loadsh environment if present, else press-enter."""
     if Path(mountpoint, ".loadsh").is_file():
-        print("Entering environment, exit to unmount..")
-        rcfile = tempfile.NamedTemporaryFile(
-            "w", prefix="loadsh-rc-", suffix=".sh", delete=False
-        )
-        rcfile.write(f'export HOME="{mountpoint}"\nsource "{mountpoint}/.loadsh"\n')
-        rcfile.close()
+        print("Entering environment, exit to unmount..", flush=True)
+        time.sleep(0.1)
         env = {
             "HOME": mountpoint,
             "PATH": os.environ.get("PATH", ""),
             "TERM": os.environ.get("TERM", "xterm"),
         }
-        shell = os.environ.get("SHELL", "/bin/bash")
-        if shell.endswith("bash"):
-            subprocess.run(
-                [shell, "--noprofile", "--norc", "--rcfile", rcfile.name],
-                env=env,
-                cwd=mountpoint,
-                check=False,
-            )
-        else:
-            subprocess.run(
-                [shell, "-c", f'source "{mountpoint}/.loadsh"'],
-                env=env,
-                cwd=mountpoint,
-                check=False,
-            )
-        os.unlink(rcfile.name)
-        print("Unmounting..")
+        shell = shutil.which("bash") or "/bin/bash"
+        subprocess.run(
+            [shell, "-c", f'source "{mountpoint}/.loadsh"; exec bash'],
+            env=env,
+            cwd=mountpoint,
+            check=False,
+        )
+        # Clear screen and reset cursor after the .loadsh shell exits.
+        print("\x1bc", end="", flush=True)
+        print("Unmounting..", flush=True)
     else:
         input("Press Enter to unmount...")
 
@@ -219,7 +219,7 @@ def _power_off_parent(dev):
 
 def _verfile_mount(container, partuuid, password, hiddenpw=""):
     if not container or not password:
-        print("_verfile_mount: container path and password are required", file=sys.stderr)
+        print("_verfile_mount: container path and password are required", file=sys.stderr, flush=True)
         return 1
 
     mounted_by_us = False
@@ -229,7 +229,7 @@ def _verfile_mount(container, partuuid, password, hiddenpw=""):
     if partuuid:
         link = Path(f"/dev/disk/by-partuuid/{partuuid}")
         if not link.exists():
-            print(f"Error: PARTUUID={partuuid} not found on this system", file=sys.stderr)
+            print(f"Error: PARTUUID={partuuid} not found on this system", file=sys.stderr, flush=True)
             return 1
         blockdev = str(link.resolve())
 
@@ -239,23 +239,24 @@ def _verfile_mount(container, partuuid, password, hiddenpw=""):
             print(
                 f"Error: {container} not found and no PARTUUID given to mount its filesystem",
                 file=sys.stderr,
+                flush=True,
             )
             return 1
 
         # Already mounted somewhere else? (udisksctl refuses to double-mount.)
         if subprocess.run(["findmnt", "-S", blockdev], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode == 0:
-            print(f"Filesystem of {blockdev} is already mounted, but {container} is missing.", file=sys.stderr)
+            print(f"Filesystem of {blockdev} is already mounted, but {container} is missing.", file=sys.stderr, flush=True)
             return 1
 
-        print(f"Mounting filesystem {blockdev} via udisks..")
+        print(f"Mounting filesystem {blockdev} via udisks..", flush=True)
         mnt = subprocess.run(
             ["udisksctl", "mount", "-b", blockdev], capture_output=True, text=True, check=False
         )
         if mnt.returncode != 0:
-            print(f"Failed to mount {blockdev}: {(mnt.stdout + mnt.stderr).strip()}", file=sys.stderr)
+            print(f"Failed to mount {blockdev}: {(mnt.stdout + mnt.stderr).strip()}", file=sys.stderr, flush=True)
             return 1
         mounted_by_us = True
-        print((mnt.stdout + mnt.stderr).strip())
+        print((mnt.stdout + mnt.stderr).strip(), flush=True)
 
         # Wait for the container path to appear (filesystem settle).
         waited = 0
@@ -263,15 +264,15 @@ def _verfile_mount(container, partuuid, password, hiddenpw=""):
             time.sleep(1)
             waited += 1
             if waited >= 15:
-                print(f"Timeout: {container} not found after mounting {blockdev}", file=sys.stderr)
+                print(f"Timeout: {container} not found after mounting {blockdev}", file=sys.stderr, flush=True)
                 subprocess.run(["udisksctl", "unmount", "-b", blockdev], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
                 _power_off_parent(blockdev)
                 return 1
-        print(f"{container} is available (waited {waited}s).")
+        print(f"{container} is available (waited {waited}s).", flush=True)
 
     # Pick a fresh veracrypt mountpoint, same scheme as the partition flow.
     mountpoint = _next_mountpoint()
-    print(f"Mounting container {container} to {mountpoint}..")
+    print(f"Mounting container {container} to {mountpoint}..", flush=True)
 
     cmd = ["veracrypt", "-t", "--pim=0", f"--password={password}", "-k=", container, mountpoint]
     if hiddenpw:
@@ -287,12 +288,12 @@ def _verfile_mount(container, partuuid, password, hiddenpw=""):
         cmd.append("--protect-hidden=no")
 
     if subprocess.run(cmd, check=False).returncode != 0:
-        print(f"Failed to mount container {container}")
+        print(f"Failed to mount container {container}", flush=True)
         if mounted_by_us:
             subprocess.run(["udisksctl", "unmount", "-b", blockdev], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
         return 1
 
-    print(f"Mounted container at {mountpoint}.")
+    print(f"Mounted container at {mountpoint}.", flush=True)
 
     old_cwd = os.getcwd()
     os.chdir(mountpoint)
@@ -309,7 +310,7 @@ def _verfile_mount(container, partuuid, password, hiddenpw=""):
                 subprocess.run(["udisksctl", "unmount", "-b", blockdev], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
                 _power_off_parent(blockdev)
             else:
-                print("Backing filesystem was already mounted, leaving it mounted.")
+                print("Backing filesystem was already mounted, leaving it mounted.", flush=True)
             return 0
         time.sleep(0.2)
 
@@ -338,7 +339,7 @@ def _parse_ver_path_args(args, with_partuuid=True, with_hidden=False):
             partuuid = args[i + 1]
             i += 2
         elif a.startswith("-"):
-            print(f"Unknown option: {a}", file=sys.stderr)
+            print(f"Unknown option: {a}", file=sys.stderr, flush=True)
             return None
         else:
             container = a
@@ -352,7 +353,7 @@ def _verpathattach(args, stdin=None):
         return 1
     password, _, partuuid, container = parsed
     if not container or not password:
-        print("Usage: verpathattach -p password [-u PARTUUID] /path/to/container")
+        print("Usage: verpathattach -p password [-u PARTUUID] /path/to/container", flush=True)
         return 1
     return _verfile_mount(container, partuuid, password)
 
@@ -363,7 +364,7 @@ def _verpathattachpub(args, stdin=None):
         return 1
     password, hiddenpw, partuuid, container = parsed
     if not container or not password:
-        print("Usage: verpathattachpub -p password [-P hidden-password] [-u PARTUUID] /path/to/container")
+        print("Usage: verpathattachpub -p password [-P hidden-password] [-u PARTUUID] /path/to/container", flush=True)
         return 1
     return _verfile_mount(container, partuuid, password, hiddenpw)
 
@@ -374,8 +375,8 @@ aliases["verpathattachpub"] = _verpathattachpub
 
 def _vdisk(args, stdin=None):
     if len(args) < 4:
-        print("Usage: vdisk <name> <PARTUUID> <container_path> <password> [hidden_password]")
-        print("  Example: vdisk myvol a1b2c3d4-e5f6-7890-abcd-ef1234567890 /run/media/bill88t/TONK/vol hunter2")
+        print("Usage: vdisk <name> <PARTUUID> <container_path> <password> [hidden_password]", flush=True)
+        print("  Example: vdisk myvol a1b2c3d4-e5f6-7890-abcd-ef1234567890 /run/media/bill88t/TONK/vol hunter2", flush=True)
         return 1
     name, partuuid, container, password = args[:4]
     hiddenpw = args[4] if len(args) > 4 else ""
@@ -398,14 +399,14 @@ def _verfileattach(args, stdin=None):
         return 1
     password, hiddenpw, _, container = parsed
     if not container or not password:
-        print("Usage: verfileattach -p password [-P hidden-password] /path/to/container")
+        print("Usage: verfileattach -p password [-P hidden-password] /path/to/container", flush=True)
         return 1
     if not Path(container).exists():
-        print(f"Error: container {container} not found", file=sys.stderr)
+        print(f"Error: container {container} not found", file=sys.stderr, flush=True)
         return 1
 
     mountpoint = _next_mountpoint()
-    print(f"Mounting container {container} to {mountpoint}..")
+    print(f"Mounting container {container} to {mountpoint}..", flush=True)
 
     cmd = ["veracrypt", "-t", "--pim=0", f"--password={password}", "-k=", container, mountpoint]
     if hiddenpw:
@@ -421,10 +422,10 @@ def _verfileattach(args, stdin=None):
         cmd.append("--protect-hidden=no")
 
     if subprocess.run(cmd, check=False).returncode != 0:
-        print(f"Failed to mount container {container}")
+        print(f"Failed to mount container {container}", flush=True)
         return 1
 
-    print(f"Mounted container at {mountpoint}.")
+    print(f"Mounted container at {mountpoint}.", flush=True)
 
     old_cwd = os.getcwd()
     os.chdir(mountpoint)
