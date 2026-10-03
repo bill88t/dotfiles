@@ -100,7 +100,7 @@ def _bake(args, stdin=None):
             subprocess.run(["sudo", "rm", "-rf", build_dir], check=False)
         subprocess.run(["mkdir", "-p", build_dir], check=False)
         rc = subprocess.run(
-            ["sudo", "mkimage/mkimage.py", "-w", build_dir, "-o", "/home/bill88t/Images", "-c", f"./images/{args[0]}/", "-x"],
+            ["sudo", "mkimage/mkimage.py", "-w", build_dir, "-o", "/home/bill88t/Images", "-c", f"./images/{args[0]}/"],
             check=False,
         ).returncode
         if rc != 0:
