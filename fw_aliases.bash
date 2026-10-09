@@ -277,3 +277,11 @@ dex_cadmium() {
     echo "Starting firewalld.."
     sudo systemctl start firewalld
 }
+
+export COLI_MODEL="/home/bill88t/Local/glm53-flash-abliterated-colibri"
+export GLM53_EXPERT_GB=10.1
+export PATH="$PATH:/home/bill88t/git/colibri/c"
+
+glm() {
+    coli web --no-browser --ctx 131072 --cap 3 --no-think --policy experimental-fast --auto-tier
+}
