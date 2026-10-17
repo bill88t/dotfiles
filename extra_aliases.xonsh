@@ -454,3 +454,4 @@ aliases["detab4"] = _detab4
 
 aliases["ldrestart"] = "sudo systemctl soft-reboot"
 aliases["lurpak"] = "flatpak"
+aliases["dropdns"] = "sudo resolvectl flush-caches"
