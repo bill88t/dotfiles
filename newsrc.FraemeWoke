@@ -25,11 +25,11 @@ shortcuts["4"] = (
 shortcuts["5"] = "winekill"
 shortcuts["b"] = "btop"
 shortcuts["q"] = quit
-shortcuts["f"] = (
-    "fw-fanctrl use off && "
-    "sleep 3 && "
-    "fw-fanctrl reset"
-)
+# shortcuts["f"] = (
+#     "fw-fanctrl use off && "
+#     "sleep 3 && "
+#     "fw-fanctrl reset"
+# )
 shortcuts["?"] = shortcuts_help
 
 shortcuts_reload = ["1", "2", "3", "4", "5", "b", "?", "f"]
