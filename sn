@@ -4,20 +4,33 @@ if systemctl --user -q is-active niri.service; then
   exit 1
 fi
 
+# Any card being under pressure will trigger this, even if it's not the main GPU
+for CARD in /sys/class/drm/card[0-9]; do
+  [ -d "$CARD/device" ] || continue
+  if [ -f "$CARD/device/mem_info_vram_used" ] && [ -f "$CARD/device/mem_info_vram_total" ]; then
+    FREE_KB=$(( ($(cat "$CARD/device/mem_info_vram_total") - $(cat "$CARD/device/mem_info_vram_used")) / 1024 ))
+    if [ "$FREE_KB" -lt 524288 ]; then
+      echo "Only ${FREE_KB} KiB of VRAM free on $(basename "$CARD"); refusing to start niri."
+      exit 1
+    fi
+  fi
+  break
+done
+
 ( # Subshell
-cd ~ && clear && echo -n "Starting niri.."
+    cd ~ && clear && echo -n "Starting niri.."
 
-systemctl --user reset-failed 2>/dev/null
-systemctl --user import-environment 2>/dev/null
-if hash dbus-update-activation-environment 2>/dev/null; then
-    dbus-update-activation-environment --all 2>/dev/null
-fi
+    systemctl --user reset-failed 2>/dev/null
+    systemctl --user import-environment 2>/dev/null
+    if hash dbus-update-activation-environment 2>/dev/null; then
+        dbus-update-activation-environment --all 2>/dev/null
+    fi
 
-systemctl --user --wait start niri.service
-systemctl --user start --job-mode=replace-irreversibly niri-shutdown.target
-systemctl --user unset-environment DISPLAY WAYLAND_DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP NIRI_SOCKET
+    systemctl --user --wait start niri.service
+    systemctl --user start --job-mode=replace-irreversibly niri-shutdown.target
+    systemctl --user unset-environment DISPLAY WAYLAND_DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP NIRI_SOCKET
 
-reset
+    reset
 
-systemctl --user restart gpg-agent
+    systemctl --user restart gpg-agent
 )
