@@ -409,3 +409,18 @@ detab4() {
 alias ldrestart="sudo systemctl soft-reboot"
 alias lurpak="flatpak"
 alias dropdns="sudo resolvectl flush-caches"
+
+# usage: mkjunk <folder> <N>
+mkjunk() {
+    local dir="$1" n="$2" batch=50 kb
+    mkdir -p "$dir"
+    for ((i=1; i<=n; i++)); do
+        kb=$((RANDOM % 28 + 3))
+        dd if=/dev/urandom of="$dir/file_$i.bin" bs=1024 count="$kb" status=none &
+        if (( i % batch == 0 )); then
+            wait
+        fi
+    done
+    wait
+}
+
