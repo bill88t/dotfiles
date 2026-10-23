@@ -21,3 +21,10 @@ export RISH_APPLICATION_ID="com.termux"
 
 alias vncstart="termux-wake-lock && vncserver -xstartup ../usr/bin/startxfce4 -listen tcp :1"
 alias vncstop="vncserver -kill :1 && termux-wake-unlock"
+
+build_llama() {
+    cd ~/git/llama.cpp
+
+    cmake -B build -DCMAKE_BUILD_TYPE=Release -DGGML_CCACHE=OFF -DGGML_NATIVE=ON -DGGML_VULKAN=ON -DGGML_CPU_KLEIDIAI=ON
+    cmake --build build --config Release -j10
+}
