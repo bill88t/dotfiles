@@ -4,7 +4,7 @@ llama() {
         termux-wake-lock
 
         ./llama-server \
-            -m ~/LLM/K2-Horizon-7B-Candor-Uncensored-Q4_K_M.gguf \
+            -m ~/SDCard/Local/K2-Horizon-7B-Candor-Uncensored-Q4_K_M.gguf \
             --alias "K2 Horizon" --host 0.0.0.0 --port 8080 \
             --prio-batch 3 -t 8 -fit off -lv 4 -lm none -ngl all \
             -b 128 -c 8192 --temp 0.9 --top-k 1000 --top-p 0.95 --min-p 0 --repeat-penalty 1.1 --presence-penalty 0 \
