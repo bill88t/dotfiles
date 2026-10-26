@@ -270,6 +270,7 @@ binds {
     Mod+S { spawn "/home/bill88t/git/dotfiles/special_fuzzel"; }
     Mod+M { spawn "thunderbird"; }
     Mod+C { spawn "mate-calc"; }
+    Mod+H { spawn "hermes-desktop"; }
 
     // Clipboard
     Mod+Shift+Z { spawn "/home/bill88t/git/dotfiles/cliphist-wipe"; }
