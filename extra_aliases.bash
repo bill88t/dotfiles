@@ -474,7 +474,7 @@ kleidi_quant() {
     llama-quantize "${flags[@]}" "$in" "$out" Q4_0
 }
 
-Q4_0_quant() {
+q4_0_quant() {
     if [[ $# -lt 2 ]]; then
         echo "Usage: bland_quant <in.gguf> <out.gguf> [extra llama-quantize flags]" >&2
         return 2
