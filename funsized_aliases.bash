@@ -36,3 +36,10 @@ alias ledmod="(stty 115200 && echo -ne 'mod\n' >> /dev/ttyACM0)"
 alias ledoff="(stty 115200 && echo -ne 'off\n' >> /dev/ttyACM0)"
 alias ledrst="(stty 115200 && echo -ne 'rst\n' >> /dev/ttyACM0)"
 alias ledprog="(stty 115200 && echo -ne 'pro\n' >> /dev/ttyACM0)"
+
+build_llama() {
+    cd /home/bill88t/git/llama.cpp
+
+    cmake -B build -DCMAKE_BUILD_TYPE=Release -DGGML_CCACHE=OFF -DGGML_NATIVE=ON -DGGML_CPU_KLEIDIAI=ON
+    cmake --build build --config Release -j15
+}
