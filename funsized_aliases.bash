@@ -37,6 +37,8 @@ alias ledoff="(stty 115200 && echo -ne 'off\n' >> /dev/ttyACM0)"
 alias ledrst="(stty 115200 && echo -ne 'rst\n' >> /dev/ttyACM0)"
 alias ledprog="(stty 115200 && echo -ne 'pro\n' >> /dev/ttyACM0)"
 
+export PATH="$HOME/git/llama.cpp/build/bin:$PATH"
+
 build_llama() {
     cd /home/bill88t/git/llama.cpp
 
