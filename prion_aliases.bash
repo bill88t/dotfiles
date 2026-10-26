@@ -3,25 +3,19 @@ alias rcon='mcrcon -P 25575 -p "$MCRCON"'
 alias nv="sudo nvtop"
 
 nollm() {
-    systemctl --user stop llama.qwen
     systemctl --user stop llama.gemma
     systemctl --user stop llama.gemma.low
-    systemctl --user stop llama.qwythos
-    systemctl --user stop llama.coder
-    systemctl --user stop kobold.cpp
-    systemctl --user stop kobold.image
+    systemctl --user stop llama.biggemma
 
     sudo killall -s9 llama-server 2>/dev/null || true
 }
 
-kobold() {
-    nollm
-    systemctl --user start kobold.cpp
-}
+killllm() {
+    systemctl --user kill llama.gemma
+    systemctl --user kill llama.gemma.low
+    systemctl --user kill llama.biggemma
 
-kobold-image() {
-    nollm
-    systemctl --user start kobold.image
+    sudo killall -s9 llama-server 2>/dev/null || true
 }
 
 gemma() {
@@ -34,19 +28,9 @@ lowgemma() {
     systemctl --user start llama.gemma.low
 }
 
-qwen() {
+biggemma() {
     nollm
-    systemctl --user start llama.qwen
-}
-
-qwythos() {
-    nollm
-    systemctl --user start llama.qwythos
-}
-
-coder() {
-    nollm
-    systemctl --user start llama.coder
+    systemctl --user start llama.biggemma
 }
 
 bake() {
