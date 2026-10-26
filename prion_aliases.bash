@@ -83,6 +83,8 @@ bake_iso() {
     return $status
 }
 
+export PATH="$HOME/git/llama.cpp/build/bin:$PATH"
+
 build_llama() {
     cd /home/bill88t/git/llama.cpp
 

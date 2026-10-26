@@ -214,6 +214,8 @@ build_llama() {
     cmake -B build -DGGML_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DGGML_SYCL_F16=ON -DCMAKE_BUILD_TYPE=Release -DGGML_CCACHE=OFF -DGGML_NATIVE=ON && cmake --build build --config Release -j8
 }
 
+export PATH="$HOME/git/llama.cpp/build/bin:$PATH"
+
 llama() {
     (
         cd ~/git/llama.cpp/build/bin
