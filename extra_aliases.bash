@@ -448,3 +448,28 @@ hermesfix() {
     printf '%s\n' "{\"state\":\"ok\",\"reason\":\"\",\"version\":\"$version\"}" > "$file"
     echo "Reset to ok. Relaunch hermes-desktop."
 }
+
+kleidi_quant() {
+    if [[ $# -lt 2 ]]; then
+        echo "Usage: kleidi_quant <in.gguf> <out.gguf> [extra llama-quantize flags]" >&2
+        return 2
+    fi
+    local in="$1" out="$2"
+    shift 2
+
+    local -a flags=()
+    local allow=true
+    for arg in "$@"; do
+        [[ "$arg" == "--no-requant" ]] && { allow=false; continue; }
+        flags+=("$arg")
+    done
+
+    $allow && flags=(--allow-requantize "${flags[@]}")
+
+    if ! command -v llama-quantize >/dev/null 2>&1; then
+        echo "Error: llama-quantize not found in PATH" >&2
+        return 1
+    fi
+
+    llama-quantize "${flags[@]}" "$in" "$out" Q4_0
+}
