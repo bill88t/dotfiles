@@ -424,3 +424,27 @@ mkjunk() {
     wait
 }
 
+hermesfix() {
+    local file="${XDG_CONFIG_HOME:-$HOME/.config}/Hermes/windows-sandbox-fallback.json"
+    if [[ ! -f "$file" ]]; then
+        echo "No fallback marker at $file - nothing to do."
+        return 0
+    fi
+    echo "Current: $(cat "$file")"
+    if grep -q '"state": *"ok"' "$file"; then
+        echo "Marker already ok."
+        return 0
+    fi
+    if pgrep -af 'hermes-agent-desktop|Hermes' | grep -q electron44; then
+        echo "Hermes Desktop appears to be running - quit it first."
+        return 1
+    fi
+    local version
+    version="$(hermes-desktop --version 2>/dev/null | sed -n 's/.*(\(v[0-9.]*\)).*/\1/p')"
+    if [[ -z "$version" ]]; then
+        echo "Could not determine hermes-desktop version."
+        return 1
+    fi
+    printf '%s\n' "{\"state\":\"ok\",\"reason\":\"\",\"version\":\"$version\"}" > "$file"
+    echo "Reset to ok. Relaunch hermes-desktop."
+}
