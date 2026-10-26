@@ -207,35 +207,26 @@ alias hotspot-up="nmcli connection modify Hotspot 802-11-wireless-security.pairw
 
 alias hotspot-down="nmcli connection down Hotspot"
 
+build_llama() {
+    cd /home/bill88t/git/llama.cpp
+    sudo ulimit -l unlimited
+    source /opt/intel/oneapi/setvars.sh
+    cmake -B build -DGGML_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DGGML_SYCL_F16=ON -DCMAKE_BUILD_TYPE=Release -DGGML_CCACHE=OFF -DGGML_NATIVE=ON && cmake --build build --config Release -j8
+}
+
 llama() {
     (
         cd ~/git/llama.cpp/build/bin
         clear
 
         sudo bash -c "ulimit -l unlimited && source /opt/intel/oneapi/setvars.sh && ./llama-server \
-            -m /home/bill88t/Local/gemma-4-12b-it-uncensored-Q4_K_S.gguf \
-            -mm /home/bill88t/Local/mmproj-gemma-4-12B-it-bf16.gguf \
-            --alias \"Gemma 4 Uncensored\" \
-            --port 5501 --ui-mcp-proxy -c 32768 --threads 6 -ngl all \
-            --prio 3 --prio-batch 3 -fit off -np 1 -lm none -lv 4 --agent \
-            -b 256 --top-k 40 --temp 1.0 --top-p 0.95 --min-p 0 --repeat-penalty 1.1 --presence-penalty 0 \
+            -m /home/bill88t/Local/flint-abliterated-Q3_K_M.gguf \
+            --alias \"Flint Uncensored\" \
+            --port 5501 --ui-mcp-proxy -c 16384 --threads 6 -ngl 0 \
+            --prio 3 --prio-batch 3 -fit on -np 1 -lm mmap -lv 4 --agent \
+            -b 128 --top-k 40 --temp 0.5 --top-p 0.95 --min-p 0 --repeat-penalty 1.0 --presence-penalty 0 \
             --jinja -cms 128 -fa on --no-warmup -ctk q4_0 -ctv q4_0 -cram 2048 \
             --webui-config-file /home/bill88t/Local/llmconfig.json"
-
-        return 0
-    )
-}
-
-kobold_img() {
-    (
-        cd ~
-        clear
-
-        python3 git/koboldcpp/koboldcpp.py \
-            --sdmodel /home/bill88t/Local/Bunny-XL2-V3-NS.safetensors.q8_0.gguf \
-            --threads 6 \
-            --sdconvdirect full \
-            --usevulkan
 
         return 0
     )
@@ -278,8 +269,3 @@ dex_cadmium() {
     sudo systemctl start firewalld
 }
 
-export PATH="$PATH:/home/bill88t/git/colibri/c"
-
-glm() {
-    COLI_MODEL="/home/bill88t/Local/glm53-flash-abliterated-colibri" COLI_VULKAN=1 coli web --no-browser --ctx 8192 --no-think --policy balanced --topp 0.85 --cap 2
-}

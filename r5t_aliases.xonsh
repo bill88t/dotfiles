@@ -1,3 +1,0 @@
-aliases["pivpn"] = "docker exec -it pivpn pivpn"
-aliases["cin"] = "startx /usr/bin/cinnamon-session && clear"
-aliases["nginx-test"] = "docker exec -it nginx nginx -t"
