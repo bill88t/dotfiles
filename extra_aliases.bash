@@ -498,3 +498,5 @@ q4_0_quant() {
 
     llama-quantize "${flags[@]}" "$in" "$out" Q4_0
 }
+
+alias helium-debug="helium-browser --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug"
