@@ -501,29 +501,56 @@ q4_0_quant() {
 
 alias helium-debug="helium-browser --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug"
 
-# Group CPU cores by max frequency (works on Intel/AMD/ARM, any number of clusters).
-#   cpu_clusters      -> "freq kHz: cpus" per cluster, fastest first
-#   cpu_clusters -b   -> fastest cluster as a taskset-style list, e.g. 0-1
-#   cpu_clusters -l   -> slowest cluster as a taskset-style list
+# Classify CPU cores into big/little clusters. Uses MIDR (core type) on ARM when
+# available, falls back to max-frequency grouping on x86 / other systems.
+#   cpu_clusters      -> per-class listing: "class kHz: cpus"
+#   cpu_clusters -b   -> big-core taskset list (all fast core types)
+#   cpu_clusters -l   -> little-core taskset list
 #   taskset -c "$(cpu_clusters -b)" <cmd>
 cpu_clusters() {
-    local mode="${1:--a}" cpu f
-    local -A groups=()
+    local mode="${1:--a}" cpu f midr key
+    # key = midr:cpus, classify models into big/little by max freq
+    local -A model_max=() model_cpus=()
 
     for cpu in /sys/devices/system/cpu/cpu[0-9]*; do
         f=$(<"$cpu/cpufreq/cpuinfo_max_freq") || continue
-        groups[$f]+=" ${cpu##*/cpu}"
+        if [[ -r "$cpu/regs/identification/midar_el1" ]]; then
+            midr=$(<"$cpu/regs/identification/midar_el1")
+        else
+            midr=""
+        fi
+        key=${midr:-cpu}
+        model_max[$key]=${model_max[$key]:-0}
+        (( f > model_max[$key] )) && model_max[$key]=$f
+        model_cpus[$key]+=" ${cpu##*/cpu}"
     done
 
     local -a freqs=()
-    while IFS= read -r f; do freqs+=("$f"); done < <(printf '%s\n' "${!groups[@]}" | sort -rn)
+    while IFS= read -r f; do freqs+=("$f"); done < <(printf '%s\n' "${model_max[@]}" | sort -rn)
+
+    local big="" little="" out=()
+    local ratio line
+    for key in "${!model_max[@]}"; do
+        f=${model_max[$key]}
+        # ratio vs fastest model: >=85% is big, <80% is little (A520@1.8 vs
+        # A720@2.6 is 0.69, so 80% keeps small cores out of "mid")
+        ratio=$(( 1000 * f / freqs[0] ))
+        if (( ratio >= 850 )); then
+            big+="${model_cpus[$key]} "
+            line="big"
+        elif (( ratio < 800 )); then
+            little+="${model_cpus[$key]} "
+            line="little"
+        else
+            line="mid"
+        fi
+        out+=("$(printf '%-7s %6d kHz: %s' "$line" "$f" "$(_cpu_ids_to_list "${model_cpus[$key]}")")")
+    done
 
     case "$mode" in
-        -b) _cpu_ids_to_list "${groups[${freqs[0]}]}" ;;
-        -l) _cpu_ids_to_list "${groups[${freqs[-1]}]}" ;;
-        -a) for f in "${freqs[@]}"; do
-                printf '%6d kHz: %s\n' "$f" "$(_cpu_ids_to_list "${groups[$f]}")"
-            done ;;
+        -b) _cpu_ids_to_list "$big" ;;
+        -l) _cpu_ids_to_list "$little" ;;
+        -a) printf '%s\n' "${out[@]}" | sort -t: -k2 -rn ;;
         *) echo "Usage: cpu_clusters [-a|-b|-l]" >&2; return 2 ;;
     esac
 }
