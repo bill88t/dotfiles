@@ -500,3 +500,52 @@ q4_0_quant() {
 }
 
 alias helium-debug="helium-browser --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug"
+
+# Group CPU cores by max frequency (works on Intel/AMD/ARM, any number of clusters).
+#   cpu_clusters      -> "freq kHz: cpus" per cluster, fastest first
+#   cpu_clusters -b   -> fastest cluster as a taskset-style list, e.g. 0-1
+#   cpu_clusters -l   -> slowest cluster as a taskset-style list
+#   taskset -c "$(cpu_clusters -b)" <cmd>
+cpu_clusters() {
+    local mode="${1:--a}" cpu f
+    local -A groups=()
+
+    for cpu in /sys/devices/system/cpu/cpu[0-9]*; do
+        f=$(<"$cpu/cpufreq/cpuinfo_max_freq") || continue
+        groups[$f]+=" ${cpu##*/cpu}"
+    done
+
+    local -a freqs=()
+    while IFS= read -r f; do freqs+=("$f"); done < <(printf '%s\n' "${!groups[@]}" | sort -rn)
+
+    case "$mode" in
+        -b) _cpu_ids_to_list "${groups[${freqs[0]}]}" ;;
+        -l) _cpu_ids_to_list "${groups[${freqs[-1]}]}" ;;
+        -a) for f in "${freqs[@]}"; do
+                printf '%6d kHz: %s\n' "$f" "$(_cpu_ids_to_list "${groups[$f]}")"
+            done ;;
+        *) echo "Usage: cpu_clusters [-a|-b|-l]" >&2; return 2 ;;
+    esac
+}
+
+# compact comma-separated range list from scattered cpu ids, e.g. "0-1,6-9"
+_cpu_ids_to_list() {
+    local -a ids
+    read -ra ids <<< "$1"
+    local out="" start="" prev="" id
+    for id in $(printf '%s\n' "${ids[@]}" | sort -n); do
+        if [[ -n $prev && $((id)) -eq $((prev + 1)) ]]; then
+            prev=$id
+            continue
+        fi
+        if [[ -n $start ]]; then
+            [[ $start == "$prev" ]] && out+="$start," || out+="$start-$prev,"
+        fi
+        start=$id
+        prev=$id
+    done
+    if [[ -n $start ]]; then
+        [[ $start == "$prev" ]] && out+="$start" || out+="$start-$prev"
+    fi
+    printf '%s' "$out"
+}
