@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# Classify CPU cores into big/little clusters. Identifies core types via
+# midar_el1 (ARM) or /proc/cpuinfo "CPU part" (ARM, when the regs aren't
+# exported); falls back to max-frequency grouping on x86 / other systems.
+#
+# Sourcing this file gives you the cpu_clusters function in your shell.
+# Running it as an executable prints the same output, for use in scripts
+# and systemd units:
+#   cpu_clusters -a        per-class listing: "class kHz: cpus"
+#   cpu_clusters -b        big-core taskset list, e.g. 0-1,6-11
+#   cpu_clusters -l        little-core taskset list
+#
+#   ExecStart=... taskset -c "$(cpu_clusters -b)" <cmd>
+
+cpu_clusters() {
+    local mode="${1:--a}" cpu f key
+    local -A model_max=() model_cpus=()
+    local -A cpu_part=()
+
+    # /proc/cpuinfo "CPU part" per logical CPU; newer arm64 kernels group
+    # identical CPUs as "processor : 0-3", so expand ranges
+    if [[ -r /proc/cpuinfo ]]; then
+        while read -r id part; do
+            cpu_part[$id]=$part
+        done < <(awk '
+            /^processor[[:space:]]*:/ {
+                gsub(/^processor[[:space:]]*:[[:space:]]*/, "")
+                p = $0
+            }
+            /^CPU part[[:space:]]*:/ {
+                gsub(/^CPU part[[:space:]]*:[[:space:]]*/, "")
+                split(p, a, "-")
+                for (i = a[1]; i <= a[2]; i++) print i, $0
+            }' /proc/cpuinfo)
+    fi
+
+    for cpu in /sys/devices/system/cpu/cpu[0-9]*; do
+        f=$(<"$cpu/cpufreq/cpuinfo_max_freq") || continue
+        id=${cpu##*/cpu}
+        if [[ -r "$cpu/regs/identification/midar_el1" ]]; then
+            key=$(<"$cpu/regs/identification/midar_el1")
+        elif [[ -n ${cpu_part[$id]} ]]; then
+            key=${cpu_part[$id]}
+        else
+            # no core-type info: key by frequency so hybrid systems still split
+            key="f$f"
+        fi
+        model_max[$key]=${model_max[$key]:-0}
+        (( f > model_max[$key] )) && model_max[$key]=$f
+        model_cpus[$key]+=" $id"
+    done
+
+    local -a freqs=()
+    while IFS= read -r f; do freqs+=("$f"); done < <(printf '%s\n' "${model_max[@]}" | sort -rn)
+
+    local big="" little="" out=()
+    local ratio line
+    for key in "${!model_max[@]}"; do
+        f=${model_max[$key]}
+        # ratio vs fastest model: <80% is little (A520@1.8 vs A720@2.6 is 0.69),
+        # >=80% is big; a real 3-tier SoC's mid cluster (~85-90%) lands in big
+        ratio=$(( 1000 * f / freqs[0] ))
+        if (( ratio >= 800 )); then
+            big+="${model_cpus[$key]} "
+            line="big"
+        else
+            little+="${model_cpus[$key]} "
+            line="little"
+        fi
+        out+=("$(printf '%-7s %6d kHz: %s' "$line" "$f" "$(_cpu_ids_to_list "${model_cpus[$key]}")")")
+    done
+
+    case "$mode" in
+        -b) _cpu_ids_to_list "$big" ;;
+        -l) _cpu_ids_to_list "$little" ;;
+        -a) printf '%s\n' "${out[@]}" | sort -t: -k2 -rn ;;
+        *) echo "Usage: ${0##*/} [-a|-b|-l]" >&2; return 2 ;;
+    esac
+}
+
+# compact comma-separated range list from scattered cpu ids, e.g. "0-1,6-9"
+_cpu_ids_to_list() {
+    local -a ids
+    read -ra ids <<< "$1"
+    local out="" start="" prev="" id
+    for id in $(printf '%s\n' "${ids[@]}" | sort -n); do
+        if [[ -n $prev && $((id)) -eq $((prev + 1)) ]]; then
+            prev=$id
+            continue
+        fi
+        if [[ -n $start ]]; then
+            [[ $start == "$prev" ]] && out+="$start," || out+="$start-$prev,"
+        fi
+        start=$id
+        prev=$id
+    done
+    if [[ -n $start ]]; then
+        [[ $start == "$prev" ]] && out+="$start" || out+="$start-$prev"
+    fi
+    printf '%s' "$out"
+}
+
+# run as CLI only when executed directly; sourcing just defines the functions
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+    cpu_clusters "${1:--a}"
+fi
