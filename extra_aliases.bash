@@ -501,28 +501,49 @@ q4_0_quant() {
 
 alias helium-debug="helium-browser --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug"
 
-# Classify CPU cores into big/little clusters. Uses MIDR (core type) on ARM when
-# available, falls back to max-frequency grouping on x86 / other systems.
+# Classify CPU cores into big/little clusters. Identifies core types via
+# midar_el1 (ARM) or /proc/cpuinfo "CPU part" (ARM, when the regs aren't
+# exported); falls back to max-frequency grouping on x86 / other systems.
 #   cpu_clusters      -> per-class listing: "class kHz: cpus"
 #   cpu_clusters -b   -> big-core taskset list (all fast core types)
 #   cpu_clusters -l   -> little-core taskset list
 #   taskset -c "$(cpu_clusters -b)" <cmd>
 cpu_clusters() {
-    local mode="${1:--a}" cpu f midr key
-    # key = midr:cpus, classify models into big/little by max freq
+    local mode="${1:--a}" cpu f key
     local -A model_max=() model_cpus=()
+    local -A cpu_part=()
+
+    # /proc/cpuinfo "CPU part" per logical CPU; newer arm64 kernels group
+    # identical CPUs as "processor : 0-3", so expand ranges
+    if [[ -r /proc/cpuinfo ]]; then
+        while read -r id part; do
+            cpu_part[$id]=$part
+        done < <(awk '
+            /^processor[[:space:]]*:/ {
+                gsub(/^processor[[:space:]]*:[[:space:]]*/, "")
+                p = $0
+            }
+            /^CPU part[[:space:]]*:/ {
+                gsub(/^CPU part[[:space:]]*:[[:space:]]*/, "")
+                split(p, a, "-")
+                for (i = a[1]; i <= a[2]; i++) print i, $0
+            }' /proc/cpuinfo)
+    fi
 
     for cpu in /sys/devices/system/cpu/cpu[0-9]*; do
         f=$(<"$cpu/cpufreq/cpuinfo_max_freq") || continue
+        id=${cpu##*/cpu}
         if [[ -r "$cpu/regs/identification/midar_el1" ]]; then
-            midr=$(<"$cpu/regs/identification/midar_el1")
+            key=$(<"$cpu/regs/identification/midar_el1")
+        elif [[ -n ${cpu_part[$id]} ]]; then
+            key=${cpu_part[$id]}
         else
-            midr=""
+            # no core-type info: key by frequency so hybrid systems still split
+            key="f$f"
         fi
-        key=${midr:-cpu}
         model_max[$key]=${model_max[$key]:-0}
         (( f > model_max[$key] )) && model_max[$key]=$f
-        model_cpus[$key]+=" ${cpu##*/cpu}"
+        model_cpus[$key]+=" $id"
     done
 
     local -a freqs=()
@@ -532,17 +553,15 @@ cpu_clusters() {
     local ratio line
     for key in "${!model_max[@]}"; do
         f=${model_max[$key]}
-        # ratio vs fastest model: >=85% is big, <80% is little (A520@1.8 vs
-        # A720@2.6 is 0.69, so 80% keeps small cores out of "mid")
+        # ratio vs fastest model: <80% is little (A520@1.8 vs A720@2.6 is 0.69),
+        # >=80% is big; a real 3-tier SoC's mid cluster (~85-90%) lands in big
         ratio=$(( 1000 * f / freqs[0] ))
-        if (( ratio >= 850 )); then
+        if (( ratio >= 800 )); then
             big+="${model_cpus[$key]} "
             line="big"
-        elif (( ratio < 800 )); then
+        else
             little+="${model_cpus[$key]} "
             line="little"
-        else
-            line="mid"
         fi
         out+=("$(printf '%-7s %6d kHz: %s' "$line" "$f" "$(_cpu_ids_to_list "${model_cpus[$key]}")")")
     done
