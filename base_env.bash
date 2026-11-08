@@ -64,6 +64,8 @@ export PATH="$HOME/git/dotfiles:$HOME/.local/bin:$PATH"
 
 export EDITOR="$HOME/git/dotfiles/.editor"
 
+export CCACHE_MAXSIZE="10G"
+
 e() {
     $HOME/git/dotfiles/.editor "$@"
 }
