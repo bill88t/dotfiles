@@ -1,13 +1,28 @@
 #!/usr/bin/env python3
-"""ttykey - use this terminal as a keyboard for another tty.
+"""ttykey - use this terminal as a keyboard for another tty, or as a
+virtual USB keyboard.
 
-Usage: ttykey [tty]        (default: /dev/tty1)
+Usage: ttykey [target]
+  target: 1..7, /dev/ttyN, any other tty path, or "usb"  (default: /dev/tty1)
 
-Every byte you type here is pushed into the target tty's input queue via
-TIOCSTI, so it behaves exactly as if typed on that console. Press Ctrl+X
-to quit. Run it as root (the target tty is usually root-only).
+Targets:
+  /dev/ttyN   each byte is pushed into that tty's input queue via TIOCSTI,
+              exactly as if typed on its own keyboard.
+  usb         a virtual USB keyboard is created through /dev/uinput; keys
+              go to whatever console/application currently has focus.
 
-Typical use over ssh:  ssh -t root@host ttykey /dev/tty1
+Keys (consumed locally, never forwarded):
+  Ctrl+X    quit
+  Ctrl+\\    next tty: tty1 -> tty2 -> ... -> tty7 -> tty1 (also leaves usb mode)
+  Ctrl+_    toggle the virtual USB keyboard on/off (often also Ctrl+/)
+            (Ctrl+| cannot be used: terminals send the same byte as Ctrl+\\)
+
+Everything else is passed through, so Ctrl+C, arrows, etc. keep working.
+Run as root (the ttys and /dev/uinput are root-only).
+USB mode emulates a US layout and ASCII only; non-ASCII bytes are dropped
+there (tty mode passes them through untouched).
+
+Typical use over ssh:  ssh -t root@host ttykey
 """
 
 import errno
@@ -16,18 +31,195 @@ import os
 import select
 import signal
 import stat
+import struct
 import sys
 import termios
+import time
 import tty
 
 TIOCSTI = 0x5412
-QUIT = 0x18  # Ctrl+X
+
+# uinput (linux/uinput.h)
+UI_DEV_CREATE = 0x5501
+UI_DEV_DESTROY = 0x5502
+UI_SET_EVBIT = 0x40045564
+UI_SET_KEYBIT = 0x40045565
+UI_DEV_SETUP = 0x405C5503
+BUS_USB = 0x03
+EV_SYN, EV_KEY, EV_REP = 0x00, 0x01, 0x14
+SYN_REPORT = 0
+
+QUIT = 0x18       # Ctrl+X
+NEXT_TTY = 0x1C   # Ctrl+backslash
+TOGGLE_USB = 0x1F  # Ctrl+_ (Ctrl+| would collide with Ctrl+backslash)
+ESC = 0x1B
+ESC_TIMEOUT = 0.05  # s to tell a lone Esc apart from an escape sequence
+
 PROG = "ttykey"
+
+# Linux input keycodes (linux/input-event-codes.h)
+K_ESC, K_ENTER, K_TAB, K_BACKSPACE, K_SPACE = 1, 28, 15, 14, 57
+K_CTRL, K_SHIFT, K_ALT = 29, 42, 56
+K_HOME, K_UP, K_PAGEUP, K_LEFT = 102, 103, 104, 105
+K_RIGHT, K_END, K_DOWN, K_PAGEDOWN = 106, 107, 108, 109
+K_INSERT, K_DELETE = 110, 111
+K_F = {n: code for n, code in
+       enumerate([59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 87, 88], start=1)}
+
+LETTER_KEY = {}
+for _row, _base in (("qwertyuiop", 16), ("asdfghjkl", 30), ("zxcvbnm", 44)):
+    for _i, _ch in enumerate(_row):
+        LETTER_KEY[_ch] = _base + _i
+DIGIT_KEY = {ch: 2 + i for i, ch in enumerate("1234567890")}
+PUNCT_KEY = {
+    "-": 12, "=": 13, "[": 26, "]": 27, "\\": 43, ";": 39,
+    "'": 40, "`": 41, ",": 51, ".": 52, "/": 53, " ": K_SPACE,
+}
+SHIFT_OF = {  # shifted symbol -> the unshifted key it sits on (US layout)
+    "!": "1", "@": "2", "#": "3", "$": "4", "%": "5", "^": "6",
+    "&": "7", "*": "8", "(": "9", ")": "0", "_": "-", "+": "=",
+    "{": "[", "}": "]", "|": "\\", ":": ";", '"': "'", "~": "`",
+    "<": ",", ">": ".", "?": "/",
+}
 
 
 def die(msg: str) -> None:
     print(f"{PROG}: {msg}", file=sys.stderr)
     raise SystemExit(1)
+
+
+def note(msg: str) -> None:
+    """Status line that also renders correctly while our tty is raw."""
+    os.write(2, ("\r" + msg + "\r\n").encode())
+
+
+def char_key(ch: str):
+    """ASCII char -> (keycode, needs_shift), or None."""
+    if ch in LETTER_KEY:
+        return LETTER_KEY[ch], False
+    if ch.isupper() and ch.lower() in LETTER_KEY:
+        return LETTER_KEY[ch.lower()], True
+    if ch in DIGIT_KEY:
+        return DIGIT_KEY[ch], False
+    if ch in PUNCT_KEY:
+        return PUNCT_KEY[ch], False
+    if ch in SHIFT_OF:
+        code, _ = char_key(SHIFT_OF[ch])
+        return code, True
+    return None
+
+
+class UsbKeyboard:
+    """A virtual USB keyboard registered through /dev/uinput."""
+
+    def __init__(self):
+        try:
+            self.fd = os.open("/dev/uinput", os.O_WRONLY | os.O_NONBLOCK)
+        except OSError as e:
+            die(f"open /dev/uinput: {e.strerror} "
+                "(need root and the uinput module)")
+        try:
+            fcntl.ioctl(self.fd, UI_SET_EVBIT, EV_KEY)
+            fcntl.ioctl(self.fd, UI_SET_EVBIT, EV_REP)
+            for code in range(1, 256):
+                fcntl.ioctl(self.fd, UI_SET_KEYBIT, code)
+            setup = struct.pack(
+                "80sHHHHI", b"ttykey virtual keyboard",
+                BUS_USB, 0x1209, 0x0001, 1, 0,
+            )
+            fcntl.ioctl(self.fd, UI_DEV_SETUP, setup)
+            fcntl.ioctl(self.fd, UI_DEV_CREATE)
+        except OSError as e:
+            os.close(self.fd)
+            die(f"uinput setup: {e.strerror}")
+        time.sleep(0.2)  # let userspace notice the new device
+
+    def _events(self, events) -> None:
+        data = b"".join(
+            struct.pack("llHHi", 0, 0, etype, code, value)
+            for etype, code, value in events
+        )
+        try:
+            os.write(self.fd, data)
+        except OSError as e:
+            die(f"uinput write: {e.strerror}")
+
+    def tap(self, code, ctrl=False, shift=False, alt=False) -> None:
+        mods = (([K_CTRL] if ctrl else []) + ([K_ALT] if alt else [])
+                + ([K_SHIFT] if shift else []))
+        down = [(EV_KEY, m, 1) for m in mods] + [(EV_KEY, code, 1)]
+        up = [(EV_KEY, code, 0)] + [(EV_KEY, m, 0) for m in reversed(mods)]
+        self._events(down + [(EV_SYN, SYN_REPORT, 0)])
+        self._events(up + [(EV_SYN, SYN_REPORT, 0)])
+
+    def close(self) -> None:
+        if self.fd is not None:
+            try:
+                fcntl.ioctl(self.fd, UI_DEV_DESTROY)
+            except OSError:
+                pass
+            os.close(self.fd)
+            self.fd = None
+
+
+def emit_char(kb: UsbKeyboard, byte: int, alt=False) -> None:
+    """Turn one input byte into USB key events (ASCII/US layout)."""
+    if byte == 9:
+        kb.tap(K_TAB, alt=alt)
+    elif byte == 13:
+        kb.tap(K_ENTER, alt=alt)
+    elif byte == 127:
+        kb.tap(K_BACKSPACE, alt=alt)
+    elif byte == 0:  # Ctrl+Space / Ctrl+@
+        kb.tap(K_SPACE, ctrl=True, alt=alt)
+    elif 1 <= byte <= 26:  # Ctrl+A .. Ctrl+Z (Tab/Enter handled above)
+        kb.tap(LETTER_KEY[chr(96 + byte)], ctrl=True, alt=alt)
+    elif byte == 29:  # Ctrl+]
+        kb.tap(PUNCT_KEY["]"], ctrl=True, alt=alt)
+    elif byte == 30:  # Ctrl+^
+        kb.tap(DIGIT_KEY["6"], ctrl=True, shift=True, alt=alt)
+    elif 32 <= byte <= 126:
+        ck = char_key(chr(byte))
+        if ck:
+            code, shift = ck
+            kb.tap(code, shift=shift, alt=alt)
+    # 28/31 are our own switch keys; >=128 (UTF-8) has no single USB key.
+
+
+CSI_KEY = {"A": K_UP, "B": K_DOWN, "C": K_RIGHT, "D": K_LEFT,
+           "H": K_HOME, "F": K_END}
+TILDE_KEY = {
+    "1": K_HOME, "2": K_INSERT, "3": K_DELETE, "4": K_END,
+    "5": K_PAGEUP, "6": K_PAGEDOWN,
+    "11": K_F[1], "12": K_F[2], "13": K_F[3], "14": K_F[4], "15": K_F[5],
+    "17": K_F[6], "18": K_F[7], "19": K_F[8], "20": K_F[9], "21": K_F[10],
+    "23": K_F[11], "24": K_F[12],
+}
+SS3_KEY = {"A": K_UP, "B": K_DOWN, "C": K_RIGHT, "D": K_LEFT,
+           "H": K_HOME, "F": K_END,
+           "P": K_F[1], "Q": K_F[2], "R": K_F[3], "S": K_F[4]}
+
+
+def emit_csi(kb: UsbKeyboard, seq: bytes) -> None:
+    """Translate an ESC [ ... sequence, including xterm ;modifier forms."""
+    body, final = seq[2:-1].decode("ascii", "replace"), chr(seq[-1])
+    nums = [int(p) for p in body.split(";") if p.isdigit()]
+    ctrl = alt = shift = False
+    if len(nums) >= 2:  # xterm modifier param: 1 + shift(1) + alt(2) + ctrl(4)
+        bits = max(nums[1] - 1, 0)
+        ctrl, alt, shift = bool(bits & 4), bool(bits & 2), bool(bits & 1)
+    if final == "~":
+        key = TILDE_KEY.get(str(nums[0]) if nums else "")
+    else:
+        key = CSI_KEY.get(final)
+    if key:
+        kb.tap(key, ctrl=ctrl, alt=alt, shift=shift)
+
+
+def emit_ss3(kb: UsbKeyboard, seq: bytes) -> None:
+    key = SS3_KEY.get(chr(seq[-1]))
+    if key:
+        kb.tap(key)
 
 
 def inject(tfd: int, data: bytes, target: str) -> None:
@@ -36,14 +228,10 @@ def inject(tfd: int, data: bytes, target: str) -> None:
         fcntl.ioctl(tfd, TIOCSTI, data)
     except OSError as e:
         if e.errno == errno.EPERM:
-            die(
-                f"TIOCSTI denied on {target} "
-                "(need root/CAP_TIOCSTI, or sysctl dev.tty.legacy_tiocsti=1)"
-            )
+            die(f"TIOCSTI denied on {target} "
+                "(need root/CAP_TIOCSTI, or sysctl dev.tty.legacy_tiocsti=1)")
         if e.errno == errno.EIO:
             die(f"{target}: no session has that tty open")
-        if e.errno == errno.EBADF:
-            die(f"{target}: cannot inject into that fd")
         die(f"TIOCSTI on {target}: {e.strerror}")
 
 
@@ -53,48 +241,76 @@ def main() -> int:
         sys.stdout.write(__doc__)
         return 0
     if len(args) > 1:
-        die(f"usage: {PROG} [tty]")
-    target = args[0] if args else "/dev/tty1"
+        die(f"usage: {PROG} [target]")
+    start = args[0] if args else "1"
 
-    try:
-        if not stat.S_ISCHR(os.stat(target).st_mode):
-            die(f"{target}: not a character device")
-    except OSError as e:
-        die(f"{target}: {e.strerror}")
+    targets = [f"/dev/tty{i}" for i in range(1, 8)]
+    if start == "usb":
+        index = -1  # no tty selected yet; Ctrl+\\ lands on tty1
+    else:
+        if start.isdigit() and 1 <= int(start) <= 7:
+            start = f"/dev/tty{int(start)}"
+        if start not in targets:
+            targets.insert(0, start)  # custom tty path: cycle starts here
+        index = targets.index(start)
 
     stdin_fd = sys.stdin.fileno()
     if not sys.stdin.isatty():
         die("stdin is not a tty (use ssh -t for a pty)")
 
-    try:
-        tfd = os.open(target, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
-    except OSError as e:
-        die(f"open {target}: {e.strerror} (run as root)")
+    tty_fd = None
+    kb = None
+    usb_mode = start == "usb"
 
-    # Own terminal: raw mode so every key (including Ctrl combos) reaches us.
+    def open_tty(i: int) -> None:
+        nonlocal tty_fd
+        target = targets[i]
+        if tty_fd is not None:
+            os.close(tty_fd)
+            tty_fd = None
+        try:
+            if not stat.S_ISCHR(os.stat(target).st_mode):
+                die(f"{target}: not a character device")
+            tty_fd = os.open(target, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+        except OSError as e:
+            die(f"{target}: {e.strerror} (run as root)")
+
+    def show() -> None:
+        if usb_mode:
+            note(f"{PROG}: usb - virtual USB keyboard, focused console/app "
+                 "gets the keys (Ctrl+_: back to tty, Ctrl+X: quit)")
+        else:
+            note(f"{PROG}: {targets[index]} - TIOCSTI injection "
+                 "(Ctrl+\\: next tty, Ctrl+_: usb, Ctrl+X: quit)")
+
+    if usb_mode:
+        kb = UsbKeyboard()
+    else:
+        open_tty(index)
+    show()
+
     saved = termios.tcgetattr(stdin_fd)
 
     def restore(*_a) -> None:
         termios.tcsetattr(stdin_fd, termios.TCSADRAIN, saved)
 
-    def on_signal(_sig, _frm) -> None:
+    def on_signal(sig, _frm) -> None:
         restore()
-        raise SystemExit(128 + _sig)
+        raise SystemExit(128 + sig)
 
     for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, on_signal)
 
-    print(
-        f"{PROG}: typing into {target} - Ctrl+X to quit",
-        file=sys.stderr,
-        flush=True,
-    )
     tty.setraw(stdin_fd)
-
+    pending = b""  # partial escape sequence, usb mode only
     try:
         while True:
-            ready, _, _ = select.select([stdin_fd], [], [])
-            if not ready:
+            timeout = ESC_TIMEOUT if (usb_mode and pending) else None
+            ready, _, _ = select.select([stdin_fd], [], [], timeout)
+            if not ready:  # lone Esc (or an aborted sequence)
+                if pending == b"\x1b":
+                    kb.tap(K_ESC)
+                pending = b""
                 continue
             data = os.read(stdin_fd, 4096)
             if not data:
@@ -102,16 +318,52 @@ def main() -> int:
             for byte in data:
                 if byte == QUIT:
                     return 0
-                inject(tfd, bytes([byte]), target)
-    except OSError as e:
-        if e.errno != errno.EIO:
-            raise
-        die(f"{target}: tty hung up")
+                if byte == NEXT_TTY:
+                    index = (index + 1) % len(targets)
+                    usb_mode = False
+                    open_tty(index)
+                    show()
+                    pending = b""
+                    continue
+                if byte == TOGGLE_USB:
+                    usb_mode = not usb_mode
+                    if usb_mode and kb is None:
+                        kb = UsbKeyboard()
+                    if not usb_mode and tty_fd is None:
+                        index = 0
+                        open_tty(index)
+                    show()
+                    pending = b""
+                    continue
+                if not usb_mode:
+                    inject(tty_fd, bytes([byte]), targets[index])
+                    continue
+
+                # usb mode: decode escape sequences into key events
+                pending += bytes([byte])
+                if len(pending) == 1:
+                    if byte != ESC:
+                        emit_char(kb, byte)
+                        pending = b""
+                    continue
+                second = pending[1]
+                if second == ord("["):
+                    if len(pending) > 2 and 0x40 <= byte <= 0x7E:
+                        emit_csi(kb, pending)
+                        pending = b""
+                    continue
+                if second == ord("O"):
+                    if len(pending) == 3:
+                        emit_ss3(kb, pending)
+                        pending = b""
+                    continue
+                emit_char(kb, second, alt=True)  # ESC + key = Alt+key
+                pending = b""
     finally:
-        try:
-            os.close(tfd)
-        except OSError:
-            pass
+        if tty_fd is not None:
+            os.close(tty_fd)
+        if kb is not None:
+            kb.close()
         restore()
     return 0
 
