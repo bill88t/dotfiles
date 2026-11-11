@@ -14,8 +14,9 @@ Targets:
 Keys (consumed locally, never forwarded):
   Ctrl+X    quit
   Ctrl+\\    next tty: tty1 -> tty2 -> ... -> tty7 -> tty1 (also leaves usb mode)
-  Ctrl+_    toggle the virtual USB keyboard on/off (often also Ctrl+/)
-            (Ctrl+| cannot be used: terminals send the same byte as Ctrl+\\)
+  Ctrl+]    toggle the virtual USB keyboard on/off
+            (Ctrl+[ is plain Esc, and Ctrl+| sends the same byte as Ctrl+\\,
+             so neither can be used)
 
 Everything else is passed through, so Ctrl+C, arrows, etc. keep working.
 Run as root (the ttys and /dev/uinput are root-only).
@@ -51,7 +52,7 @@ SYN_REPORT = 0
 
 QUIT = 0x18       # Ctrl+X
 NEXT_TTY = 0x1C   # Ctrl+backslash
-TOGGLE_USB = 0x1F  # Ctrl+_ (Ctrl+| would collide with Ctrl+backslash)
+TOGGLE_USB = 0x1D  # Ctrl+]
 ESC = 0x1B
 ESC_TIMEOUT = 0.05  # s to tell a lone Esc apart from an escape sequence
 
@@ -174,8 +175,6 @@ def emit_char(kb: UsbKeyboard, byte: int, alt=False) -> None:
         kb.tap(K_SPACE, ctrl=True, alt=alt)
     elif 1 <= byte <= 26:  # Ctrl+A .. Ctrl+Z (Tab/Enter handled above)
         kb.tap(LETTER_KEY[chr(96 + byte)], ctrl=True, alt=alt)
-    elif byte == 29:  # Ctrl+]
-        kb.tap(PUNCT_KEY["]"], ctrl=True, alt=alt)
     elif byte == 30:  # Ctrl+^
         kb.tap(DIGIT_KEY["6"], ctrl=True, shift=True, alt=alt)
     elif 32 <= byte <= 126:
@@ -183,7 +182,7 @@ def emit_char(kb: UsbKeyboard, byte: int, alt=False) -> None:
         if ck:
             code, shift = ck
             kb.tap(code, shift=shift, alt=alt)
-    # 28/31 are our own switch keys; >=128 (UTF-8) has no single USB key.
+    # 28/29 are our own switch keys; >=128 (UTF-8) has no single USB key.
 
 
 CSI_KEY = {"A": K_UP, "B": K_DOWN, "C": K_RIGHT, "D": K_LEFT,
@@ -278,10 +277,10 @@ def main() -> int:
     def show() -> None:
         if usb_mode:
             note(f"{PROG}: usb - virtual USB keyboard, focused console/app "
-                 "gets the keys (Ctrl+_: back to tty, Ctrl+X: quit)")
+                 "gets the keys (Ctrl+]: back to tty, Ctrl+X: quit)")
         else:
             note(f"{PROG}: {targets[index]} - TIOCSTI injection "
-                 "(Ctrl+\\: next tty, Ctrl+_: usb, Ctrl+X: quit)")
+                 "(Ctrl+\\: next tty, Ctrl+]: usb, Ctrl+X: quit)")
 
     if usb_mode:
         kb = UsbKeyboard()
