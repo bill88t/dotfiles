@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""ttykey - use this terminal as a keyboard for another tty.
+
+Usage: ttykey [tty]        (default: /dev/tty1)
+
+Every byte you type here is pushed into the target tty's input queue via
+TIOCSTI, so it behaves exactly as if typed on that console. Press Ctrl+X
+to quit. Run it as root (the target tty is usually root-only).
+
+Typical use over ssh:  ssh -t root@host ttykey /dev/tty1
+"""
+
+import errno
+import fcntl
+import os
+import select
+import signal
+import stat
+import sys
+import termios
+import tty
+
+TIOCSTI = 0x5412
+QUIT = 0x18  # Ctrl+X
+PROG = "ttykey"
+
+
+def die(msg: str) -> None:
+    print(f"{PROG}: {msg}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def inject(tfd: int, data: bytes, target: str) -> None:
+    """Push one byte into the target tty's input queue."""
+    try:
+        fcntl.ioctl(tfd, TIOCSTI, data)
+    except OSError as e:
+        if e.errno == errno.EPERM:
+            die(
+                f"TIOCSTI denied on {target} "
+                "(need root/CAP_TIOCSTI, or sysctl dev.tty.legacy_tiocsti=1)"
+            )
+        if e.errno == errno.EIO:
+            die(f"{target}: no session has that tty open")
+        if e.errno == errno.EBADF:
+            die(f"{target}: cannot inject into that fd")
+        die(f"TIOCSTI on {target}: {e.strerror}")
+
+
+def main() -> int:
+    args = sys.argv[1:]
+    if args and args[0] in ("-h", "--help"):
+        sys.stdout.write(__doc__)
+        return 0
+    if len(args) > 1:
+        die(f"usage: {PROG} [tty]")
+    target = args[0] if args else "/dev/tty1"
+
+    try:
+        if not stat.S_ISCHR(os.stat(target).st_mode):
+            die(f"{target}: not a character device")
+    except OSError as e:
+        die(f"{target}: {e.strerror}")
+
+    stdin_fd = sys.stdin.fileno()
+    if not sys.stdin.isatty():
+        die("stdin is not a tty (use ssh -t for a pty)")
+
+    try:
+        tfd = os.open(target, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+    except OSError as e:
+        die(f"open {target}: {e.strerror} (run as root)")
+
+    # Own terminal: raw mode so every key (including Ctrl combos) reaches us.
+    saved = termios.tcgetattr(stdin_fd)
+
+    def restore(*_a) -> None:
+        termios.tcsetattr(stdin_fd, termios.TCSADRAIN, saved)
+
+    def on_signal(_sig, _frm) -> None:
+        restore()
+        raise SystemExit(128 + _sig)
+
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, on_signal)
+
+    print(
+        f"{PROG}: typing into {target} - Ctrl+X to quit",
+        file=sys.stderr,
+        flush=True,
+    )
+    tty.setraw(stdin_fd)
+
+    try:
+        while True:
+            ready, _, _ = select.select([stdin_fd], [], [])
+            if not ready:
+                continue
+            data = os.read(stdin_fd, 4096)
+            if not data:
+                break  # stdin closed (ssh hangup)
+            for byte in data:
+                if byte == QUIT:
+                    return 0
+                inject(tfd, bytes([byte]), target)
+    except OSError as e:
+        if e.errno != errno.EIO:
+            raise
+        die(f"{target}: tty hung up")
+    finally:
+        try:
+            os.close(tfd)
+        except OSError:
+            pass
+        restore()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
