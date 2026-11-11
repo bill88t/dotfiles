@@ -1,0 +1,2 @@
+# Keychron VIA access (hidraw) for usevia.app
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", ATTRS{idProduct}=="0430", MODE="0660", GROUP="uucp", TAG+="uaccess"

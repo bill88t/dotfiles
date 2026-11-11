@@ -43,6 +43,9 @@ KEYD_DST = Path("/etc/keyd")
 CLAM_SRC = SCRIPT_DIR / "clamav"
 CLAM_DST = Path("/etc/clamav")
 
+KEYCHRON_RULES_SRC = SCRIPT_DIR / "keychron.rules"
+KEYCHRON_RULES_DST = Path("/etc/udev/rules.d/66-keychron-c3pro.rules")
+
 AUTH_KEYS_SRC = SCRIPT_DIR / "authorized_keys"
 AUTH_KEYS_DST = HOME / ".ssh"
 
@@ -986,6 +989,16 @@ def install_clamav(force=False) -> None:
 
     print("All good.")
 
+def install_keychron(force=False) -> None:
+    print(f"Installing udev rule {KEYCHRON_RULES_DST}...")
+    subprocess.run(["sudo", "cp", "-v", str(KEYCHRON_RULES_SRC), str(KEYCHRON_RULES_DST)], check=True)
+
+    print("Reloading udev rules and retriggering hidraw devices...")
+    subprocess.run(["sudo", "udevadm", "control", "--reload-rules"])
+    subprocess.run(["sudo", "udevadm", "trigger", "--subsystem-match=hidraw"])
+
+    print("All good.")
+
 def install_sshkeys(force=False) -> None:
     AUTH_KEYS_DST.mkdir(parents=True, exist_ok=True)
     print('Overwritting ' + str(AUTH_KEYS_DST / "authorized_keys"))
@@ -1061,6 +1074,7 @@ INSTALLERS = {
     "matlab": install_matlab,
     "newsrc": install_newsrc,
     "keyd": install_keyd,
+    "keychron": install_keychron,
     "clam": install_clamav,
     "sshkeys": install_sshkeys,
     "halloy": install_halloy,

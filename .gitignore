@@ -2,3 +2,4 @@ git-credentials
 dotsecrets.bash
 dotsecrets.xonsh
 waybar/minimal_mode
+__pycache__
