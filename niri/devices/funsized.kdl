@@ -1,3 +1,3 @@
 binds {
-    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/3b20bae4d0a9adbdcbda27cf01ecfc5a7c8d6551.jpeg" "--font" "Inter" "-e"; }
+    Mod+L { spawn "swaylock" "--image" "/home/bill88t/Pictures/wallpapers/desktop/Gelly_7d539ee6ce2fe13da1d98fc03ff21108.png" "--font" "Inter" "-e"; }
 }
