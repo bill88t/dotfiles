@@ -780,6 +780,14 @@ def install_niri(force=False) -> None:
     if not install_packages(NIRI_PKGS):
         return
 
+    # nautilus pulls in tracker; keep its indexer from chewing the disk
+    print("Disabling localsearch-3.. ", end="")
+    subprocess.run(
+        ["systemctl", "--user", "disable", "--now", "localsearch-3"],
+        check=False,
+    )
+    print("OK")
+
     # Ensure target dir is a real directory (unlink symlink if present)
     if target_dir.is_symlink():
         target_dir.unlink()
