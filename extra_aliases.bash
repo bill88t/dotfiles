@@ -131,29 +131,31 @@ alias cookies="yt-dlp --cookies cookies.txt --cookies-from-browser firefox"
 
 zcomp() {
   if [ $# -eq 0 ]; then
-    echo "Usage: zstd_compress_rm file_or_dir1 [file_or_dir2 ...]"
+    echo "Usage: zcomp file_or_dir1 [file_or_dir2 ...]"
     return 1
   fi
+
+  set -o pipefail
 
   for item in "$@"; do
     if [ -f "$item" ]; then
       # Regular file
-      zstd -20 --ultra -T0 --long=31 "$item"
+      zstd -20 --ultra -T0 --long=31 -- "$item"
       if [ $? -eq 0 ]; then
         echo "Successfully compressed file $item, removing original"
-        rm "$item"
+        rm -- "$item"
       else
         echo "Failed to compress file $item, keeping original"
       fi
     elif [ -d "$item" ]; then
       # Directory - create a tar.zst archive
       output_file="${item%/}.tar.zst"
-      tar -cf - "$item" | zstd -20 --ultra -T0 --long=31 > "$output_file"
-      if [ $? -eq 0 ]; then
+      if tar -cf - -- "$item" | zstd -20 --ultra -T0 --long=31 > "$output_file"; then
         echo "Successfully compressed directory $item to $output_file, removing original"
-        rm -r "$item"
+        rm -r -- "$item"
       else
         echo "Failed to compress directory $item, keeping original"
+        rm -f -- "$output_file"
       fi
     else
       echo "Warning: $item is not a file or directory, skipping"
@@ -167,6 +169,8 @@ zarchive() {
     return 1
   fi
 
+  set -o pipefail
+
   output_file="$1"
   shift
 
@@ -174,14 +178,13 @@ zarchive() {
   original_items=("$@")
 
   # Create a tar archive and pipe it to zstd
-  tar -cf - "$@" | zstd -20 --ultra -T0 --long=31 > "$output_file"
-
-  if [ $? -eq 0 ]; then
+  if tar -cf - -- "$@" | zstd -20 --ultra -T0 --long=31 > "$output_file"; then
     echo "Successfully created compressed archive $output_file, removing original files/directories"
-    rm -r "${original_items[@]}"
+    rm -r -- "${original_items[@]}"
     return 0
   else
     echo "Failed to create compressed archive, keeping original files/directories"
+    rm -f -- "$output_file"
     return 1
   fi
 }
@@ -199,12 +202,12 @@ zextract() {
     return 1
   fi
 
-  # Extract using zstd -> tar
-  zstd -d -c --long=31 "$archive_file" | tar -xf -
+  set -o pipefail
 
-  if [ $? -eq 0 ]; then
+  # Extract using zstd -> tar
+  if zstd -d -c --long=31 -- "$archive_file" | tar -xf -; then
     echo "Successfully extracted archive $archive_file, removing archive file"
-    rm "$archive_file"
+    rm -- "$archive_file"
     return 0
   else
     echo "Failed to extract archive $archive_file, keeping archive file"
