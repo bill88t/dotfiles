@@ -265,14 +265,20 @@ dex_cadmium() {
     sudo systemctl stop firewalld
 
     echo "Connecting.."
-    adb connect 192.168.1.231:5555
+    if ! adb connect 192.168.1.231:5555 | grep -q "connected"; then
+        echo "Connect failed." >&2
+        sudo systemctl start firewalld
+        return 1
+    fi
 
     echo "Launching scrcpy.."
     scrcpy \
         --fullscreen \
-        --new-display=1920x1200/180 \
+        --new-display=1920x1200/150 \
+        --flex-display \
         --video-codec=h265 -b16M \
         --max-fps=60 \
+        --keep-active \
         --mouse=uhid
 
     echo "Killing adb.."
