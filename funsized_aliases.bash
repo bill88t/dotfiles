@@ -75,3 +75,26 @@ update_sd() {
     git submodule update --init --recursive
     build_sd
 }
+
+dex_cadmium() {
+    echo "Connecting.."
+    if ! adb connect 192.168.1.231:5555 | grep -q "connected"; then
+        echo "Connect failed." >&2
+        return 1
+    fi
+
+    echo "Launching scrcpy.."
+    scrcpy \
+        --fullscreen \
+        --new-display=1920x1200/150 \
+        --flex-display \
+        --video-codec=h265 -b16M \
+        --max-fps=60 \
+        --keep-active \
+        --require-audio \
+        --mouse=uhid
+
+    echo "Killing adb.."
+    adb disconnect
+    adb kill-server
+}
