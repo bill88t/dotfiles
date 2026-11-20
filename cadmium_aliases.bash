@@ -25,6 +25,17 @@ alias vncstop="vncserver -kill :1 && termux-wake-unlock"
 build_llama() {
     cd ~/git/llama.cpp
 
+    if [ -d build ]; then
+        echo "Removing existing build dir"
+        rm -rf build
+    fi
+
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DGGML_CCACHE=OFF -DGGML_NATIVE=ON -DGGML_VULKAN=ON -DGGML_CPU_KLEIDIAI=ON
     cmake --build build --config Release -j10
+}
+
+update_llama() {
+    cd ~/git/llama.cpp
+    git pull
+    build_llama
 }

@@ -211,7 +211,19 @@ build_llama() {
     cd /home/bill88t/git/llama.cpp
     sudo ulimit -l unlimited
     source /opt/intel/oneapi/setvars.sh
+
+    if [ -d build ]; then
+        echo "Removing existing build dir"
+        rm -rf build
+    fi
+
     cmake -B build -DGGML_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DGGML_SYCL_F16=ON -DCMAKE_BUILD_TYPE=Release -DGGML_CCACHE=OFF -DGGML_NATIVE=ON && cmake --build build --config Release -j8
+}
+
+update_llama() {
+    cd /home/bill88t/git/llama.cpp
+    git pull
+    build_llama
 }
 
 export PATH="$HOME/git/llama.cpp/build/bin:$PATH"
