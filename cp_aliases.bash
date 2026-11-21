@@ -1,5 +1,21 @@
-alias espload='source ~/git/esp-idf-v5.5.3/export.sh'
-alias esp6load='source ~/git/esp-idf-v6.0.2/export.sh'
+# ESP-IDF (eim installs): scans ~/.espressif on shell startup and makes an
+# espload-vX.Y.Z alias per install that sources its eim activate script.
+# `espload` itself always points at the newest version found.
+_espload_versions=()
+for _espload_dir in "$HOME"/.espressif/v*/; do
+    [[ -d "$_espload_dir" ]] || continue
+    _espload_ver="$(basename "$_espload_dir")"
+    if [[ -s "$HOME/.espressif/tools/activate_idf_${_espload_ver}.sh" ]]; then
+        _espload_versions+=("$_espload_ver")
+        alias "espload-${_espload_ver#v}"=". \"\$HOME/.espressif/tools/activate_idf_${_espload_ver}.sh\""
+    fi
+done
+if (( ${#_espload_versions[@]} )); then
+    mapfile -t _espload_versions < <(printf '%s\n' "${_espload_versions[@]}" | sort -V)
+    _espload_latest="${_espload_versions[-1]}"
+    alias espload=". \"\$HOME/.espressif/tools/activate_idf_${_espload_latest}.sh\""
+fi
+unset _espload_versions _espload_dir _espload_ver _espload_latest
 
 function lcontains {
   local list="$1"
