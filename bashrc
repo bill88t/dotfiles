@@ -28,7 +28,7 @@ color_prompt=yes
 . ~/git/dotfiles/rkdev_aliases.bash     # rkdeveloptool aliases
 . ~/git/dotfiles/veracrypt_aliases.bash # veracrypt aliases
 . ~/git/dotfiles/arch_aliases.bash      # For use on arch distros.
-. ~/git/dotfiles/bred_aliases.bash      # For use on BredOS.
+. ~/git/dotfiles/bred_aliases.bash      # For use on Beryllium OS.
 #. ~/git/dotfiles/bixel_aliases.bash     # Google Pixel 2XL
 #. ~/git/dotfiles/thinkpood_aliases.bash # Thinkpad T480
 #. ~/git/dotfiles/motog32_aliases.bash   # Moto G32
