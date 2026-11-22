@@ -37,6 +37,14 @@ _build_ps1() {
     prompt_body="$(echo "${sections[*]}")"
 
     PS1="\[\e[0m\][$prompt_body]\[\e[1;38;5;37m\]>\[\e[0m\] "
+
+    # Window title: "Remote: " prefix on ssh sessions, "Local: " otherwise
+    local title_prefix="Local: "
+    if [[ -n $SSH_CONNECTION ]]; then
+        title_prefix="Remote: "
+    fi
+    local title_dir=${PWD//$HOME/\~}
+    printf '\e]0;%s%s@%s:%s\e\\' "$title_prefix" "$USER" "$HOSTNAME" "$title_dir"
 }
 
 PROMPT_COMMAND=_build_ps1

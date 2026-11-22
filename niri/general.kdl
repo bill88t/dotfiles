@@ -219,6 +219,18 @@ window-rule {
     }
 }
 
+// SSH session marker: green border on Alacritty windows whose title looks like user@host:...
+window-rule {
+    match app-id="^Alacritty$" title="^Remote:"
+
+    border {
+        on
+        width 3
+        active-color "#4cc44c"
+        inactive-color "#1f5c1f"
+    }
+}
+
 layer-rule {
     match layer="top"
     match layer="overlay"
